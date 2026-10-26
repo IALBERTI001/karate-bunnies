@@ -1,0 +1,272 @@
+[
+  {
+    "width": 320,
+    "height": 568,
+    "screen": "title",
+    "tiny": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "screen": "settings",
+    "tiny": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "screen": "arenas",
+    "tiny": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "screen": "fighter",
+    "tiny": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "screen": "reveal",
+    "tiny": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "screen": "fight",
+    "tiny": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "screen": "pause",
+    "tiny": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "screen": "fight-settings",
+    "tiny": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "screen": "search",
+    "tiny": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "screen": "title",
+    "tiny": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "screen": "settings",
+    "tiny": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "screen": "arenas",
+    "tiny": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "screen": "fighter",
+    "tiny": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "screen": "reveal",
+    "tiny": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "screen": "fight",
+    "tiny": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "screen": "pause",
+    "tiny": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "screen": "fight-settings",
+    "tiny": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "screen": "search",
+    "tiny": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "screen": "title",
+    "tiny": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "screen": "settings",
+    "tiny": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "screen": "arenas",
+    "tiny": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "screen": "fighter",
+    "tiny": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "screen": "reveal",
+    "tiny": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "screen": "fight",
+    "tiny": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "screen": "pause",
+    "tiny": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "screen": "fight-settings",
+    "tiny": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "screen": "search",
+    "tiny": []
+  },
+  {
+    "width": 1239,
+    "height": 869,
+    "screen": "title",
+    "tiny": []
+  },
+  {
+    "width": 1239,
+    "height": 869,
+    "screen": "settings",
+    "tiny": []
+  },
+  {
+    "width": 1239,
+    "height": 869,
+    "screen": "arenas",
+    "tiny": []
+  },
+  {
+    "width": 1239,
+    "height": 869,
+    "screen": "fighter",
+    "tiny": []
+  },
+  {
+    "width": 1239,
+    "height": 869,
+    "screen": "reveal",
+    "tiny": []
+  },
+  {
+    "width": 1239,
+    "height": 869,
+    "screen": "fight",
+    "tiny": []
+  },
+  {
+    "width": 1239,
+    "height": 869,
+    "screen": "pause",
+    "tiny": []
+  },
+  {
+    "width": 1239,
+    "height": 869,
+    "screen": "fight-settings",
+    "tiny": []
+  },
+  {
+    "width": 1239,
+    "height": 869,
+    "screen": "search",
+    "tiny": []
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "screen": "title",
+    "tiny": []
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "screen": "settings",
+    "tiny": []
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "screen": "arenas",
+    "tiny": []
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "screen": "fighter",
+    "tiny": []
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "screen": "reveal",
+    "tiny": []
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "screen": "fight",
+    "tiny": []
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "screen": "pause",
+    "tiny": []
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "screen": "fight-settings",
+    "tiny": []
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "screen": "search",
+    "tiny": []
+  }
+]

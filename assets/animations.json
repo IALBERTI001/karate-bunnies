@@ -1,0 +1,167 @@
+{
+  "atlas": "bunny-animation-atlas.png",
+  "columns": 8,
+  "rows": 8,
+  "framesPerAnimation": 4,
+  "animations": [
+    {
+      "name": "Idle",
+      "fps": 5,
+      "loop": true,
+      "atlas": 2,
+      "startFrame": 0
+    },
+    {
+      "name": "Walk forward",
+      "fps": 8,
+      "loop": true,
+      "atlas": 2,
+      "startFrame": 4
+    },
+    {
+      "name": "Walk backward",
+      "fps": 8,
+      "loop": true,
+      "atlas": 0,
+      "startFrame": 8
+    },
+    {
+      "name": "Guard",
+      "fps": 7,
+      "loop": true,
+      "atlas": 0,
+      "startFrame": 12
+    },
+    {
+      "name": "Punch one",
+      "fps": 10,
+      "loop": false,
+      "atlas": 0,
+      "startFrame": 16
+    },
+    {
+      "name": "Punch two",
+      "fps": 10,
+      "loop": false,
+      "atlas": 1,
+      "startFrame": 0
+    },
+    {
+      "name": "Combo kick",
+      "fps": 9,
+      "loop": false,
+      "atlas": 1,
+      "startFrame": 4
+    },
+    {
+      "name": "Spinning kick",
+      "fps": 9,
+      "loop": false,
+      "atlas": 1,
+      "startFrame": 8
+    },
+    {
+      "name": "Low kick",
+      "fps": 9,
+      "loop": false,
+      "atlas": 0,
+      "startFrame": 24
+    },
+    {
+      "name": "High head kick",
+      "fps": 9,
+      "loop": false,
+      "atlas": 0,
+      "startFrame": 28
+    },
+    {
+      "name": "Front chest kick",
+      "fps": 9,
+      "loop": false,
+      "atlas": 0,
+      "startFrame": 32
+    },
+    {
+      "name": "Hit reaction",
+      "fps": 9,
+      "loop": false,
+      "atlas": 0,
+      "startFrame": 36
+    },
+    {
+      "name": "Knockback",
+      "fps": 8,
+      "loop": false,
+      "atlas": 0,
+      "startFrame": 40
+    },
+    {
+      "name": "Airborne launch",
+      "fps": 7,
+      "loop": false,
+      "atlas": 0,
+      "startFrame": 44
+    },
+    {
+      "name": "Landing",
+      "fps": 8,
+      "loop": false,
+      "atlas": 0,
+      "startFrame": 48
+    },
+    {
+      "name": "Bow",
+      "fps": 6,
+      "loop": false,
+      "atlas": 0,
+      "startFrame": 52
+    },
+    {
+      "name": "Victory",
+      "fps": 6,
+      "loop": false,
+      "atlas": 0,
+      "startFrame": 56
+    },
+    {
+      "name": "Defeat recovery",
+      "fps": 6,
+      "loop": false,
+      "atlas": 0,
+      "startFrame": 60
+    }
+  ],
+  "fur": {
+    "White": "#FFFDF9",
+    "Cream": "#E9D0AA",
+    "Gray": "#AAA1A3",
+    "Tan": "#D09A64"
+  },
+  "gi": {
+    "Coral": "#EF8E85",
+    "Mint": "#91C8A0",
+    "Lavender": "#B6A0D5",
+    "Sky blue": "#87BCE6",
+    "Purple": "#8053BA",
+    "Pink": "#EE9BC4",
+    "Black": "#292831"
+  },
+  "atlases": [
+    {
+      "file": "bunny-animation-atlas.png",
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "file": "bunny-attacks-atlas.png",
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "file": "bunny-idle-walk-padded.png",
+      "columns": 4,
+      "rows": 2,
+      "padded": true
+    }
+  ]
+}

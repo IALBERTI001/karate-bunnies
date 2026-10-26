@@ -1,0 +1,271 @@
+{
+  "environment": "Microsoft Edge Chromium, emulated viewport and CDP touch input; not physical hardware",
+  "results": [
+    {
+      "viewport": "320×568",
+      "normal": {
+        "direction": [
+          48,
+          48
+        ],
+        "attack": [
+          64,
+          64
+        ],
+        "guard": [
+          64,
+          64
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "large": {
+        "direction": [
+          48,
+          48
+        ],
+        "attack": [
+          68,
+          68
+        ],
+        "guard": [
+          68,
+          68
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "touch": "two-finger hold, Up-to-Down slide, release passed"
+    },
+    {
+      "viewport": "360×640",
+      "normal": {
+        "direction": [
+          48,
+          48
+        ],
+        "attack": [
+          64,
+          64
+        ],
+        "guard": [
+          64,
+          64
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "large": {
+        "direction": [
+          48,
+          48
+        ],
+        "attack": [
+          68,
+          68
+        ],
+        "guard": [
+          68,
+          68
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "touch": "not repeated at this size"
+    },
+    {
+      "viewport": "390×844",
+      "normal": {
+        "direction": [
+          48,
+          48
+        ],
+        "attack": [
+          72,
+          72
+        ],
+        "guard": [
+          72,
+          72
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "large": {
+        "direction": [
+          48,
+          48
+        ],
+        "attack": [
+          80,
+          80
+        ],
+        "guard": [
+          80,
+          80
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "touch": "two-finger hold, Up-to-Down slide, release passed"
+    },
+    {
+      "viewport": "430×932",
+      "normal": {
+        "direction": [
+          48,
+          48
+        ],
+        "attack": [
+          72,
+          72
+        ],
+        "guard": [
+          72,
+          72
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "large": {
+        "direction": [
+          48,
+          48
+        ],
+        "attack": [
+          80,
+          80
+        ],
+        "guard": [
+          80,
+          80
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "touch": "not repeated at this size"
+    },
+    {
+      "viewport": "768×1024",
+      "normal": {
+        "direction": [
+          56,
+          56
+        ],
+        "attack": [
+          88,
+          88
+        ],
+        "guard": [
+          88,
+          88
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "large": {
+        "direction": [
+          60,
+          60
+        ],
+        "attack": [
+          100,
+          100
+        ],
+        "guard": [
+          100,
+          100
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "touch": "two-finger hold, Up-to-Down slide, release passed"
+    },
+    {
+      "viewport": "1024×768",
+      "normal": {
+        "direction": [
+          56,
+          56
+        ],
+        "attack": [
+          88,
+          88
+        ],
+        "guard": [
+          88,
+          88
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "large": {
+        "direction": [
+          60,
+          60
+        ],
+        "attack": [
+          100,
+          100
+        ],
+        "guard": [
+          100,
+          100
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "touch": "not repeated at this size"
+    },
+    {
+      "viewport": "844×390",
+      "normal": {
+        "direction": [
+          48,
+          48
+        ],
+        "attack": [
+          72,
+          72
+        ],
+        "guard": [
+          72,
+          72
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "large": {
+        "direction": [
+          48,
+          48
+        ],
+        "attack": [
+          80,
+          80
+        ],
+        "guard": [
+          80,
+          80
+        ],
+        "inside": true,
+        "separated": true,
+        "documentScroll": false
+      },
+      "touch": "not repeated at this size"
+    }
+  ]
+}
