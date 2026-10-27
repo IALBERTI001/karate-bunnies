@@ -31,6 +31,11 @@ Keep the complete experience inside the game. Exercise title → arena → custo
 - Belt masks inspected on every pose in all three atlases after three rounds of fixes (side-view belts missed, a hidden-belt frame missed, outline specks). Belt colours inspected on six fur/gi combinations; first shading was too dark (white read grey) and was brightened.
 - Brown belt on a black gi is the lowest-contrast combination; readable but quiet.
 
+## Celebrations pass (2026-10-27, ?fx=v1)
+
+- Inspected launch, knockback, chain and KO captures on desktop and a phone with Reduced motion. Pops sit above the opponent and stay inside the arena.
+- Feel is not established: hit-stop length, word frequency and slow-mo duration need a human playtest on a real phone.
+
 ## Open quality gates
 
 - Physical Android/iPhone/tablet input, Safari rendering, browser chrome and safe-area behavior, and mobile audio interruptions need device validation.

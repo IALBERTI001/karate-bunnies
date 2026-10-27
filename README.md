@@ -130,3 +130,13 @@ Belts are recoloured with per-atlas masks in assets/belt-mask-<n>.png, built by 
 ## Phone landscape fix
 
 At short landscape sizes the themed control band had been painted solid over the arena and hid the fighters below the shoulders. The band is now transparent there, as the landscape layout intended; the d-pad and buttons keep their solid faces. Inspected at 667×375, 844×390 and 932×430; qa-touch-layouts.cjs passes.
+
+## Big-moment celebrations preview (`?fx=v1`)
+
+Open http://127.0.0.1:8787/?fx=v1 (combine with `&story=v1`). Solo fights only; online VS is unchanged.
+
+- Hit-stop: the fight freezes for 0.05 s on a hit and 0.11 s on a launch, knockback or chain finisher (halved with Reduced motion).
+- Word pops above the opponent when your bunny lands a launch (Wheee! / Up you go!), a front-kick knockback (Pow! / Boom!) or a spin that finishes the tap chain (Combo! / Hi-yah!), at most one every 0.8 s, with a two-note chime. They are drawn on the arena canvas at 24 CSS pixels or larger and hold still with Reduced motion.
+- KO slow motion: a winning knockout plays at 35% speed for 0.9 s before the result (off with Reduced motion).
+
+Hit events now include `move` and `chain` so effects can tell moves apart. `node qa-fx.cjs` (server running) lands each move in a real browser fight and checks the pops, hit-stop, KO slow-mo, Reduced motion and the flag-off game.

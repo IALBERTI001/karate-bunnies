@@ -19,3 +19,13 @@ for(const [key,name]of [['down','low'],['up','high'],['right','front'],['left','
 test('A clean punch keeps the full hit reaction visible and prevents an immediate action',()=>{const m=ready();attack(m);run(m,.14);const target=m.fighters[1];assert.equal(target.action,'hit');assert.equal(target.animation,11);input(m,1,{type:'attackDown'});input(m,1,{type:'attackUp'});assert.equal(target.move,null);run(m,.32);assert.equal(target.action,'hit');assert.equal(target.animation,11);assert.ok(target.time>=.3);run(m,.18);assert.equal(target.action,'idle');assert.equal(target.animation,0);});
 
 test('Grounded fighter bodies keep enough space to avoid drawing over one another',()=>{const m=ready();run(m,.02);assert.ok(Math.abs(m.fighters[1].x-m.fighters[0].x)>=140);attack(m);run(m,.2);assert.ok(m.fighters[1].hp<100);});
+
+test('hit events name the move and mark a spin that finishes the tap chain', () => {
+  const chain = ready(); const seen = [];
+  for (let k = 0; k < 4; k++) { attack(chain, null); run(chain, 0.75); chain.fighters[1].x = 550; chain.fighters[0].x = 440; }
+  for (const e of chain.events) if (e.type === 'hit') seen.push([e.move, e.chain]);
+  assert.ok(seen.some(([m, c]) => m === 'spin' && c === true), JSON.stringify(seen));
+  const direct = ready(); attack(direct, 'left'); run(direct, 0.8);
+  const hit = direct.events.find(e => e.type === 'hit');
+  assert.equal(hit?.move, 'spin'); assert.equal(hit.chain, false);
+});
