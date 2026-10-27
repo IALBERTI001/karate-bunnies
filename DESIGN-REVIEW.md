@@ -19,6 +19,12 @@ Keep the complete experience inside the game. Exercise title → arena → custo
 - 32 automated tests passed across combat, sprite bounds, audience/camera rendering, and authoritative online pairing. Coverage includes special releases, guard, launches, interruption, simultaneous hits, sequential unlocks, silhouette margins, and token rejection.
 - Prior audience correction includes visual inspection of the revised environment atlases and representative desktop/phone scenes. Fans are in the environment painting, with no miniature fighter crowd layer.
 
+## Story scenes pass (2026-10-27, preview flag)
+
+- Visually inspected pre-fight, win and loss scenes at 390×844, 1280×800, 768×1024 and 844×390. First placement inside the arena hid both bunnies on phones and was clipped in phone landscape; moved the dialogue into the bottom HUD band and re-inspected. "A friendly bow." no longer shows behind a scene.
+- qa-story.cjs passed; existing result, carrot, theme and typography scripts pass with the flag off. Blip voice confirmed scheduled through the effects channel in Chromium; not listened to on a device.
+- Found, not fixed (approved layout): in phone landscape (844×390) the controls band covers the fighters below the shoulders during normal fights.
+
 ## Open quality gates
 
 - Physical Android/iPhone/tablet input, Safari rendering, browser chrome and safe-area behavior, and mobile audio interruptions need device validation.

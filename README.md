@@ -108,3 +108,15 @@ This is a private repository. Authenticate with an authorized GitHub account to 
 For browser and image-analysis tools, install development dependencies with `npm install`, then install the test browser with `npx playwright install chromium`. Keep the game server running in another terminal and run `node qa-typography.cjs` or `node qa-carrots.cjs`. To use an installed Microsoft Edge instead, set `KB_BROWSER_CHANNEL=msedge` in your shell. Browser captures are ignored by Git. Original art reprocessing scripts require `KB_ART_SOURCE_DIR`; all finished runtime assets are already included.
 
 Campaign progress, customization, settings, and carrots are saved per browser. Pushing the code to GitHub does not synchronize those saves between devices. Online rooms are held in server memory.
+
+## Story scenes preview (`?story=v1`)
+
+Open http://127.0.0.1:8787/?story=v1 to preview the story campaign. Without the flag the approved game is unchanged.
+
+- Before each fight, 2 short lines play in a dialogue box that takes over the bottom HUD band, so the arena and both bunnies stay visible. The fight clock, the bow and all inputs wait until the scene ends.
+- After a win, 2 lines play while the VICTORY banner shows; after a loss, one encouraging coach line. Result actions return when the scene ends.
+- Tap anywhere in the band, press Attack, Enter, Space or J to continue; Skip ends the scene. Pause still works during a scene.
+- Every line is 6 words or fewer (enforced by story.test.mjs). Each character speaks in the approved "Blips" voice at their own pitch, played through the Sound effects volume. Reduced motion shows text at once.
+- Story mode reveals the stage's own character (Mochi, Pip … Grandmaster Bun) after fighter confirmation instead of a random opponent. This changes approved behaviour and stays behind the flag until approved.
+
+Script and cast live in story.mjs. `node qa-story.cjs` (server running) covers the flow, the held clock, Attack/Enter/tap/Skip, pause during a scene, win and loss scenes, layouts at 390×844, 768×1024, 844×390 and 1280×800, and the flag-off game.
