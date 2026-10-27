@@ -3,16 +3,16 @@
 // Reduced motion, and that the game is unchanged without the flag.
 const {chromium}=require('playwright');const assert=require('node:assert/strict');
 const BASE=process.env.KB_TEST_URL||'http://127.0.0.1:8787';const OUT=process.env.KB_QA_OUT||__dirname;
-const hooks=`\nglobalThis.__fx=()=>({pops:pops.map(p=>p.text),frozen:wall<freezeUntil,slow:wall<slowUntil,clock:match.clock,phase:match.phase,result:match.result});
+const hooks=`\nglobalThis.__fx=()=>({pops:pops.map(p=>p.text),frozen:wall<freezeUntil,slow:slowUntil>0,clock:match.clock,phase:match.phase,result:match.result});
 globalThis.__busy=()=>!!match.fighters[0].move;
-globalThis.__close=(hp)=>{const [a,b]=match.fighters;a.x=440;b.x=530;a.facing=1;b.facing=-1;b.guard=false;b.input.guard=false;b.move=null;b.stun=0;b.invuln=0;b.z=0;if(hp)b.hp=hp;match.ai.wait=9;match.ai.guard=0;};`;
+globalThis.__close=(hp)=>{const [a,b]=match.fighters;a.x=440;b.x=530;a.facing=1;b.facing=-1;b.guard=false;b.input.guard=false;b.move=null;b.stun=0;b.invuln=0;b.z=0;b.hp=hp||100;a.hp=100;match.time=45;match.ai.wait=9;match.ai.guard=0;};`;
 (async()=>{const b=await chromium.launch({headless:true,...(process.env.KB_BROWSER_CHANNEL?{channel:process.env.KB_BROWSER_CHANNEL}:{}),args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const errors=[],done=[];
  const open=async(url,vw=1100,vh=820,reduced=false)=>{const p=await b.newPage({viewport:{width:vw,height:vh}});p.on('pageerror',e=>errors.push(e.message));
   await p.route('**/main.mjs',async r=>{const f=await r.fetch();await r.fulfill({response:f,body:(await f.text())+hooks});});
   await p.goto(url);if(reduced){await p.evaluate(()=>localStorage.setItem('kb-settings-v1',JSON.stringify({music:.3,effects:.5,reduced:true,shake:false,large:false})));await p.reload();}
   await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();await p.locator('#confirm-fighter').click();await p.locator('#begin').click();
-  await p.waitForFunction(()=>__fx().phase==='fight',null,{timeout:20000});return p;};
+  if(await p.locator('#story-skip').count())await p.locator('#story-skip').click();await p.waitForFunction(()=>__fx().phase==='fight',null,{timeout:20000});return p;};
  const land=async(p,dir,want,shot,hp)=>{for(let t=0;t<8;t++){await p.evaluate(h=>__close(h),hp);
    if(dir){await p.keyboard.down('j');await p.keyboard.down(dir);await p.waitForTimeout(40);await p.keyboard.up('j');await p.keyboard.up(dir);}
    else for(let k=0;k<4;k++){await p.evaluate(()=>__close());await p.keyboard.press('j');await p.waitForFunction(()=>__busy(),null,{timeout:3000}).catch(()=>{});await p.waitForFunction(()=>!__busy(),null,{timeout:5000});}
