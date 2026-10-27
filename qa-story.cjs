@@ -4,7 +4,7 @@
 const {chromium}=require('playwright');const assert=require('node:assert/strict');
 const BASE=process.env.KB_TEST_URL||'http://127.0.0.1:8787';const OUT=process.env.KB_QA_OUT||__dirname;
 const inject=async p=>p.route('**/main.mjs',async route=>{const r=await route.fetch();const source=await r.text();
- await route.fulfill({response:r,body:source+`\nglobalThis.__testResult=(res)=>{match.phase='done';match.result=res;match.fighters.forEach((f,i)=>{const lost=res==='player'?i===1:i===0;f.hp=lost?0:100;f.animation=lost?17:16;f.time=0;f.move=null;f.z=0;});finish();};globalThis.__clock=()=>match.time;globalThis.__phase=()=>match.phase;`});});
+ await route.fulfill({response:r,body:source+`\nglobalThis.__testResult=(res)=>{match.phase='done';match.result=res;match.fighters.forEach((f,i)=>{const lost=res==='player'?i===1:i===0;f.hp=lost?0:100;f.animation=lost?17:16;f.time=0;f.move=null;f.z=0;});finish();};globalThis.__clock=()=>match.time;globalThis.__phase=()=>match.phase;globalThis.__belt=()=>heroSkin().belt;`});});
 const toFight=async(p,url,stageId=1)=>{await p.goto(url);if(stageId>1)await p.evaluate(n=>localStorage.setItem('kb-campaign-v1',JSON.stringify({cleared:[...Array(n-1).keys()].map(i=>i+1)})),stageId);if(stageId>1)await p.reload();
  await p.locator('#fight').click();const tab=p.locator(`[data-chapter="${Math.floor((stageId-1)/4)}"]`);if(await tab.count())await tab.first().click();
  await p.locator(`[data-stage="${stageId}"]`).click();await p.locator('#confirm-fighter').click();return (await p.locator('#opponent-choice').textContent()).trim();};
@@ -48,8 +48,22 @@ const toFight=async(p,url,stageId=1)=>{await p.goto(url);if(stageId>1)await p.ev
   assert.ok(!(sk.x<menu.x+menu.width&&sk.x+sk.width>menu.x&&sk.y<menu.y+menu.height&&sk.y+sk.height>menu.y),`${name}: Skip clear of Pause`);
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await p.screenshot({path:OUT+`/qa-story-${name}-stage20.png`});}
  results.push('tablet + landscape layout');
- // 4. Flag off: approved game unchanged.
+ // 4. Belt award: winning stage 4 earns the yellow belt; it changes on the coach's line, not before.
+ await p.setViewportSize({width:390,height:844});await toFight(p,BASE+'/?story=v1',4);
+ assert.match(await p.locator('.fighter-start small').textContent(),/^White belt/);await p.locator('#begin').click();await p.locator('#story-skip').click();
+ await p.waitForFunction(()=>__phase()==='fight',null,{timeout:20000});assert.equal(await p.evaluate(()=>__belt()),'White');
+ await p.evaluate(()=>__testResult('player'));await p.locator('.story-bubble').waitFor();
+ assert.equal(await p.evaluate(()=>__belt()),'White','old belt shows during the win lines');
+ for(let i=0;i<6&&!(await p.locator('.story-name').textContent()).startsWith('Coach');i++){await p.locator('.story-bubble').click();await p.waitForTimeout(120);}
+ await p.waitForTimeout(900);assert.equal((await p.locator('.story-name').textContent()).trim(),'Coach Hazel');assert.equal(await p.evaluate(()=>__belt()),'Yellow','belt changes on the award line');
+ await p.screenshot({path:OUT+'/qa-story-belt-award.png'});await p.locator('#story-skip').click();
+ await toFight(p,BASE+'/?story=v1',5);assert.match(await p.locator('.fighter-start small').textContent(),/^Yellow belt/);
+ // Skip still awards the belt.
+ await p.evaluate(()=>localStorage.setItem('kb-campaign-v1',JSON.stringify({cleared:[1,2,3,4,5,6,7]})));await toFight(p,BASE+'/?story=v1',8);await p.locator('#begin').click();await p.locator('#story-skip').click();
+ await p.waitForFunction(()=>__phase()==='fight',null,{timeout:20000});await p.evaluate(()=>__testResult('player'));await p.locator('#story-skip').waitFor();await p.locator('#story-skip').click();
+ assert.equal(await p.evaluate(()=>__belt()),'Green','Skip still awards the belt');results.push('belt award');
+ // 5. Flag off: approved game unchanged.
  await p.setViewportSize({width:1280,height:800});const names=new Set();for(let i=0;i<6;i++)names.add(await toFight(p,BASE+'/'));
  await p.locator('#begin').click();await p.waitForTimeout(400);assert.equal(await p.locator('.story-scene').count(),0,'no scenes without the flag');
- assert.ok(names.size>1,'opponent stays randomized without the flag');results.push('flag off unchanged');
+ assert.ok(names.size>1,'opponent stays randomized without the flag');assert.equal(await p.evaluate(()=>__belt()),undefined,'no belt change without the flag');results.push('flag off unchanged');
  assert.deepEqual(errors,[]);console.log('Story QA passed:',results.join(' · '));await b.close();})().catch(e=>{console.error(e);process.exit(1);});

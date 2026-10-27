@@ -158,3 +158,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1d211d}#app{positio
 .story-bubble:focus-visible,.story-skip:focus-visible{outline:3px solid #ffe7a8;outline-offset:3px}
 @keyframes story-pop{from{transform:translateY(6px)}to{transform:none}}
 @keyframes story-bob{50%{transform:translateY(-3px)}}
+
+/* Phone landscape fix (approved Oct 27): the themed band painted over the transparent landscape overlay and hid the fighters.
+   Keep the overlay clear so both bunnies stay visible; the d-pad and buttons keep their own solid faces. */
+@media(orientation:landscape) and (max-height:550px){
+.fight-controls:not(.round-result-controls){background:transparent;border-top:0}
+.fight-controls.story-active>:not(.story-scene){visibility:hidden}
+.story-scene{background:transparent;border-top:0;align-items:flex-end;padding-bottom:max(10px,env(safe-area-inset-bottom,0px))}
+.story-bubble{max-width:560px;min-height:0;padding:8px 40px 10px 14px;box-shadow:0 4px 0 #1d181466,0 8px 20px #1d181455}
+.story-text{font-size:20px}
+}

@@ -120,3 +120,13 @@ Open http://127.0.0.1:8787/?story=v1 to preview the story campaign. Without the 
 - Story mode reveals the stage's own character (Mochi, Pip … Grandmaster Bun) after fighter confirmation instead of a random opponent. This changes approved behaviour and stays behind the flag until approved.
 
 Script and cast live in story.mjs. `node qa-story.cjs` (server running) covers the flow, the held clock, Attack/Enter/tap/Skip, pause during a scene, win and loss scenes, layouts at 390×844, 768×1024, 844×390 and 1280×800, and the flag-off game.
+
+### Belts (story preview)
+
+In story mode the hero's belt shows her rank: White to start, Yellow after stage 4, Green after 8, Brown after 12, and the original Black belt after winning stage 20. The belt changes on the coach's award line after the winning fight (Skip still awards it), with sparkles and a chime. Opponents and online VS keep black belts. Fighter selection names the current belt.
+
+Belts are recoloured with per-atlas masks in assets/belt-mask-<n>.png, built by `node prepare-belt-masks.mjs [--preview <dir>]` (needs the sharp dev dependency) from belt-mask.mjs. The mask finds dark regions bordered by the gi (thick bands, or very dark patches partly hidden by a limb) and keeps a 1px outline, so eyes and outlines are untouched. All 72 poses were inspected in the preview.
+
+## Phone landscape fix
+
+At short landscape sizes the themed control band had been painted solid over the arena and hid the fighters below the shoulders. The band is now transparent there, as the landscape layout intended; the d-pad and buttons keep their solid faces. Inspected at 667×375, 844×390 and 932×430; qa-touch-layouts.cjs passes.

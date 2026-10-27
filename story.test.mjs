@@ -37,3 +37,16 @@ test('blips follow syllables, pause on punctuation and rise on questions', () =>
   assert.ok(blipSchedule('Hi. Hi', 500).duration > blipSchedule('Hi Hi', 500).duration);
   assert.equal(blipSchedule('…', 500).blips.length, 0);
 });
+
+test('belt award lines are short and land on the right stages', async () => {
+  const { BELT_LINES, beltLine } = await import('./story.mjs');
+  const { BELT_AWARDS, beltFor } = await import('./campaign.mjs');
+  for (const [belt, [who, text]] of Object.entries(BELT_LINES)) { assert.ok(CAST[who]); assert.ok(wordCount(text) <= MAX_WORDS, text); }
+  for (const belt of Object.values(BELT_AWARDS)) assert.ok(BELT_LINES[belt], `no line for ${belt}`);
+  assert.equal(beltLine('Black', 20).side, 'opponent');
+  assert.equal(beltLine('Yellow', 4).award, 'Yellow');
+  assert.equal(beltFor({ cleared: [] }), 'White');
+  assert.equal(beltFor({ cleared: [1, 2, 3, 4] }), 'Yellow');
+  assert.equal(beltFor({ cleared: [...Array(16).keys()].map(i => i + 1) }), 'Brown');
+  assert.equal(beltFor({ cleared: [...Array(20).keys()].map(i => i + 1) }), 'Black');
+});

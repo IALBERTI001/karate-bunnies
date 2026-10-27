@@ -103,3 +103,15 @@ export function blipSchedule(text, pitch) {
   }
   return { blips: out, duration: t };
 }
+
+// Spoken when a win earns a new belt (story preview). The hero's belt changes colour on this line.
+export const BELT_LINES = {
+  Yellow: ['hazel', 'A yellow belt! You earned it!'],
+  Green:  ['bramble', 'A green belt! So proud!'],
+  Brown:  ['hazel', 'A brown belt! Almost there!'],
+  Black:  ['grand', 'The black belt is yours.']
+};
+export function beltLine(belt, stageId) {
+  const l = BELT_LINES[belt]; if (!l) return null;
+  return { key: l[0], ...CAST[l[0]], text: l[1], side: l[0] === SCRIPT[stageId - 1]?.opp ? 'opponent' : 'aside', award: belt };
+}

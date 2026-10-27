@@ -25,6 +25,12 @@ Keep the complete experience inside the game. Exercise title → arena → custo
 - qa-story.cjs passed; existing result, carrot, theme and typography scripts pass with the flag off. Blip voice confirmed scheduled through the effects channel in Chromium; not listened to on a device.
 - Found, not fixed (approved layout): in phone landscape (844×390) the controls band covers the fighters below the shoulders during normal fights.
 
+## Belts and landscape pass (2026-10-27)
+
+- Phone landscape: control band no longer hides the fighters (approved fix). Inspected at three landscape sizes; story bubble in landscape now floats over the floor and touches the fighters' feet only.
+- Belt masks inspected on every pose in all three atlases after three rounds of fixes (side-view belts missed, a hidden-belt frame missed, outline specks). Belt colours inspected on six fur/gi combinations; first shading was too dark (white read grey) and was brightened.
+- Brown belt on a black gi is the lowest-contrast combination; readable but quiet.
+
 ## Open quality gates
 
 - Physical Android/iPhone/tablet input, Safari rendering, browser chrome and safe-area behavior, and mobile audio interruptions need device validation.

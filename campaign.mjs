@@ -1,5 +1,11 @@
 export const FURS={White:'#FFFDF9',Cream:'#E9D0AA',Gray:'#AAA1A3',Tan:'#D09A64'};
 export const COLORS={Coral:'#EF8E85',Mint:'#91C8A0',Lavender:'#B6A0D5','Sky blue':'#87BCE6',Purple:'#8053BA',Pink:'#EE9BC4',Black:'#292831'};
+// Belt colours by rank. Black (null) leaves the original painted belt untouched.
+export const BELTS={White:'#FFFDF7',Yellow:'#FFD24A',Green:'#5E9E57',Brown:'#8A5A34',Black:null};
+export const BELT_ORDER=['White','Yellow','Green','Brown','Black'];
+// Stage whose win awards each belt after White.
+export const BELT_AWARDS={4:'Yellow',8:'Green',12:'Brown',20:'Black'};
+export function beltFor(progress){const won=new Set(progress?.cleared??[]);let belt='White';for(const [stage,b] of Object.entries(BELT_AWARDS))if(won.has(Number(stage)))belt=b;return belt;}
 const chapters=['Beneath the roots','Into the gardens','A village favorite','Across the mountains','The world is watching'];
 const rows=[
  ['Tiny Paws Dojo','Your journey begins beneath the roots. Two coaches, one little dream.','burrows',2,'Mochi','Cream','Mint'],
