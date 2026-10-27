@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test combat.test.mjs sprite-bounds.test.mjs audience-render.test.mjs",
+    "test": "node --test numbers.test.mjs combat.test.mjs sprite-bounds.test.mjs audience-render.test.mjs",
     "build": "node build.mjs"
   },
   "engines": {
