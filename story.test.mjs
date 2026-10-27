@@ -47,6 +47,7 @@ test('belt award lines are short and land on the right stages', async () => {
   assert.equal(beltLine('Yellow', 4).award, 'Yellow');
   assert.equal(beltFor({ cleared: [] }), 'White');
   assert.equal(beltFor({ cleared: [1, 2, 3, 4] }), 'Yellow');
-  assert.equal(beltFor({ cleared: [...Array(16).keys()].map(i => i + 1) }), 'Brown');
+  assert.equal(beltFor({ cleared: [...Array(12).keys()].map(i => i + 1) }), 'Brown');
+  assert.equal(beltFor({ cleared: [...Array(16).keys()].map(i => i + 1) }), 'Red');
   assert.equal(beltFor({ cleared: [...Array(20).keys()].map(i => i + 1) }), 'Black');
 });

@@ -19,11 +19,14 @@ export function input(m,index,event){const f=m.fighters[index];if(!f||m.phase!==
  if(type==='direction'&&['left','right','up','down','guard'].includes(key)){f.input[key]=!!value;if(key==='guard'&&value){f.hold=false;f.selection=null;}if(f.hold){const d=selectedDirection(f);if(d)f.selection=d;}return;}
  if(type==='attackDown'&&canAct(f)&&!f.input.guard&&!f.hold){f.hold=true;f.holdFacing=f.facing;f.selection=null;f.heldTime=0;const d=selectedDirection(f);if(d)f.selection=d;return;}
  if(type==='attackCancel'){f.hold=false;f.selection=null;return;}
- if(type==='attackUp'&&f.hold){const selected=f.selection;f.hold=false;f.selection=null;if(!canAct(f)||f.input.guard)return;let move=selected;if(!move){if(m.clock>f.comboUntil)f.combo=0;move=['punch1','punch2','kick','spin'][f.combo];f.combo=(f.combo+1)%4;f.comboUntil=m.clock+1.05;}else{f.combo=0;f.comboUntil=0;}f.chained=!selected;startMove(f,move);pushEvent(m,'swing',{fighter:index,move});}
+ if(type==='attackUp'&&f.hold){const selected=f.selection;f.hold=false;f.selection=null;if(!canAct(f)||f.input.guard)return;let move=selected;if(!move){if(m.clock>f.comboUntil)f.combo=0;move=['punch1','punch2','kick','spin'][f.combo];f.combo=(f.combo+1)%4;f.comboUntil=m.clock+1.05;}else{f.combo=0;f.comboUntil=0;}f.chained=!selected;startMove(f,move);pushEvent(m,'swing',{fighter:index,move,chain:f.chained});}
 }
 function startMove(f,name){f.move=name;f.action='attack';f.animation=MOVES[name].animation;f.time=0;f.hit=false;f.guard=false;}
 function random(m){m.ai.seed=(Math.imul(m.ai.seed,1664525)+1013904223)>>>0;return m.ai.seed/4294967296;}
-export function updateAI(m,dt){if(m.phase!=='fight')return;const f=m.fighters[1],p=m.fighters[0],d=clamp((m.stage-1)/19,0,1);m.ai.wait-=dt;m.ai.guard-=dt;if(!canAct(f))return;
+export function updateAI(m,dt){if(m.phase!=='fight')return;
+ // Lesson: the partner stands still, or on 'jab' walks close and throws one slow punch every 1.6s.
+ if(m.lesson){const f=m.fighters[1],p=m.fighters[0];m.ai.wait-=dt;if(!canAct(f))return;f.input.left=false;f.input.right=false;f.input.guard=false;if(m.lesson.mode!=='jab'||m.ai.wait>0)return;if(Math.abs(f.x-p.x)>150){f.input[p.x<f.x?'left':'right']=true;return;}f.combo=0;input(m,1,{type:'attackDown'});input(m,1,{type:'attackUp'});f.combo=0;m.ai.wait=1.6;return;}
+const f=m.fighters[1],p=m.fighters[0],d=clamp((m.stage-1)/19,0,1);m.ai.wait-=dt;m.ai.guard-=dt;if(!canAct(f))return;
  if(m.ai.guard>0){input(m,1,{type:'direction',key:'guard',value:true});return;}
  if(m.ai.wait>0)return;
  f.input.guard=false;f.input.left=false;f.input.right=false;
@@ -35,7 +38,7 @@ export function updateAI(m,dt){if(m.phase!=='fight')return;const f=m.fighters[1]
 }
 export function step(m,dt,{ai=true}={}){dt=clamp(dt,0,.05);if(m.phase==='done'){for(const f of m.fighters)f.time+=dt;return;}m.clock+=dt;
  if(m.phase==='intro'){for(const f of m.fighters)f.time+=dt;m.intro=Math.max(0,m.intro-dt);if(m.intro===0){m.phase='fight';for(const f of m.fighters){f.animation=0;f.time=0;}pushEvent(m,'start');}return;}
- if(ai)updateAI(m,dt);m.time=Math.max(0,m.time-dt);
+ if(ai)updateAI(m,dt);if(!m.lesson)m.time=Math.max(0,m.time-dt);
  for(const f of m.fighters){f.time+=dt;f.invuln=Math.max(0,f.invuln-dt);f.stun=Math.max(0,f.stun-dt);if(f.hold)f.heldTime+=dt;
   if(f.z>0||f.vz>0){f.z+=f.vz*dt;f.vz-=920*dt;f.animation=13;f.action='airborne';if(f.z<=0){f.z=0;f.vz=0;f.stun=.25;f.invuln=Math.max(f.invuln,.5);f.animation=14;f.time=0;f.action='landing';pushEvent(m,'land',{x:f.x});}continue;}
   if(f.move){const mv=MOVES[f.move];if(f.time>=mv.startup+mv.active+mv.recovery){f.move=null;f.action='idle';f.time=0;}continue;}
@@ -49,6 +52,6 @@ export function step(m,dt,{ai=true}={}){dt=clamp(dt,0,.05);if(m.phase==='done'){
  for(let i=0;i<2;i++){const f=m.fighters[i],o=m.fighters[1-i];if(!f.move&&!f.hold)f.facing=o.x>=f.x?1:-1;}
  // Collect contacts before resolving them so simultaneous clean hits can trade.
  const contacts=[];for(let i=0;i<2;i++){const f=m.fighters[i],o=m.fighters[1-i],mv=MOVES[f.move];if(mv&&!f.hit&&f.time>=mv.startup&&f.time<=mv.startup+mv.active&&o.invuln<=0&&o.z<10&&Math.abs(f.x-o.x)<=mv.reach&&(o.x-f.x)*f.facing>0){f.hit=true;contacts.push({i,mv});}}
- for(const {i,mv} of contacts){const f=m.fighters[i],o=m.fighters[1-i];if(o.guard&&o.facing===-f.facing){o.x=clamp(o.x+f.facing*12,90,910);pushEvent(m,'block',{fighter:1-i,x:o.x});}else{o.hp=Math.max(0,o.hp-mv.damage);o.x=clamp(o.x+f.facing*mv.push,90,910);o.move=null;o.hold=false;o.selection=null;o.guard=false;o.combo=0;o.invuln=.50;o.stun=.46;o.time=0;o.animation=mv.push>50?12:11;o.action='hit';if(mv.launch){o.vz=410;o.z=1;o.stun=.5;o.animation=13;}pushEvent(m,'hit',{fighter:1-i,x:o.x,damage:mv.damage,launch:!!mv.launch,move:f.move,chain:!!f.chained&&f.move==='spin'});}}
+ for(const {i,mv} of contacts){const f=m.fighters[i],o=m.fighters[1-i];if(o.guard&&o.facing===-f.facing){o.x=clamp(o.x+f.facing*12,90,910);pushEvent(m,'block',{fighter:1-i,x:o.x});}else{o.hp=Math.max(m.lesson?35:0,o.hp-mv.damage);o.x=clamp(o.x+f.facing*mv.push,90,910);o.move=null;o.hold=false;o.selection=null;o.guard=false;o.combo=0;o.invuln=.50;o.stun=.46;o.time=0;o.animation=mv.push>50?12:11;o.action='hit';if(mv.launch){o.vz=410;o.z=1;o.stun=.5;o.animation=13;}pushEvent(m,'hit',{fighter:1-i,x:o.x,damage:mv.damage,launch:!!mv.launch,move:f.move,chain:!!f.chained&&f.move==='spin'});}}
  if(a.hp<=0||b.hp<=0||m.time<=0){m.phase='done';m.result=a.hp===b.hp?'draw':a.hp>b.hp?'player':'opponent';for(let i=0;i<2;i++){const f=m.fighters[i];f.move=null;f.hold=false;f.z=0;f.animation=m.result==='draw'?15:((m.result==='player')===(i===0)?16:17);f.time=0;}pushEvent(m,'finish',{result:m.result});}
 }

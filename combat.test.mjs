@@ -29,3 +29,22 @@ test('hit events name the move and mark a spin that finishes the tap chain', () 
   const hit = direct.events.find(e => e.type === 'hit');
   assert.equal(hit?.move, 'spin'); assert.equal(hit.chain, false);
 });
+
+test('lesson mode: clock holds, nobody can be knocked out, partner only punches when asked', () => {
+  const m = ready(); m.lesson = { mode: 'idle' }; m.stage = 1;
+  for (let k = 0; k < 30; k++) { attack(m, 'right'); run(m, 0.7); m.fighters[0].x = 440; m.fighters[1].x = 550; }
+  assert.equal(m.time, 45); assert.equal(m.phase, 'fight'); assert.ok(m.fighters[1].hp >= 35);
+  assert.equal(m.events.filter(e => e.type === 'swing' && e.fighter === 1).length, 0, 'idle partner never attacks');
+  const j = ready(); j.lesson = { mode: 'jab' }; step(j, 1/60);
+  for (let i = 0; i < 60 * 5; i++) step(j, 1/60);
+  const jabs = j.events.filter(e => e.type === 'swing' && e.fighter === 1);
+  assert.ok(jabs.length >= 2 && jabs.every(e => e.move === 'punch1'), JSON.stringify(jabs));
+  assert.ok(j.fighters[0].hp >= 35);
+  j.lesson = null; for (let i = 0; i < 60; i++) step(j, 1/60); assert.ok(j.time < 45, 'clock runs after the lesson');
+});
+
+test('swing events say whether the move came from the tap chain', () => {
+  const m = ready(); attack(m, null); const tap = m.events.find(e => e.type === 'swing');
+  assert.equal(tap.chain, true); run(m, 0.8); attack(m, 'up');
+  assert.equal(m.events.filter(e => e.type === 'swing').at(-1).chain, false);
+});

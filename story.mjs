@@ -109,6 +109,7 @@ export const BELT_LINES = {
   Yellow: ['hazel', 'A yellow belt! You earned it!'],
   Green:  ['bramble', 'A green belt! So proud!'],
   Brown:  ['hazel', 'A brown belt! Almost there!'],
+  Red:    ['bramble', 'A red belt! The finals await!'],
   Black:  ['grand', 'The black belt is yours.']
 };
 export function beltLine(belt, stageId) {

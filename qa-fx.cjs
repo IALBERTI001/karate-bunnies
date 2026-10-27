@@ -19,7 +19,7 @@ globalThis.__close=(hp)=>{const [a,b]=match.fighters;a.x=440;b.x=530;a.facing=1;
    for(let w=0;w<30;w++){const s=await p.evaluate(()=>__fx());if(want(s)){if(shot)await p.screenshot({path:`${OUT}/${shot}`});return s;}await p.waitForTimeout(25);}
    await p.waitForTimeout(700);}
   throw Error('move did not land: '+dir);};
- let p=await open(BASE+'/?fx=v1');
+ let p=await open(BASE+'/');
  // Launch (Attack + Up): word pop, and the fight clock pauses briefly on contact.
  let s=await land(p,'ArrowUp',x=>x.pops.length>0,'qa-fx-launch.png');assert.ok(['Wheee!','Up you go!'].includes(s.pops.at(-1)),s.pops.join());
  await p.waitForTimeout(1200);
@@ -35,9 +35,9 @@ globalThis.__close=(hp)=>{const [a,b]=match.fighters;a.x=440;b.x=530;a.facing=1;
  await p.screenshot({path:`${OUT}/qa-fx-ko.png`});await p.locator('.round-announcement').waitFor({timeout:5000});done.push('KO slow-mo');
  await p.close();
  // Reduced motion: no slow-mo, pops still shown (static).
- p=await open(BASE+'/?fx=v1',390,844,true);s=await land(p,'ArrowUp',x=>x.pops.length>0,'qa-fx-phone-reduced.png');
+ p=await open(BASE+'/',390,844,true);s=await land(p,'ArrowUp',x=>x.pops.length>0,'qa-fx-phone-reduced.png');
  await p.waitForTimeout(1200);await land(p,'ArrowRight',x=>x.phase==='done',null,4);assert.equal((await p.evaluate(()=>__fx())).slow,false,'no slow-mo with Reduced motion');done.push('reduced motion');await p.close();
  // Flag off: no pops, no freeze.
- p=await open(BASE+'/');await p.evaluate(()=>__close());await p.keyboard.down('j');await p.keyboard.down('ArrowUp');await p.waitForTimeout(40);await p.keyboard.up('j');await p.keyboard.up('ArrowUp');await p.waitForTimeout(800);
+ p=await open(BASE+'/?fx=off');await p.evaluate(()=>__close());await p.keyboard.down('j');await p.keyboard.down('ArrowUp');await p.waitForTimeout(40);await p.keyboard.up('j');await p.keyboard.up('ArrowUp');await p.waitForTimeout(800);
  const off=await p.evaluate(()=>__fx());assert.equal(off.pops.length,0);done.push('flag off unchanged');
  assert.deepEqual(errors,[]);console.log('FX QA passed:',done.join(' · '));await b.close();})().catch(e=>{console.error(e);process.exit(1);});
