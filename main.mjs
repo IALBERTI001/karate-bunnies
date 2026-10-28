@@ -26,7 +26,8 @@ function drawPops(ctx,canvas){if(!pops.length)return;pops=pops.filter(p=>wall-p.
 import {storyLines,blipSchedule,BLIP,beltLine,CAST} from './story.mjs';
 import {LESSON,CHEERS,LESSON_END,stepDone,glowTargets} from './lesson.mjs';
 // First-fight lesson (preview: ?tutorial=v1). Runs once, in stage 1, until stage 1 is won or the lesson is finished or skipped.
-const TUTORIAL=(()=>{try{return new URLSearchParams(location.search).get('tutorial')==='v1';}catch{return false;}})();
+// A host page can switch previews on with globalThis.KB_FLAGS (used where the address cannot carry ?tutorial=v1).
+const TUTORIAL=(()=>{try{return globalThis.KB_FLAGS?.tutorial===true||new URLSearchParams(location.search).get('tutorial')==='v1';}catch{return false;}})();
 const COARSE=(()=>{try{return matchMedia('(pointer: coarse)').matches;}catch{return false;}})();
 let lesson=null;
 function lessonWanted(){return TUTORIAL&&!session&&modeState?.mode!=='online'&&stage.id===1&&!progress.cleared.includes(1)&&!storage.read('kb-lesson-v1',false);}
