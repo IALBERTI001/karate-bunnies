@@ -4,7 +4,7 @@
 const {chromium}=require('playwright');const assert=require('node:assert/strict');
 const BASE=process.env.KB_TEST_URL||'http://127.0.0.1:8787';const OUT=process.env.KB_QA_OUT||__dirname;
 const inject=async p=>p.route('**/main.mjs',async route=>{const r=await route.fetch();const source=await r.text();
- await route.fulfill({response:r,body:source+`\nglobalThis.__testResult=(res)=>{match.phase='done';match.result=res;match.fighters.forEach((f,i)=>{const lost=res==='player'?i===1:i===0;f.hp=lost?0:100;f.animation=lost?17:16;f.time=0;f.move=null;f.z=0;});finish();};globalThis.__clock=()=>match.time;globalThis.__phase=()=>match.phase;globalThis.__belt=()=>heroSkin().belt;`});});
+ await route.fulfill({response:r,body:source+`\nglobalThis.__testResult=(res)=>{match.phase='done';match.result=res;match.fighters.forEach((f,i)=>{const lost=res==='player'?i===1:i===0;f.hp=lost?0:100;f.animation=lost?17:16;f.time=0;f.move=null;f.z=0;});finish();};globalThis.__clock=()=>match.time;globalThis.__phase=()=>match.phase;globalThis.__belt=()=>heroSkin().belt;globalThis.__anims=()=>match.fighters.map(f=>f.animation);`});});
 const toFight=async(p,url,stageId=1)=>{await p.goto(url);if(stageId>1)await p.evaluate(n=>localStorage.setItem('kb-campaign-v1',JSON.stringify({cleared:[...Array(n-1).keys()].map(i=>i+1)})),stageId);if(stageId>1)await p.reload();
  await p.locator('#fight').click();const tab=p.locator(`[data-chapter="${Math.floor((stageId-1)/4)}"]`);if(await tab.count())await tab.first().click();
  await p.locator(`[data-stage="${stageId}"]`).click();await p.locator('#confirm-fighter').click();return (await p.locator('#opponent-choice').textContent()).trim();};
@@ -39,7 +39,7 @@ const toFight=async(p,url,stageId=1)=>{await p.goto(url);if(stageId>1)await p.ev
  const held=await p.evaluate(()=>__clock());await p.waitForTimeout(800);assert.equal(await p.evaluate(()=>__clock()),held,'resume from pause keeps the scene holding');
  await p.locator('#story-skip').click();await p.waitForFunction(()=>__phase()==='fight',null,{timeout:20000});
  await p.evaluate(()=>__testResult('opponent'));await p.locator('.story-bubble').waitFor();await p.waitForTimeout(1500);
- assert.match((await p.locator('.story-name').textContent()).trim(),/^Coach /);await p.screenshot({path:OUT+'/qa-story-desktop-loss.png'});results.push('keyboard, pause, skip, loss');
+ assert.match((await p.locator('.story-name').textContent()).trim(),/^Coach /);assert.deepEqual(await p.evaluate(()=>__anims()),[15,15],'both bunnies bow after a loss');await p.screenshot({path:OUT+'/qa-story-desktop-loss.png'});results.push('keyboard, pause, skip, loss');
  // 3. Tablet and phone landscape layouts, final stage.
  for(const [w,h,name] of [[768,1024,'tablet'],[844,390,'landscape']]){await p.setViewportSize({width:w,height:h});
   await toFight(p,BASE+'/',20);await p.locator('#begin').click();await p.locator('.story-bubble').waitFor();await p.waitForTimeout(900);

@@ -114,7 +114,7 @@ Campaign progress, customization, settings, and carrots are saved per browser. P
 Approved Oct 27 and on by default. Open http://127.0.0.1:8787/?story=off to compare with the game before story scenes.
 
 - Before each fight, 2 short lines play in a dialogue box that takes over the bottom HUD band, so the arena and both bunnies stay visible. The fight clock, the bow and all inputs wait until the scene ends.
-- After a win, 2 lines play while the VICTORY banner shows; after a loss, one encouraging coach line. Result actions return when the scene ends.
+- After a win, 2 lines play while the VICTORY banner shows; after a loss, both bunnies bow to each other and hold the bow during one encouraging coach line, then rise. Result actions return when the scene ends.
 - Tap anywhere in the band, press Attack, Enter, Space or J to continue; Skip ends the scene. Pause still works during a scene.
 - Every line is 6 words or fewer (enforced by story.test.mjs). Each character speaks in the approved "Blips" voice at their own pitch, played through the Sound effects volume. Reduced motion shows text at once.
 - Story mode reveals the stage's own character (Mochi, Pip … Grandmaster Bun) after fighter confirmation instead of a random opponent. This changes approved behaviour and stays behind the flag until approved.
