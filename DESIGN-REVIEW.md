@@ -36,6 +36,14 @@ Keep the complete experience inside the game. Exercise title → arena → custo
 - Inspected launch, knockback, chain and KO captures on desktop and a phone with Reduced motion. Pops sit above the opponent and stay inside the arena.
 - Feel is not established: hit-stop length, word frequency and slow-mo duration need a human playtest on a real phone.
 
+## Round 3 (2026-10-27): defaults, red belt, lesson, on-screen buttons
+
+- Story, belts and celebrations on by default after approval. Red belt inspected on four gi colours.
+- Lesson inspected at phone, phone landscape and desktop. First phone placement covered the arena title and Pause; the card is now placed from the header layout and centred between title and Pause when there is room.
+- Found and fixed a regression from round 1: a story CSS edit had added gap:12px to the global button rule (arena cards 24px taller).
+- On-screen buttons: PC fight inspected with buttons hidden; the first version made the arena jump when dialogue started, so dialogue now floats over the floor in that mode.
+- Test-machine limits: software rendering in the test browser slows timed taps and screenshots of the pause blur on the larger hidden-buttons arena; the lesson, effects and typography scripts run with buttons shown, and qa-buttons covers hidden mode. Measured 56–60 fps in both modes at 1239×869.
+
 ## Open quality gates
 
 - Physical Android/iPhone/tablet input, Safari rendering, browser chrome and safe-area behavior, and mobile audio interruptions need device validation.

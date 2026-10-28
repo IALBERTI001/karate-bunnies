@@ -3,12 +3,14 @@
 // that Mochi only attacks on the guard step, Skip, that it runs once, and the flag-off game.
 const {chromium}=require('playwright');const assert=require('node:assert/strict');
 const BASE=process.env.KB_TEST_URL||'http://127.0.0.1:8787';const OUT=process.env.KB_QA_OUT||__dirname;
-const hooks=`\nglobalThis.__m=()=>({time:match.time,phase:match.phase,lesson:match.lesson?.mode??null,php:match.fighters[0].hp,ohp:match.fighters[1].hp,facing:match.fighters[0].facing,step:lesson?.step??null,cheering:!!lesson?.cheering,oppSwings:match.events.filter(e=>e.type==='swing'&&e.fighter===1).length});
+const hooks=`\nglobalThis.__m=()=>({time:match.time,phase:match.phase,lesson:match.lesson?.mode??null,php:match.fighters[0].hp,ohp:match.fighters[1].hp,facing:match.fighters[0].facing,step:lesson?.step??null,cheering:!!lesson?.cheering,oppSwings:match.events.filter(e=>e.type==='swing'&&e.fighter===1).length,log:match.events.map(e=>e.type+':'+(e.fighter??'')+':'+(e.move??'')).join(' ')});
 globalThis.__close=()=>{const [a,b]=match.fighters;a.x=440;b.x=550;};`;
 (async()=>{const b=await chromium.launch({headless:true,...(process.env.KB_BROWSER_CHANNEL?{channel:process.env.KB_BROWSER_CHANNEL}:{}),args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const errors=[],done=[];
  const open=async(url,opts={width:1100,height:820})=>{const p=await b.newPage({viewport:{width:opts.width,height:opts.height},hasTouch:!!opts.touch,isMobile:!!opts.touch});p.on('pageerror',e=>errors.push(e.message));
-  await p.route('**/main.mjs',async r=>{const f=await r.fetch();await r.fulfill({response:f,body:(await f.text())+hooks});});await p.goto(url);return p;};
+  await p.route('**/main.mjs',async r=>{const f=await r.fetch();await r.fulfill({response:f,body:(await f.text())+hooks});});
+  // Buttons shown: software rendering in the test browser is too slow for timed taps on the larger hidden-buttons arena (qa-buttons.cjs covers that mode).
+  await p.addInitScript(()=>{try{if(!localStorage.getItem('kb-settings-v1'))localStorage.setItem('kb-settings-v1',JSON.stringify({music:.25,effects:.5,reduced:false,shake:true,large:false,buttons:'show'}));}catch{}});await p.goto(url);return p;};
  const toFight=async p=>{await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();await p.locator('#confirm-fighter').click();await p.locator('#begin').click();
   if(await p.locator('#story-skip').count())await p.locator('#story-skip').click();await p.waitForFunction(()=>__m().phase==='fight',null,{timeout:20000});};
  const waitStep=async(p,n)=>p.waitForFunction(n=>__m().step===n&&!__m().cheering,n,{timeout:15000});
@@ -23,9 +25,9 @@ globalThis.__close=()=>{const [a,b]=match.fighters;a.x=440;b.x=550;};`;
  assert.match(await p.locator('.lesson-say').textContent(),/Tap Attack/);assert.deepEqual(await glows(p),['attack']);assert.match(await p.locator('.lesson-keys').textContent(),/J/);
  await p.screenshot({path:`${OUT}/qa-lesson-desktop-1.png`});
  const t0=(await p.evaluate(()=>__m())).time;
- await untilStep(p,1,()=>key.tap(p));await waitStep(p,1);
- await untilStep(p,2,async()=>{for(let k=0;k<4;k++){await key.tap(p);await p.waitForFunction(()=>!document.querySelector('.lesson-card')||true);await p.waitForTimeout(560);}});await waitStep(p,2);
- assert.deepEqual(await glows(p),['guard']);assert.equal((await p.evaluate(()=>__m())).oppSwings,0,'Mochi does not attack before the guard step');
+ await untilStep(p,1,()=>key.tap(p));await waitStep(p,1);{const mm=await p.evaluate(()=>__m());assert.equal(mm.oppSwings,0,'Mochi does not attack before the guard step: '+mm.log);}
+ await untilStep(p,2,async()=>{const mm=await p.evaluate(()=>__m());assert.equal(mm.oppSwings,0,'Mochi idle during the chain step');for(let k=0;k<4;k++){await key.tap(p);await p.waitForFunction(()=>!document.querySelector('.lesson-card')||true);await p.waitForTimeout(560);}});await waitStep(p,2);
+ assert.deepEqual(await glows(p),['guard']);
  await p.evaluate(()=>__close());await p.keyboard.down('k');await p.waitForFunction(()=>__m().step>=3||__m().cheering,null,{timeout:20000});await p.keyboard.up('k');await waitStep(p,3);
  assert.ok((await p.evaluate(()=>__m())).oppSwings>=1,'Mochi jabs on the guard step');
  assert.deepEqual((await glows(p)).sort(),['attack','up']);await p.screenshot({path:`${OUT}/qa-lesson-desktop-high.png`});

@@ -187,3 +187,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1d211d}#app{positio
 @keyframes lesson-pulse{50%{box-shadow:0 0 0 6px #fff2c4,0 0 30px 12px #ffd24aee}}
 @media(orientation:landscape) and (max-height:550px){.lesson-card{gap:2px;padding:6px 12px 8px}.lesson-say{font-size:19px}.lesson-keys{font-size:14px}.lesson-skip{min-height:36px}}
 @media (prefers-reduced-motion:reduce){.fight-controls .tutorial-glow{animation:none}}
+
+/* On-screen buttons setting: Auto hides them without a touch screen. The band returns for dialogue and results. */
+.hide-screen-controls .fight-controls:not(.round-result-controls):not(.story-active){display:none}
+.hide-screen-controls .fight-controls.story-active>:not(.story-scene){visibility:hidden}
+.settings-box select{min-height:44px;font:600 16px system-ui,sans-serif;padding:6px 10px;border-radius:10px;border:1px solid #b59a60;background:#fff8ea;color:#2f2620}
+/* With on-screen buttons hidden, pre-fight dialogue floats over the arena floor so the arena never jumps. */
+.hide-screen-controls .fight-screen{position:relative}
+.hide-screen-controls .fight-controls.story-active:not(.round-result-controls){display:block;position:absolute;left:0;right:0;bottom:0;min-height:0;padding:0;background:transparent;border:0;pointer-events:none;z-index:3}
+.hide-screen-controls .fight-controls.story-active:not(.round-result-controls) .story-scene{position:relative;inset:auto;background:transparent;border-top:0;padding:12px max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));pointer-events:auto}

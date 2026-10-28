@@ -109,9 +109,9 @@ For browser and image-analysis tools, install development dependencies with `npm
 
 Campaign progress, customization, settings, and carrots are saved per browser. Pushing the code to GitHub does not synchronize those saves between devices. Online rooms are held in server memory.
 
-## Story scenes preview (`?story=v1`)
+## Story scenes (on by default; `?story=off` shows the earlier game)
 
-Open http://127.0.0.1:8787/?story=v1 to preview the story campaign. Without the flag the approved game is unchanged.
+Approved Oct 27 and on by default. Open http://127.0.0.1:8787/?story=off to compare with the game before story scenes.
 
 - Before each fight, 2 short lines play in a dialogue box that takes over the bottom HUD band, so the arena and both bunnies stay visible. The fight clock, the bow and all inputs wait until the scene ends.
 - After a win, 2 lines play while the VICTORY banner shows; after a loss, one encouraging coach line. Result actions return when the scene ends.
@@ -121,9 +121,9 @@ Open http://127.0.0.1:8787/?story=v1 to preview the story campaign. Without the 
 
 Script and cast live in story.mjs. `node qa-story.cjs` (server running) covers the flow, the held clock, Attack/Enter/tap/Skip, pause during a scene, win and loss scenes, layouts at 390×844, 768×1024, 844×390 and 1280×800, and the flag-off game.
 
-### Belts (story preview)
+### Belts
 
-In story mode the hero's belt shows her rank: White to start, Yellow after stage 4, Green after 8, Brown after 12, and the original Black belt after winning stage 20. The belt changes on the coach's award line after the winning fight (Skip still awards it), with sparkles and a chime. Opponents and online VS keep black belts. Fighter selection names the current belt.
+In story mode the hero's belt shows her rank: White to start, Yellow after stage 4, Green after 8, Brown after 12, Red after 16, and the original Black belt after winning stage 20. The belt changes on the coach's award line after the winning fight (Skip still awards it), with sparkles and a chime. Opponents and online VS keep black belts. Fighter selection names the current belt.
 
 Belts are recoloured with per-atlas masks in assets/belt-mask-<n>.png, built by `node prepare-belt-masks.mjs [--preview <dir>]` (needs the sharp dev dependency) from belt-mask.mjs. The mask finds dark regions bordered by the gi (thick bands, or very dark patches partly hidden by a limb) and keeps a 1px outline, so eyes and outlines are untouched. All 72 poses were inspected in the preview.
 
@@ -131,12 +131,26 @@ Belts are recoloured with per-atlas masks in assets/belt-mask-<n>.png, built by 
 
 At short landscape sizes the themed control band had been painted solid over the arena and hid the fighters below the shoulders. The band is now transparent there, as the landscape layout intended; the d-pad and buttons keep their solid faces. Inspected at 667×375, 844×390 and 932×430; qa-touch-layouts.cjs passes.
 
-## Big-moment celebrations preview (`?fx=v1`)
+## Big-moment celebrations (on by default; `?fx=off` turns them off)
 
-Open http://127.0.0.1:8787/?fx=v1 (combine with `&story=v1`). Solo fights only; online VS is unchanged.
+Approved Oct 27. Solo fights only; online VS is unchanged.
 
 - Hit-stop: the fight freezes for 0.05 s on a hit and 0.11 s on a launch, knockback or chain finisher (halved with Reduced motion).
 - Word pops above the opponent when your bunny lands a launch (Wheee! / Up you go!), a front-kick knockback (Pow! / Boom!) or a spin that finishes the tap chain (Combo! / Hi-yah!), at most one every 0.8 s, with a two-note chime. They are drawn on the arena canvas at 24 CSS pixels or larger and hold still with Reduced motion.
 - KO slow motion: a winning knockout plays at 35% speed for 0.9 s before the result (off with Reduced motion).
 
 Hit events now include `move` and `chain` so effects can tell moves apart. `node qa-fx.cjs` (server running) lands each move in a real browser fight and checks the pops, hit-stop, KO slow-mo, Reduced motion and the flag-off game.
+
+## First-fight lesson preview (`?tutorial=v1`)
+
+Open http://127.0.0.1:8787/?tutorial=v1 and start stage 1. After the pre-fight lines, the coaches teach one move at a time: tap Attack, the four-hit tap chain, Guard (Mochi throws slow punches only on this step), then the up, forward, down and back kicks. The control to use glows, the coach says the line in the blip voice, and each step ticks off from the real move with a cheer. On a keyboard the card also shows the keys. The clock does not run and neither bunny can drop below 35 health during the lesson; the bout starts after "You know them all. Go!" On a PC the last card says Settings can show or hide the on-screen buttons. Skip lesson ends it. It runs once, and not after stage 1 has been won.
+
+Lesson steps live in lesson.mjs (lesson.test.mjs checks the 6-word limit, coverage of every move, and that each step ticks off from the real combat event). `node qa-lesson.cjs` plays the lesson by keyboard on desktop and by touch on a phone.
+
+## On-screen buttons setting
+
+Settings > On-screen buttons: Auto (default) shows the d-pad and Attack/Guard on touch screens and hides them without one, so a PC fight shows only the arena; Always show; Hide. With the buttons hidden, pre-fight dialogue floats over the arena floor so the arena does not resize, and result actions still appear in the bottom band. `node qa-buttons.cjs` covers Auto on PC and phone, Show/Hide from the pause menu, saving, and the lesson tip.
+
+## Running the older QA scripts
+
+The scripts written before story scenes read KB_GAME_URL. Run them against the earlier game with `KB_GAME_URL='http://127.0.0.1:8787/?story=off&fx=off'`; qa-story, qa-fx, qa-lesson and qa-buttons cover the current default. qa-arena-labels.cjs fails on the original game too (it expects every arena action in the first phone screen, which the typography pass changed).
