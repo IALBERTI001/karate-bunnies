@@ -1,5 +1,7 @@
 # Karate Bunnies
 
+Play in a browser: https://ialberti001.github.io/karate-bunnies/ (GitHub Pages, served from `main`). First-fight lesson preview: https://ialberti001.github.io/karate-bunnies/?tutorial=v1
+
 A playable browser fighting game with a twenty-fight campaign, original bunny artwork, selectable fur and gi colors, touch and keyboard controls, and real two-player matchmaking on the included server.
 
 ## Run
@@ -103,7 +105,7 @@ Each new fight victory pays one carrot, including campaign replays and online wi
     cd karate-bunnies
     node server.mjs
 
-This is a private repository. Authenticate with an authorized GitHub account to clone it. Runtime and core tests need no dependency installation.
+Runtime and core tests need no dependency installation.
 
 For browser and image-analysis tools, install development dependencies with `npm install`, then install the test browser with `npx playwright install chromium`. Keep the game server running in another terminal and run `node qa-typography.cjs` or `node qa-carrots.cjs`. To use an installed Microsoft Edge instead, set `KB_BROWSER_CHANNEL=msedge` in your shell. Browser captures are ignored by Git. Original art reprocessing scripts require `KB_ART_SOURCE_DIR`; all finished runtime assets are already included.
 
