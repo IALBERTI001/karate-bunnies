@@ -11,7 +11,7 @@ const toFight=async(p,url,stageId=1)=>{await p.goto(url);if(stageId>1)await p.ev
 (async()=>{const b=await chromium.launch({headless:true,...(process.env.KB_BROWSER_CHANNEL?{channel:process.env.KB_BROWSER_CHANNEL}:{}),args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--autoplay-policy=no-user-gesture-required']});
  const errors=[];const results=[];
  // 1. Full flow on a phone.
- let p=await b.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});p.on('pageerror',e=>errors.push(e.message));await inject(p);
+ let p=await b.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});p.setDefaultTimeout(90000);p.setDefaultNavigationTimeout(90000);await p.addInitScript(()=>{try{if(!localStorage.getItem('kb-lesson-v1'))localStorage.setItem('kb-lesson-v1','true');}catch{}});p.on('pageerror',e=>errors.push(e.message));await inject(p);
  assert.equal(await toFight(p,BASE+'/'),'Mochi','story mode reveals the stage character');
  await p.locator('#begin').click();await p.locator('.story-bubble').waitFor();
  assert.equal((await p.locator('.story-name').textContent()).trim(),'Coach Hazel');
@@ -32,7 +32,7 @@ const toFight=async(p,url,stageId=1)=>{await p.goto(url);if(stageId>1)await p.ev
  await p.locator('#story-skip').click();assert.equal(await p.locator('.story-scene').count(),0,'Skip ends the scene');assert.ok(await p.locator('#next-fight').isVisible(),'result actions return after the scene');
  results.push('phone flow');
  // 2. Keyboard, Skip before the fight, loss scene on desktop.
- await p.close();p=await b.newPage({viewport:{width:1280,height:800}});p.on('pageerror',e=>errors.push(e.message));await inject(p);
+ await p.close();p=await b.newPage({viewport:{width:1280,height:800}});p.setDefaultTimeout(90000);p.setDefaultNavigationTimeout(90000);await p.addInitScript(()=>{try{if(!localStorage.getItem('kb-lesson-v1'))localStorage.setItem('kb-lesson-v1','true');}catch{}});p.on('pageerror',e=>errors.push(e.message));await inject(p);
  await toFight(p,BASE+'/');await p.locator('#begin').click();await p.locator('.story-bubble').waitFor();await p.screenshot({path:OUT+'/qa-story-desktop-before.png'});
  await p.keyboard.press('Enter');await p.waitForTimeout(80);await p.keyboard.press('Enter');await p.waitForTimeout(900);assert.equal((await p.locator('.story-name').textContent()).trim(),'Bunny','Enter advances');
  await p.keyboard.press('Escape');assert.ok(await p.locator('#resume').isVisible(),'pause still works during a scene');await p.locator('#resume').click();

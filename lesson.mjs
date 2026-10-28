@@ -11,7 +11,7 @@ export const LESSON = [
   { id: 'spin',  say: ['hazel',   'Hold Attack, press Back, let go!'],     glow: ['attack', 'back'],    keys: 'Hold J, press away from Mochi', done: e => e.type === 'swing' && e.move === 'spin' && !e.chain }
 ];
 export const CHEERS = ['Yes!', 'Lovely!', 'Great job!', 'Perfect!', 'Wonderful!'];
-export const LESSON_END = ['hazel', 'You know them all. Go!'];
+export const LESSON_END = ['hazel', 'You’re ready, little one!'];
 
 // Only the player's own swings and blocks count.
 export function stepDone(step, e) { return !!step && (e.type !== 'swing' || e.fighter === 0) && step.done(e); }

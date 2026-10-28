@@ -196,3 +196,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1d211d}#app{positio
 .hide-screen-controls .fight-screen{position:relative}
 .hide-screen-controls .fight-controls.story-active:not(.round-result-controls){display:block;position:absolute;left:0;right:0;bottom:0;min-height:0;padding:0;background:transparent;border:0;pointer-events:none;z-index:3}
 .hide-screen-controls .fight-controls.story-active:not(.round-result-controls) .story-scene{position:relative;inset:auto;background:transparent;border-top:0;padding:12px max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));pointer-events:auto}
+
+/* Training end card and Settings replay button. */
+.lesson-go{justify-self:center;min-height:48px;padding:0 24px;border-radius:999px;font:700 16px system-ui,sans-serif}
+.replay-training{display:block;margin:16px auto 0;min-height:48px;padding:0 24px}

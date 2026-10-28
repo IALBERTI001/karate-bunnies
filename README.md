@@ -1,6 +1,6 @@
 # Karate Bunnies
 
-Play in a browser: https://ialberti001.github.io/karate-bunnies/ (GitHub Pages, served from `main`). First-fight lesson preview: https://ialberti001.github.io/karate-bunnies/?tutorial=v1
+Play in a browser: https://ialberti001.github.io/karate-bunnies/ (GitHub Pages, served from `main`). A first visit starts with training.
 
 A playable browser fighting game with a twenty-fight campaign, original bunny artwork, selectable fur and gi colors, touch and keyboard controls, and real two-player matchmaking on the included server.
 
@@ -143,11 +143,11 @@ Approved Oct 27. Solo fights only; online VS is unchanged.
 
 Hit events now include `move` and `chain` so effects can tell moves apart. `node qa-fx.cjs` (server running) lands each move in a real browser fight and checks the pops, hit-stop, KO slow-mo, Reduced motion and the flag-off game.
 
-## First-fight lesson preview (`?tutorial=v1`)
+## Training (first launch)
 
-Open http://127.0.0.1:8787/?tutorial=v1 and start stage 1. After the pre-fight lines, the coaches teach one move at a time: tap Attack, the four-hit tap chain, Guard (Mochi throws slow punches only on this step), then the up, forward, down and back kicks. The control to use glows, the coach says the line in the blip voice, and each step ticks off from the real move with a cheer. On a keyboard the card also shows the keys. The clock does not run and neither bunny can drop below 35 health during the lesson; the bout starts after "You know them all. Go!" On a PC the last card says Settings can show or hide the on-screen buttons. Skip lesson ends it. It runs once, and not after stage 1 has been won.
+A first visit (no lesson done and no campaign progress) opens the title scene with **Start training** and **Skip to main menu**; the tap also lets the browser start sound. Training is a practice bout with Mochi in Tiny Paws Dojo, marked TRAINING in the HUD. The coaches teach one move at a time: tap Attack, the four-hit tap chain, Guard (Mochi throws slow punches only on this step), then the up, forward, down and back kicks. The control to use glows, the coach says the line in the blip voice, and each step ticks off from the real move with a cheer. On a keyboard the card also shows the keys. The clock does not run and neither bunny can drop below 35 health. The end card says "You're ready, little one!" (on a PC it adds that Settings can show or hide the on-screen buttons) and **Go to main menu** opens the title. Training pays no carrots and is not a campaign win. Skip lesson also goes to the main menu. Returning players start at the main menu; Settings > Replay training runs it again. `?tutorial=v1` forces the training start and `?tutorial=off` skips it (testing).
 
-Lesson steps live in lesson.mjs (lesson.test.mjs checks the 6-word limit, coverage of every move, and that each step ticks off from the real combat event). `node qa-lesson.cjs` plays the lesson by keyboard on desktop and by touch on a phone.
+Lesson steps live in lesson.mjs (lesson.test.mjs checks the 6-word limit, coverage of every move, and that each step ticks off from the real combat event). `node qa-lesson.cjs` covers first launch, the full lesson by keyboard and by touch, the end card, later launches, Skip, Replay training and who sees training.
 
 ## On-screen buttons setting
 

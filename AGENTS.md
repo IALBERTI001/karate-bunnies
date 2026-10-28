@@ -5,6 +5,8 @@ Apply these user preferences to future game work in this workspace.
 - The entire game is one self-contained game screen, suitable for embedding in any hosting page or browser.
 - All navigation, settings, arena selection, fighter selection, customization, matchmaking, pause menus, and results belong inside that game screen. Do not build website navigation, external customization pages, or marketing-style UI around the game.
 - Start with an animated title screen with the game menu overlaid on the scene.
+- First launch (no lesson done, no campaign progress) opens the title scene with Start training / Skip to main menu. Training is a practice bout with Mochi that teaches every move, then its end card goes to the main menu. Returning players start at the main menu; Settings has Replay training.
+- Online VS stays hidden from the menu until it has a hosted server (`?vs=on` for development).
 - Solo flow: Fight or Story → Select arena → Select and customize fighter → confirm fighter → randomize/reveal opponent → Start Fight.
 - Keep opponent randomization after player fighter selection. Online VS must find a real opponent, not disguise AI as another player.
 - Use responsive in-game HUD and controls for phone, tablet, and desktop. The host page must not be needed to operate the game.

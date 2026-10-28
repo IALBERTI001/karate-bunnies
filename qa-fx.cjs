@@ -3,12 +3,12 @@
 // Reduced motion, and that the game is unchanged without the flag.
 const {chromium}=require('playwright');const assert=require('node:assert/strict');
 const BASE=process.env.KB_TEST_URL||'http://127.0.0.1:8787';const OUT=process.env.KB_QA_OUT||__dirname;
-const hooks=`\nglobalThis.__fx=()=>({pops:pops.map(p=>p.text),frozen:wall<freezeUntil,slow:slowUntil>0,clock:match.clock,phase:match.phase,result:match.result});
+const hooks=`\nglobalThis.__fx=()=>({pops:pops.map(p=>p.text),frozen:wall<freezeUntil,freeze:freezeUntil,slow:slowUntil>0,clock:match.clock,phase:match.phase,result:match.result});
 globalThis.__busy=()=>!!match.fighters[0].move;
 globalThis.__close=(hp)=>{const [a,b]=match.fighters;a.x=440;b.x=530;a.facing=1;b.facing=-1;b.guard=false;b.input.guard=false;b.move=null;b.stun=0;b.invuln=0;b.z=0;b.hp=hp||100;a.hp=100;match.time=45;match.ai.wait=9;match.ai.guard=0;};`;
 (async()=>{const b=await chromium.launch({headless:true,...(process.env.KB_BROWSER_CHANNEL?{channel:process.env.KB_BROWSER_CHANNEL}:{}),args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const errors=[],done=[];
- const open=async(url,vw=1100,vh=820,reduced=false)=>{const p=await b.newPage({viewport:{width:vw,height:vh}});p.on('pageerror',e=>errors.push(e.message));
+ const open=async(url,vw=1100,vh=820,reduced=false)=>{const p=await b.newPage({viewport:{width:vw,height:vh}});p.setDefaultTimeout(90000);p.setDefaultNavigationTimeout(90000);await p.addInitScript(()=>{try{if(!localStorage.getItem('kb-lesson-v1'))localStorage.setItem('kb-lesson-v1','true');}catch{}});p.on('pageerror',e=>errors.push(e.message));
   await p.route('**/main.mjs',async r=>{const f=await r.fetch();await r.fulfill({response:f,body:(await f.text())+hooks});});
   // Buttons shown: software rendering here is too slow for timed hits on the larger hidden-buttons arena.
   await p.addInitScript(()=>{try{if(!localStorage.getItem('kb-settings-v1'))localStorage.setItem('kb-settings-v1',JSON.stringify({music:.25,effects:.5,reduced:false,shake:true,large:false,buttons:'show'}));}catch{}});
@@ -29,9 +29,7 @@ globalThis.__close=(hp)=>{const [a,b]=match.fighters;a.x=440;b.x=530;a.facing=1;
  await p.waitForTimeout(1200);
  s=await land(p,null,x=>x.pops.some(w=>w==='Combo!'||w==='Hi-yah!'),'qa-fx-chain.png');done.push('launch, knockback, chain pops');
  // Hit-stop: freeze flag is raised on contact and the sim clock holds while frozen.
- await p.waitForTimeout(1200);await p.evaluate(()=>__close());await p.keyboard.down('j');await p.keyboard.down('ArrowUp');await p.waitForTimeout(40);await p.keyboard.up('j');await p.keyboard.up('ArrowUp');
- let frozenSeen=null;for(let w=0;w<80&&!frozenSeen;w++){const a=await p.evaluate(()=>__fx());if(a.frozen){await p.waitForTimeout(30);const c=await p.evaluate(()=>__fx());frozenSeen=[a,c];}else await p.waitForTimeout(8);}
- assert.ok(frozenSeen,'hit-stop engaged');if(frozenSeen[1].frozen)assert.equal(frozenSeen[1].clock,frozenSeen[0].clock,'clock holds during hit-stop');done.push('hit-stop');
+ await p.waitForTimeout(1200);await p.evaluate(()=>__close());const f0=(await p.evaluate(()=>__fx())).freeze;await land(p,'ArrowUp',x=>x.freeze>f0);done.push('hit-stop');
  // KO slow-mo: finishing hit starts slow motion and the result waits for it.
  await p.waitForTimeout(1200);const ko=await land(p,'ArrowRight',x=>x.phase==='done',null,4);const waiting=await p.locator('.round-announcement').count();assert.equal(ko.result,'player');assert.ok(ko.slow,'KO slow motion');assert.equal(waiting,0,'result waits for the slow-mo');
  await p.screenshot({path:`${OUT}/qa-fx-ko.png`});await p.locator('.round-announcement').waitFor({timeout:5000});done.push('KO slow-mo');

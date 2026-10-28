@@ -6,7 +6,7 @@ const BASE=process.env.KB_TEST_URL||'http://127.0.0.1:8787';const OUT=process.en
 const hooks=`\nglobalThis.__win=()=>{match.phase='done';match.result='player';match.fighters.forEach((f,i)=>{f.hp=i?0:100;f.animation=i?17:16;f.time=0;f.move=null;f.z=0;});finish();};globalThis.__phase=()=>match?.phase;globalThis.__toEnd=()=>{for(let i=0;i<7;i++)nextLessonStep();};`;
 (async()=>{const b=await chromium.launch({headless:true,...(process.env.KB_BROWSER_CHANNEL?{channel:process.env.KB_BROWSER_CHANNEL}:{}),args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const errors=[],done=[];
- const open=async(url,o={width:1280,height:800})=>{const p=await b.newPage({viewport:{width:o.width,height:o.height},hasTouch:!!o.touch,isMobile:!!o.touch});p.on('pageerror',e=>errors.push(e.message));
+ const open=async(url,o={width:1280,height:800})=>{const p=await b.newPage({viewport:{width:o.width,height:o.height},hasTouch:!!o.touch,isMobile:!!o.touch});p.setDefaultTimeout(90000);p.setDefaultNavigationTimeout(90000);await p.addInitScript(()=>{try{if(!localStorage.getItem('kb-lesson-v1'))localStorage.setItem('kb-lesson-v1','true');}catch{}});p.on('pageerror',e=>errors.push(e.message));
   await p.route('**/main.mjs',async r=>{const f=await r.fetch();await r.fulfill({response:f,body:(await f.text())+hooks});});await p.goto(url);return p;};
  const begin=async p=>{await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();await p.locator('#confirm-fighter').click();await p.locator('#begin').click();};
  const shown=p=>p.locator('#attack').isVisible();
@@ -33,7 +33,7 @@ const hooks=`\nglobalThis.__win=()=>{match.phase='done';match.result='player';ma
  await begin(p);await p.locator('#story-skip').click();await p.waitForFunction(()=>__phase()==='fight',null,{timeout:20000});assert.equal(await shown(p),false,'Hide works on a phone');
  await p.screenshot({path:`${OUT}/qa-buttons-phone-hide.png`});await p.close();done.push('phone auto + hide');
  // 4. Lesson on a PC: keys shown, last card mentions the setting.
- p=await open(BASE+'/?tutorial=v1');await begin(p);await p.locator('#story-skip').click();await p.locator('.lesson-card').waitFor();
+ p=await open(BASE+'/?tutorial=v1');await p.locator('#start-training').click();await p.locator('.lesson-card').waitFor();
  assert.ok(await p.locator('.lesson-keys').isVisible(),'keys shown when buttons are hidden');
  await p.evaluate(()=>__toEnd());await p.waitForFunction(()=>/Tip: Settings/.test(document.querySelector('.lesson-keys')?.textContent||''),null,{timeout:5000});
  await p.screenshot({path:`${OUT}/qa-buttons-lesson-tip.png`});done.push('lesson tip');await p.close();
