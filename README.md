@@ -20,7 +20,7 @@ The dist directory contains the static game and artwork. All twenty campaign fig
 
 ## Play
 
-The animated title screen contains Fight / Story, VS Search, and Settings. All menus, overlays, controls, and results stay inside the same game container; the host page provides no required game controls. Fight / Story opens arena selection, followed by fighter selection and customization. Confirming the fighter randomizes and reveals the solo opponent; Start Fight then enters the arena. Win a bout to unlock the next arena; won stages can be replayed. The twenty-fight journey starts with two coaches in a rabbit-hole dojo, passes through gardens, village venues, and mountain tournaments, and ends with 2,400 spectators in the Ultimate Bunny Arena. All twenty locations have distinct paintings. Progress, appearance, and settings save in local browser storage.
+The animated title screen contains Fight / Story and Settings. VS Search is hidden until online play has a hosted server; open the game with `?vs=on` to show it for development. All menus, overlays, controls, and results stay inside the same game container; the host page provides no required game controls. Fight / Story opens arena selection, followed by fighter selection and customization. Confirming the fighter randomizes and reveals the solo opponent; Start Fight then enters the arena. Win a bout to unlock the next arena; won stages can be replayed. The twenty-fight journey starts with two coaches in a rabbit-hole dojo, passes through gardens, village venues, and mountain tournaments, and ends with 2,400 spectators in the Ultimate Bunny Arena. All twenty locations have distinct paintings. Progress, appearance, and settings save in local browser storage.
 
 On fighter selection, combine white, cream, gray, or tan fur with coral, mint, lavender, sky blue, purple, pink, or black gi. The headband matches the gi; the belt stays black and the paws remain bare. Appearance is cosmetic.
 
@@ -153,4 +153,4 @@ Settings > On-screen buttons: Auto (default) shows the d-pad and Attack/Guard on
 
 ## Running the older QA scripts
 
-The scripts written before story scenes read KB_GAME_URL. Run them against the earlier game with `KB_GAME_URL='http://127.0.0.1:8787/?story=off&fx=off'`; qa-story, qa-fx, qa-lesson and qa-buttons cover the current default. qa-arena-labels.cjs fails on the original game too (it expects every arena action in the first phone screen, which the typography pass changed).
+The scripts written before story scenes read KB_GAME_URL. Run them against the earlier game with `KB_GAME_URL='http://127.0.0.1:8787/?story=off&fx=off&vs=on'`; qa-story, qa-fx, qa-lesson and qa-buttons cover the current default. qa-arena-labels.cjs fails on the original game too (it expects every arena action in the first phone screen, which the typography pass changed).
