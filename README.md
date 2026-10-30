@@ -6,7 +6,7 @@ Open **Gi Shop** on the main menu, or **Gi Shop / Wardrobe** during fighter sele
 
 **Glitter cuties:** Strawberry Sugar (berries and hearts), Cloud Cuddle (clouds and rainbows), Honey Hug (teddy friends), Lavender Lullaby (sleepy moons), Rainbow Ribbon (pastel bows), and Fairy Floss (fairy wings and candy hearts). Each has pearly flecks and soft animated cloth glints. Reduced Motion keeps the glitter finish still, including during combat. The renderer reuses eight shimmer phases within its existing bounded sprite cache.
 
-**Original favorites:** Sakura Bloom, Carrot Club, Moon & Stars, Bamboo Breeze, Golden Flame and Raiders Football. Switch collections in the shop to browse six looks at a time. Existing purchases and equipped outfits remain valid.
+**Original favorites:** Sakura Bloom, Carrot Club, Moon & Stars, Bamboo Breeze, Golden Flame and Raiders Football. All twelve outfits share one scrolling rack. On taller desktop and tablet layouts the fitting-room bunny stays visible while you browse. Existing purchases and equipped outfits remain valid.
 
 Buying deducts carrots once, permanently adds that design to this browser's wardrobe, and equips it. Owned designs can be worn again for free; **Wear a plain gi** removes the print. Choosing a plain color during fighter selection also unequips the design. Custom prints appear on the gi and matching headband in menus, training, solo fights and online matches, preserving fur, bare paws and earned belts. All outfits are cosmetic.
 

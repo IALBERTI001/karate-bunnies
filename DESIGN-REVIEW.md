@@ -70,3 +70,8 @@ Use these open gates to guide subsequent work. Resolve or clearly report materia
 - Soft cloth highlights are masked to gi material and applied before the belt mask. Eight cached phases limit shimmer variation within the existing bounded cache. Reduced Motion freezes the shimmer in menus and combat; two separated captures of the still fitting-room bunny matched byte for byte. Glitter does not introduce a screen-wide particle effect.
 - Verified a new Strawberry Sugar purchase deducted exactly 10 (40→30), preserved existing ownership, and appeared in fighter selection, story and a playable fight. Exercised attack and pause/resume wearing the new print. A fresh zero-wallet preview also correctly disabled purchasing. No physical mobile or Safari validation is claimed.
 - 58 unit tests and static build passed. Multiplayer integration passed with Raiders and Fairy Floss appearances. New tests cover all twelve prices, six glitter flags, bounded/reduced-motion phases, finite motif painting and balanced canvas state. Existing device/performance/release gates remain open.
+
+## Continuous shop browsing (2026-10-30)
+
+- Replaced the two collection selectors with one scrolling rack containing all twelve outfits, following user preference. Taller desktop/tablet layouts keep the fitting-room preview beside the rack; selecting an outfit preserves the rack's scroll position there. Compact layouts keep normal internal page scrolling.
+- Verified all twelve buttons exist together, scrolled to the final rows and selected Lavender Lullaby with the preview still visible, and inspected the phone layout at 390×844 with no horizontal page overflow. Static build and syntax/diff checks passed. Purchases and outfit rendering were unchanged.
