@@ -80,3 +80,5 @@ Use these open gates to guide subsequent work. Resolve or clearly report materia
 
 - Added a compact, labelled native Category dropdown above the scrolling rack: All gis (default), Glitter cuties, Original favorites. It replaces category buttons without removing the full scrolling browse experience. Changing categories keeps a valid preview and retains the filter through selecting/equipping an outfit; reopening the shop starts with All gis.
 - Browser checks confirmed 12→6→6→12 items across the choices. Inspected desktop and 390×844 phone; the select is 44 CSS pixels high with no page horizontal overflow. Static build, syntax and diff checks passed. Prices, inventory and rendering were unchanged.
+
+- Theme refinement: dropdown labels are All Gi, Glitter Collection, Sports Collection and Original Favorites. Collection membership is explicit in each catalog entry, so future themes can be added without changing the filter logic. Raiders is in Sports, the six glitter designs in Glitter, and the five other originals in Original Favorites. Catalog filtering tests and build passed; presentation uses the same inspected native dropdown.
