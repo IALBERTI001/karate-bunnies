@@ -2,6 +2,7 @@
 // This preserves bare paws, fur, outlines and the separately recoloured rank belt in every pose.
 export function paintGiPattern(ctx,item){
  ctx.clearRect(0,0,256,256);ctx.fillStyle=item.accent;ctx.strokeStyle=item.accent;
+ if(item.pattern==='sports'){paintSportsPrint(ctx,item);return;}
  if(item.glitter){paintCutePrint(ctx,item);return;}
  if(item.pattern==='raiders'){
   ctx.globalAlpha=.8;ctx.fillRect(24,0,12,256);ctx.fillRect(220,0,12,256);
@@ -22,6 +23,46 @@ export function paintGiPattern(ctx,item){
   if(item.pattern==='flame'){ctx.beginPath();ctx.moveTo(0,-13);ctx.bezierCurveTo(12,-1,11,10,0,11);ctx.bezierCurveTo(-10,10,-9,0,-4,-5);ctx.quadraticCurveTo(-3,4,0,4);ctx.quadraticCurveTo(4,0,0,-13);ctx.fill();}
   ctx.restore();
  }
+}
+
+function sportsBall(ctx,sport,accent,trim){
+ ctx.fillStyle=accent;ctx.strokeStyle=trim;ctx.lineWidth=1.4;
+ if(sport==='hockey'||sport==='lacrosse'){
+  for(const d of [-1,1]){ctx.save();ctx.scale(d,1);ctx.beginPath();ctx.moveTo(-9,-12);ctx.lineTo(7,10);ctx.lineTo(14,10);ctx.stroke();if(sport==='lacrosse'){ctx.beginPath();ctx.ellipse(-9,-13,4,6,-.5,0,7);ctx.stroke();}ctx.restore();}
+  if(sport==='hockey'){ctx.fillStyle=accent;ctx.beginPath();ctx.ellipse(0,12,5,2,0,0,7);ctx.fill();}return;
+ }
+ if(sport==='football'){ctx.beginPath();ctx.ellipse(0,0,11,6,-.5,0,7);ctx.fill();ctx.beginPath();ctx.moveTo(-5,3);ctx.lineTo(5,-3);ctx.stroke();for(let x=-3;x<=3;x+=3){ctx.beginPath();ctx.moveTo(x-2,-2);ctx.lineTo(x+2,2);ctx.stroke();}return;}
+ ctx.beginPath();ctx.arc(0,0,10,0,7);ctx.fill();
+ if(sport==='basketball'){ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(10,0);ctx.moveTo(0,-10);ctx.lineTo(0,10);ctx.stroke();for(const d of [-1,1]){ctx.beginPath();ctx.moveTo(d*7,-7);ctx.quadraticCurveTo(-d*3,0,d*7,7);ctx.stroke();}}
+ if(sport==='baseball'){for(const d of [-1,1]){ctx.beginPath();ctx.moveTo(d*6,-8);ctx.quadraticCurveTo(-d*1,0,d*6,8);ctx.stroke();for(let y=-5;y<=5;y+=5){ctx.beginPath();ctx.moveTo(d*2,y);ctx.lineTo(d*6,y+2);ctx.stroke();}}}
+ if(sport==='soccer'){ctx.beginPath();for(let k=0;k<5;k++)ctx.lineTo(Math.cos(k*1.256-1.57)*4,Math.sin(k*1.256-1.57)*4);ctx.closePath();ctx.stroke();for(let k=0;k<5;k++){const a=k*1.256-1.57;ctx.beginPath();ctx.moveTo(Math.cos(a)*4,Math.sin(a)*4);ctx.lineTo(Math.cos(a)*10,Math.sin(a)*10);ctx.stroke();}}
+ if(sport==='volleyball'){for(let k=0;k<3;k++){ctx.save();ctx.rotate(k*Math.PI*2/3);ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(8,-1,5,-8);ctx.moveTo(0,4);ctx.quadraticCurveTo(9,4,9,-3);ctx.stroke();ctx.restore();}}
+}
+function paintSportsPrint(ctx,item){
+ const dark=item.dark??'#252a32',trim=item.trim??item.accent;
+ ctx.save();
+ // Jersey bands and woven piping, masked to gi fabric at runtime.
+ ctx.fillStyle=dark;ctx.globalAlpha=.9;ctx.fillRect(0,113,256,14);ctx.fillRect(0,220,256,22);
+ ctx.fillStyle=trim;ctx.globalAlpha=1;ctx.fillRect(0,130,256,4);ctx.fillRect(0,215,256,4);
+ ctx.fillStyle=item.accent;ctx.globalAlpha=.7;ctx.fillRect(25,0,6,256);ctx.fillRect(225,0,6,256);ctx.globalAlpha=1;
+ for(let row=0;row<5;row++)for(let col=0;col<5;col++){ctx.save();ctx.translate(24+col*56+(row%2?18:0),24+row*57);ctx.scale(.68,.68);sportsBall(ctx,item.sport,item.accent,trim);ctx.restore();}
+ // Original fan crest: a knight visor, ace, wing, paw or team-letter patch.
+ ctx.save();ctx.translate(128,173);ctx.fillStyle=dark;ctx.strokeStyle=item.accent;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-31,-32);ctx.lineTo(31,-32);ctx.lineTo(27,13);ctx.lineTo(0,35);ctx.lineTo(-27,13);ctx.closePath();ctx.fill();ctx.stroke();
+ ctx.fillStyle=item.accent;ctx.strokeStyle=item.accent;ctx.lineWidth=2;
+ if(item.crest==='knight'){
+  ctx.beginPath();ctx.moveTo(0,-23);ctx.lineTo(20,-13);ctx.lineTo(15,13);ctx.lineTo(3,24);ctx.lineTo(3,2);ctx.lineTo(12,-7);ctx.lineTo(3,-4);ctx.lineTo(0,3);ctx.lineTo(-3,-4);ctx.lineTo(-12,-7);ctx.lineTo(-3,2);ctx.lineTo(-3,24);ctx.lineTo(-15,13);ctx.lineTo(-20,-13);ctx.closePath();ctx.fill();
+ }else if(item.crest==='ace'){
+  ctx.beginPath();ctx.moveTo(0,-21);ctx.bezierCurveTo(33,0,8,19,0,7);ctx.bezierCurveTo(-8,19,-33,0,0,-21);ctx.fill();ctx.fillRect(-3,3,6,13);
+ }else if(item.crest==='wings'){
+  for(const d of [-1,1]){ctx.beginPath();ctx.moveTo(0,6);ctx.lineTo(d*23,-17);ctx.lineTo(d*20,-2);ctx.lineTo(d*10,4);ctx.lineTo(d*18,2);ctx.lineTo(d*10,13);ctx.closePath();ctx.fill();}
+ }else if(item.crest==='paw'){
+  ctx.beginPath();ctx.ellipse(0,7,11,9,0,0,7);ctx.fill();for(const [x,y]of [[-13,-3],[-5,-12],[5,-12],[13,-3]]){ctx.beginPath();ctx.ellipse(x,y,4,5,0,0,7);ctx.fill();}
+ }else if(item.crest==='bolt'){
+  ctx.beginPath();ctx.moveTo(4,-24);ctx.lineTo(-14,3);ctx.lineTo(-2,3);ctx.lineTo(-8,23);ctx.lineTo(16,-7);ctx.lineTo(3,-7);ctx.closePath();ctx.fill();
+ }else if(item.crest==='star'){glint(ctx,0,0,23);}
+ else{ctx.font=`bold ${item.mark.length>2?14:30}px Georgia`;ctx.textAlign='center';ctx.fillText(item.mark,0,8);}
+ ctx.restore();
+ ctx.restore();
 }
 
 // Eight reusable shimmer frames keep sprite caching bounded; reduced motion is a still finish.
