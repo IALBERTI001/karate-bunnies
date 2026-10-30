@@ -25,8 +25,8 @@ export const GIS=Object.freeze([
  {id:'fairy',name:'Fairy Floss',price:10,collection:'glitter',color:'#c18fcb',accent:'#ffeaf6',pattern:'fairy',glitter:true,description:'Fairy wings, candy hearts, and a little wishful twinkle.'}
 ]);
 export const giDesign=id=>GIS.find(g=>g.id===id)??null;
-export const GI_COLLECTIONS=[{id:'all',name:'All Gi'},{id:'glitter',name:'Glitter Collection'},{id:'sports',name:'Sports Collection'},{id:'original',name:'Original Favorites'}];
-export const collectionGis=id=>id==='all'?GIS:GIS.filter(g=>g.collection===id);
+export const GI_COLLECTIONS=[{id:'all',name:'All Gi'},{id:'owned',name:'Owned'},{id:'glitter',name:'Glitter Collection'},{id:'sports',name:'Sports Collection'},{id:'original',name:'Original Favorites'}];
+export const collectionGis=(id,owned=[])=>id==='all'?GIS:GIS.filter(g=>id==='owned'?Array.isArray(owned)&&owned.includes(g.id):g.collection===id);
 export const balanceValue=value=>Number.isFinite(Number(value))?Math.max(0,Math.min(Number.MAX_SAFE_INTEGER,Math.floor(Number(value)))):0;
 export function loadWardrobe(raw,legacyBalance=0){
  try{const v=typeof raw==='string'?JSON.parse(raw):raw;
