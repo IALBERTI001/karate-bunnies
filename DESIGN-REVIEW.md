@@ -75,3 +75,8 @@ Use these open gates to guide subsequent work. Resolve or clearly report materia
 
 - Replaced the two collection selectors with one scrolling rack containing all twelve outfits, following user preference. Taller desktop/tablet layouts keep the fitting-room preview beside the rack; selecting an outfit preserves the rack's scroll position there. Compact layouts keep normal internal page scrolling.
 - Verified all twelve buttons exist together, scrolled to the final rows and selected Lavender Lullaby with the preview still visible, and inspected the phone layout at 390×844 with no horizontal page overflow. Static build and syntax/diff checks passed. Purchases and outfit rendering were unchanged.
+
+## Category dropdown (2026-10-30)
+
+- Added a compact, labelled native Category dropdown above the scrolling rack: All gis (default), Glitter cuties, Original favorites. It replaces category buttons without removing the full scrolling browse experience. Changing categories keeps a valid preview and retains the filter through selecting/equipping an outfit; reopening the shop starts with All gis.
+- Browser checks confirmed 12→6→6→12 items across the choices. Inspected desktop and 390×844 phone; the select is 44 CSS pixels high with no page horizontal overflow. Static build, syntax and diff checks passed. Prices, inventory and rendering were unchanged.
