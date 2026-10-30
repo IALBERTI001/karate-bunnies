@@ -1,5 +1,23 @@
 # Karate Bunnies
 
+## Gi Shop and wardrobe
+
+Open **Gi Shop** on the main menu, or **Gi Shop / Wardrobe** during fighter selection. Preview any design on your animated bunny before buying. All 22 shop gis cost **10 carrots each**, including Raiders Football, the black-and-silver fan design with a football crest. Original plain gi colors remain free.
+
+**Glitter cuties:** Strawberry Sugar (berries and hearts), Cloud Cuddle (clouds and rainbows), Honey Hug (teddy friends), Lavender Lullaby (sleepy moons), Rainbow Ribbon (pastel bows), and Fairy Floss (fairy wings and candy hearts). Each has pearly flecks and soft animated cloth glints. Reduced Motion keeps the glitter finish still, including during combat. The renderer reuses eight shimmer phases within its existing bounded sprite cache.
+
+**Original favorites:** Sakura Bloom, Carrot Club, Moon & Stars, Bamboo Breeze and Golden Flame. All outfits share one scrolling rack by default. The Category dropdown offers All Gi, Glitter Collection, Sports Collection and Original Favorites. All Gi is the default scrolling catalog. On taller desktop and tablet layouts the fitting-room bunny stays visible while you browse. Existing purchases and equipped outfits remain valid.
+
+**Las Vegas Sports Collection:** Vegas Golden Knights (featured first), Henderson Silver Knights, Las Vegas Aces, Las Vegas Aviators, Athletics · Vegas-bound, UNLV Runnin’ Rebels, Las Vegas Lights FC, Vegas Knight Hawks, Las Vegas Desert Dogs, Vegas Thrill and Raiders Football. Original fan-art prints combine team palettes, sports equipment, jersey stripes and individual crests. Golden Knights gets gold cloth, steel/charcoal panels, red piping and knight visors. No additional bunny sprite sheets are needed.
+
+Team references checked October 30, 2026: [Golden Knights](https://www.nhl.com/goldenknights/), [Silver Knights](https://www.hendersonsilverknights.com/), [Aces basketball](https://aces.wnba.com/), [Aviators baseball](https://www.milb.com/las-vegas/ballpark), [UNLV](https://unlvrebels.com/), [Lights FC](https://www.lasvegaslightsfc.com/), [Vegas Thrill](https://mlvb.com/teams/vegas-thrill), and [regional sports overview](https://businessinclarkcounty.com/clark-county-top-industries-in-nevada/sports-athletics/). The Athletics outfit is labelled Vegas-bound because their [Las Vegas ballpark is planned for 2028](https://ballparkexperience.athletics.com/). Basketball outfits represent the Aces and UNLV; the [NBA is exploring expansion](https://pr.nba.com/nba-board-of-governors-potential-expansion-las-vegas-seattle), so no invented Las Vegas NBA franchise is included. This is a curated regional sports set, not a claim to enumerate every local amateur or school team.
+
+Buying deducts carrots once, permanently adds that design to this browser's wardrobe, and equips it. Owned designs can be worn again for free; **Wear a plain gi** removes the print. Choosing a plain color during fighter selection also unequips the design. Custom prints appear on the gi and matching headband in menus, training, solo fights and online matches, preserving fur, bare paws and earned belts. All outfits are cosmetic.
+
+`wardrobe.mjs` contains the catalog and purchase/equip validation. The `kb-wardrobe-v1` local-storage record saves the carrot balance, owned IDs and equipped ID together, so a purchase cannot save its debit separately from ownership. Existing `kb-carrots-v1` balances migrate on first use and that key remains a compatibility mirror. A failed purchase save spends nothing. Saves remain per browser, with no account sync or server-backed inventory.
+
+`gi-patterns.mjs` paints vector cloth prints; `render.mjs` masks them to the existing gi material for every animation pose. No additional bunny atlases are needed. `wardrobe.test.mjs` covers prices, exact deductions, duplicate purchase rejection, insufficient funds, ownership, migration, corrupt data and storage failures; it is included in the main test command. The server integration test also checks a custom gi survives matchmaking.
+
 Play in a browser: https://ialberti001.github.io/karate-bunnies/ (GitHub Pages, served from `main`). A first visit starts with training.
 
 A playable browser fighting game with a twenty-fight campaign, original bunny artwork, selectable fur and gi colors, touch and keyboard controls, and real two-player matchmaking on the included server.

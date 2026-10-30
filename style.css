@@ -197,6 +197,48 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1d211d}#app{positio
 .hide-screen-controls .fight-controls.story-active:not(.round-result-controls){display:block;position:absolute;left:0;right:0;bottom:0;min-height:0;padding:0;background:transparent;border:0;pointer-events:none;z-index:3}
 .hide-screen-controls .fight-controls.story-active:not(.round-result-controls) .story-scene{position:relative;inset:auto;background:transparent;border-top:0;padding:12px max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));pointer-events:auto}
 
+/* An open-air fitting room, kept inside the same illustrated game screen. */
+.gi-shop{position:absolute;inset:100px max(24px,env(safe-area-inset-right)) 12px max(24px,env(safe-area-inset-left));overflow-y:auto;overscroll-behavior:contain;padding:0 16px 20px;scrollbar-width:thin}
+.shop-screen .menu-vignette{background:linear-gradient(0deg,#18271eed,#27332491 65%,#15231dd9)}
+.shop-summary{display:flex;align-items:center;justify-content:space-between;gap:20px;max-width:1080px;margin:0 auto 10px;font:16px/1.5 system-ui;color:#ffedcb}
+.shop-summary p{margin:0}.shop-summary strong{white-space:nowrap;color:#ffe2a0;font-size:18px}
+.shop-layout{display:grid;grid-template-columns:minmax(260px,.85fr) minmax(400px,1.15fr);gap:36px;max-width:1080px;margin:auto;align-items:center}
+.shop-fitting{text-align:center;position:relative;padding-bottom:6px;min-width:0}
+.shop-label{display:block;font:700 14px system-ui;letter-spacing:.18em;color:#e9ce8c;margin:6px 0 -25px}
+#shop-bunny{position:relative;z-index:1;display:block;width:min(100%,340px);height:clamp(210px,33vh,350px);object-fit:contain;object-position:center bottom;margin:0 auto}
+.shop-pedestal{height:24px;max-width:270px;margin:-13px auto 18px;border-radius:50%;background:radial-gradient(ellipse,#ceae74,#6c553b 70%);box-shadow:0 9px 0 #41382a,0 12px 20px #121c1670;border:1px solid #d3b87a}
+.shop-fitting h2{font:bold 32px Georgia;color:#ffe8b1;margin:12px 0 7px;text-shadow:0 3px 4px #1a241b}
+.shop-fitting p{font:16px/1.45 system-ui;margin:0 auto 10px;max-width:340px;color:#f5e5ca}
+.shop-preview-note{display:block;font:14px/1.5 system-ui;color:#dfccab;margin-bottom:12px}
+.shop-fitting button{min-height:48px;width:min(100%,300px);font-size:16px}.shop-fitting .shop-afford{min-height:42px;font-size:14px;margin-top:13px;color:#ffe1a2}
+.shop-rack{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 16px;padding:16px 2px;min-width:0}
+.shop-category{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:10px;font:600 14px system-ui;color:#ffe9bf}
+.shop-category select{min-height:44px;max-width:100%;min-width:170px;padding:9px 30px 9px 12px;border:1px solid #dcc48c;border-radius:8px;background:#f4e5be;color:#3d392c;font:600 14px system-ui}
+.shop-hanger{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:9px;min-height:166px;padding:9px 5px 12px;background:transparent;color:#ffeecb;border:0;border-bottom:2px solid #d9bd774d;border-radius:0;box-shadow:none;font:14px/1.4 system-ui}
+.shop-hanger.selected{border-color:#f9db8b;background:linear-gradient(transparent,#d9bd771c)}
+.shop-fabric{display:block;width:96px;height:92px;filter:drop-shadow(0 4px 3px #111a16aa);background:var(--cloth);clip-path:polygon(22% 8%,39% 0,50% 13%,61% 0,78% 8%,100% 36%,82% 51%,72% 35%,72% 100%,28% 100%,28% 35%,18% 51%,0 36%);position:relative}
+.shop-fabric:after{content:'';position:absolute;left:28%;right:28%;height:5px;bottom:25%;background:#232429;box-shadow:0 1px 0 #ede1c15c}
+.shop-fabric canvas{width:100%;height:100%}.shop-item-name{font-weight:700;font-size:16px}.shop-item-price{font-size:14px;color:#ffe1a0}
+.shop-rack-note{grid-column:span 2;align-self:center;font:14px/1.6 system-ui;color:#ead8b7}.shop-rack>.secondary{align-self:center;font-size:14px;min-height:48px;padding:10px}
+.shop-save-note{text-align:center;font:14px system-ui;color:#deccaa;margin:12px 0 0}
+.custom-wardrobe{display:flex;flex-shrink:0;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;padding:4px 16px 12px;font:14px system-ui;color:#ffe7b3}
+.custom-wardrobe .secondary{font-size:14px;min-height:44px;padding:8px 16px}
+.shop-glitter-label{display:block;font:600 14px/1.6 system-ui;color:#ffe8af;margin:4px 0 10px}
+@media(min-width:701px) and (max-width:950px){.shop-layout{grid-template-columns:minmax(220px,.85fr) minmax(340px,1.15fr);gap:18px}.shop-item-name{font-size:14px}}
+@media(max-width:700px){
+ .gi-shop{inset:96px 8px 8px;padding:0 10px 20px}.shop-summary{flex-direction:column-reverse;gap:6px;text-align:center}.shop-summary p{font-size:14px}
+ .shop-layout{grid-template-columns:1fr;gap:5px}.shop-label{margin:8px 0 -20px}#shop-bunny{height:230px}.shop-fitting h2{font-size:28px}
+ .shop-rack{gap:18px 10px;padding:10px 0}.shop-hanger{min-height:158px;gap:8px}.shop-fabric{width:82px;height:82px}.shop-item-name{font-size:14px}.shop-item-price{font-size:14px}
+ .shop-rack-note{grid-column:span 2}.shop-rack>.secondary{padding:8px 5px}.custom-wardrobe{padding-bottom:9px}
+}
+@media(max-width:360px){.shop-rack{grid-template-columns:repeat(2,minmax(0,1fr))}.shop-rack-note{grid-column:1/-1}.shop-rack>.secondary{grid-column:1/-1}.shop-screen .screen-heading{left:12px;right:12px;gap:8px}.shop-screen .screen-heading h1{font-size:23px}.shop-screen .screen-heading small{letter-spacing:0;font-size:14px}}
+@media(orientation:landscape) and (max-height:550px){
+ .gi-shop{inset:76px 16px 5px;padding-bottom:8px}.shop-summary{font-size:14px;margin-bottom:0}.shop-layout{grid-template-columns:minmax(210px,.8fr) minmax(350px,1.2fr);gap:20px;align-items:start}
+ #shop-bunny{height:180px}.shop-fitting h2{font-size:25px}.shop-fitting p{font-size:14px}.shop-label{margin-top:0}.shop-rack{gap:12px}.shop-hanger{min-height:145px}.shop-fabric{width:75px;height:75px}.shop-item-name{font-size:14px}
+}
+
 /* Training end card and Settings replay button. */
 .lesson-go{justify-self:center;min-height:48px;padding:0 24px;border-radius:999px;font:700 16px system-ui,sans-serif}
 .replay-training{display:block;margin:16px auto 0;min-height:48px;padding:0 24px}
+
+@media(min-width:701px) and (min-height:700px){.shop-layout{align-items:start}.shop-fitting{position:sticky;top:8px}}

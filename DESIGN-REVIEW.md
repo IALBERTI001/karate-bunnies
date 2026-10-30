@@ -53,3 +53,39 @@ Keep the complete experience inside the game. Exercise title → arena → custo
 - Failure-state coverage is incomplete: reconnect, long search cancellation, restricted storage, and graphics-context loss deserve a dedicated pass before release.
 
 Use these open gates to guide subsequent work. Resolve or clearly report material limitations; do not silently label the game production ready.
+
+## Gi shop sample (2026-10-30)
+
+- Added an open-scene fitting room inside the game, linked from the title and fighter selection. Six cloth previews and an animated bunny share the existing environment and gold/wood palette. Five prints cost 10 carrots; Raiders Football costs 100. Plain colors remain free.
+- Inspected the actual local build at desktop, 390×844, 320×568, 768×1024, and 844×390. Phone and short-landscape shop content intentionally scrolls inside the game. At 320 pixels the catalog reflows to two columns; text measurements found no shop/header text below 14 CSS pixels and no page horizontal overflow. Tablet grid spacing was tightened after inspection.
+- Verified insufficient-funds controls on a fresh wallet, a 10-carrot purchase (150→140), Raiders purchase (140→40), disabled repeat purchase, free switching to an owned outfit, switching back to plain, reload persistence, and return from wardrobe to the selected arena's fighter setup. Seed credits were only disposable localhost QA data; the game does not grant store-test currency.
+- Exercised title→arena→fighter→confirm/reveal→story→combat→pause/resume→defeat→main menu wearing Raiders. Outfit and headband stayed on the bunny; fur, bare paws and the white rank belt remained visible. The prints use the existing per-pixel gi material mask, without replacing sprites. The small football crest is a sample fan design and is less readable at combat scale than in the shop swatch.
+- 56 unit tests passed, static build passed, and the server pairing/authoritative-combat test passed with a Raiders design in player appearance. Storage-failure unit tests cover canonical-save refusal and a failed legacy mirror. Browser checks used the in-app desktop browser and emulated viewport sizes; no physical mobile device, mobile touch hardware or Safari validation is claimed.
+- Existing release quality gates above still apply. Inventory and carrots remain browser-local, rather than an account-backed economy.
+
+## Glitter cuties expansion (2026-10-30)
+
+- Added Strawberry Sugar, Cloud Cuddle, Honey Hug, Lavender Lullaby, Rainbow Ribbon and Fairy Floss. Individually drawn berry, cloud/rainbow, teddy, sleepy moon, bow and fairy-wing prints include pearly flecks, small hearts and four-point glints. All twelve shop outfits now cost 10 carrots, superseding the initial Raiders price.
+- Added two six-outfit collection selectors to preserve a browsable rack. Visually inspected all six on the animated bunny, plus the shop at desktop, 390×844 phone and 768×1024 tablet. Phone shop scrolling stays inside the game; measured shop text remained at least 14 CSS pixels with no horizontal page overflow.
+- Soft cloth highlights are masked to gi material and applied before the belt mask. Eight cached phases limit shimmer variation within the existing bounded cache. Reduced Motion freezes the shimmer in menus and combat; two separated captures of the still fitting-room bunny matched byte for byte. Glitter does not introduce a screen-wide particle effect.
+- Verified a new Strawberry Sugar purchase deducted exactly 10 (40→30), preserved existing ownership, and appeared in fighter selection, story and a playable fight. Exercised attack and pause/resume wearing the new print. A fresh zero-wallet preview also correctly disabled purchasing. No physical mobile or Safari validation is claimed.
+- 58 unit tests and static build passed. Multiplayer integration passed with Raiders and Fairy Floss appearances. New tests cover all twelve prices, six glitter flags, bounded/reduced-motion phases, finite motif painting and balanced canvas state. Existing device/performance/release gates remain open.
+
+## Continuous shop browsing (2026-10-30)
+
+- Replaced the two collection selectors with one scrolling rack containing all twelve outfits, following user preference. Taller desktop/tablet layouts keep the fitting-room preview beside the rack; selecting an outfit preserves the rack's scroll position there. Compact layouts keep normal internal page scrolling.
+- Verified all twelve buttons exist together, scrolled to the final rows and selected Lavender Lullaby with the preview still visible, and inspected the phone layout at 390×844 with no horizontal page overflow. Static build and syntax/diff checks passed. Purchases and outfit rendering were unchanged.
+
+## Category dropdown (2026-10-30)
+
+- Added a compact, labelled native Category dropdown above the scrolling rack: All gis (default), Glitter cuties, Original favorites. It replaces category buttons without removing the full scrolling browse experience. Changing categories keeps a valid preview and retains the filter through selecting/equipping an outfit; reopening the shop starts with All gis.
+- Browser checks confirmed 12→6→6→12 items across the choices. Inspected desktop and 390×844 phone; the select is 44 CSS pixels high with no page horizontal overflow. Static build, syntax and diff checks passed. Prices, inventory and rendering were unchanged.
+
+- Theme refinement: dropdown labels are All Gi, Glitter Collection, Sports Collection and Original Favorites. Collection membership is explicit in each catalog entry, so future themes can be added without changing the filter logic. Raiders is in Sports, the six glitter designs in Glitter, and the five other originals in Original Favorites. Catalog filtering tests and build passed; presentation uses the same inspected native dropdown.
+
+## Las Vegas sports expansion (2026-10-30)
+
+- Sports now has eleven regional team outfits: Golden Knights, Silver Knights, Aces, Aviators, Vegas-bound Athletics, UNLV Runnin’ Rebels, Lights FC, Knight Hawks, Desert Dogs, Thrill and the existing Raiders. Ten new outfits bring the full shop to 22, all priced at 10 carrots. Golden Knights is first in the Sports rack, with gold cloth, charcoal bands, red piping, hockey sticks and knight-visored fan crests.
+- Added original vector jersey prints for hockey, basketball, baseball, football, soccer, lacrosse and volleyball. Sports masks retain the same bare paws, fur and rank belts. Inspected all Sports swatches plus Golden/Silver Knights, Aces, Aviators and Athletics on the actual bunny. Verified the eleven-item filter on desktop, 390×844 phone and 768×1024 tablet; phone measurements found no horizontal page overflow or text below 14 CSS pixels. Native dropdown and scrolling behavior remain unchanged.
+- 61 unit tests, static build and authoritative multiplayer test passed. Coverage buys/saves/re-equips all eleven Sports outfits and verifies Golden Knights/Aces appearances survive matchmaking. Existing inventory IDs and saves are preserved. README records official team references and the Athletics' planned 2028 ballpark; no fictional Las Vegas NBA team is introduced. This is a curated major regional/college set, not an exhaustive amateur/school-team directory.
+- No new physical-device, Safari, sustained-performance or human campaign-difficulty validation is claimed. New sports prints use the previously exercised purchase, story, combat and result flow; the browser preview checks did not fund or change the user's current wallet.
