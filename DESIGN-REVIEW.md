@@ -53,3 +53,12 @@ Keep the complete experience inside the game. Exercise title → arena → custo
 - Failure-state coverage is incomplete: reconnect, long search cancellation, restricted storage, and graphics-context loss deserve a dedicated pass before release.
 
 Use these open gates to guide subsequent work. Resolve or clearly report material limitations; do not silently label the game production ready.
+
+## Gi shop sample (2026-10-30)
+
+- Added an open-scene fitting room inside the game, linked from the title and fighter selection. Six cloth previews and an animated bunny share the existing environment and gold/wood palette. Five prints cost 10 carrots; Raiders Football costs 100. Plain colors remain free.
+- Inspected the actual local build at desktop, 390×844, 320×568, 768×1024, and 844×390. Phone and short-landscape shop content intentionally scrolls inside the game. At 320 pixels the catalog reflows to two columns; text measurements found no shop/header text below 14 CSS pixels and no page horizontal overflow. Tablet grid spacing was tightened after inspection.
+- Verified insufficient-funds controls on a fresh wallet, a 10-carrot purchase (150→140), Raiders purchase (140→40), disabled repeat purchase, free switching to an owned outfit, switching back to plain, reload persistence, and return from wardrobe to the selected arena's fighter setup. Seed credits were only disposable localhost QA data; the game does not grant store-test currency.
+- Exercised title→arena→fighter→confirm/reveal→story→combat→pause/resume→defeat→main menu wearing Raiders. Outfit and headband stayed on the bunny; fur, bare paws and the white rank belt remained visible. The prints use the existing per-pixel gi material mask, without replacing sprites. The small football crest is a sample fan design and is less readable at combat scale than in the shop swatch.
+- 56 unit tests passed, static build passed, and the server pairing/authoritative-combat test passed with a Raiders design in player appearance. Storage-failure unit tests cover canonical-save refusal and a failed legacy mirror. Browser checks used the in-app desktop browser and emulated viewport sizes; no physical mobile device, mobile touch hardware or Safari validation is claimed.
+- Existing release quality gates above still apply. Inventory and carrots remain browser-local, rather than an account-backed economy.

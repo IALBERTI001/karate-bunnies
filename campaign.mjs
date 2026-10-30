@@ -1,3 +1,4 @@
+import {giDesign} from './wardrobe.mjs';
 export const FURS={White:'#FFFDF9',Cream:'#E9D0AA',Gray:'#AAA1A3',Tan:'#D09A64'};
 export const COLORS={Coral:'#EF8E85',Mint:'#91C8A0',Lavender:'#B6A0D5','Sky blue':'#87BCE6',Purple:'#8053BA',Pink:'#EE9BC4',Black:'#292831'};
 // Belt colours by rank. Black (null) leaves the original painted belt untouched.
@@ -32,4 +33,4 @@ const rows=[
 export const STAGES=rows.map((r,i)=>({id:i+1,name:r[0],story:r[1],art:r[2],panel:i%4,fans:r[3],opponent:r[4],fur:r[5],gi:r[6],chapter:chapters[Math.floor(i/4)],chapterIndex:Math.floor(i/4),difficulty:i/19}));
 export function loadProgress(raw){try{const v=typeof raw==='string'?JSON.parse(raw):raw;const cleared=[...new Set((v?.cleared??[]).filter(n=>Number.isInteger(n)&&n>=1&&n<=20))].sort((a,b)=>a-b);let count=0;while(cleared.includes(count+1))count++;return {cleared:cleared.filter(n=>n<=count),unlocked:Math.min(20,count+1)};}catch{return {cleared:[],unlocked:1};}}
 export function clearStage(progress,id){if(!Number.isInteger(id)||id<1||id>progress.unlocked||id>20)return progress;return loadProgress({cleared:[...progress.cleared,id]});}
-export function validSkin(s){return {fur:Object.hasOwn(FURS,s?.fur)?s.fur:'White',gi:Object.hasOwn(COLORS,s?.gi)?s.gi:'Coral'};}
+export function validSkin(s){return {fur:Object.hasOwn(FURS,s?.fur)?s.fur:'White',gi:Object.hasOwn(COLORS,s?.gi)?s.gi:'Coral',...(giDesign(s?.design)?{design:s.design}:{})};}

@@ -1,5 +1,15 @@
 # Karate Bunnies
 
+## Gi Shop and wardrobe
+
+Open **Gi Shop** on the main menu, or **Gi Shop / Wardrobe** during fighter selection. Preview any design on your animated bunny before buying. The six sample outfits are Sakura Bloom, Carrot Club, Moon & Stars, Bamboo Breeze and Golden Flame (10 carrots each), plus Raiders Football (100 carrots), a black-and-silver fan design with a football crest. Original plain gi colors remain free.
+
+Buying deducts carrots once, permanently adds that design to this browser's wardrobe, and equips it. Owned designs can be worn again for free; **Wear a plain gi** removes the print. Choosing a plain color during fighter selection also unequips the design. Custom prints appear on the gi and matching headband in menus, training, solo fights and online matches, preserving fur, bare paws and earned belts. All outfits are cosmetic.
+
+`wardrobe.mjs` contains the catalog and purchase/equip validation. The `kb-wardrobe-v1` local-storage record saves the carrot balance, owned IDs and equipped ID together, so a purchase cannot save its debit separately from ownership. Existing `kb-carrots-v1` balances migrate on first use and that key remains a compatibility mirror. A failed purchase save spends nothing. Saves remain per browser, with no account sync or server-backed inventory.
+
+`gi-patterns.mjs` paints vector cloth prints; `render.mjs` masks them to the existing gi material for every animation pose. No additional bunny atlases are needed. `wardrobe.test.mjs` covers prices, exact deductions, duplicate purchase rejection, insufficient funds, ownership, migration, corrupt data and storage failures; it is included in the main test command. The server integration test also checks a custom gi survives matchmaking.
+
 Play in a browser: https://ialberti001.github.io/karate-bunnies/ (GitHub Pages, served from `main`). A first visit starts with training.
 
 A playable browser fighting game with a twenty-fight campaign, original bunny artwork, selectable fur and gi colors, touch and keyboard controls, and real two-player matchmaking on the included server.
