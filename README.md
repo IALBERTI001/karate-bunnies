@@ -2,7 +2,11 @@
 
 ## Gi Shop and wardrobe
 
-Open **Gi Shop** on the main menu, or **Gi Shop / Wardrobe** during fighter selection. Preview any design on your animated bunny before buying. The six sample outfits are Sakura Bloom, Carrot Club, Moon & Stars, Bamboo Breeze and Golden Flame (10 carrots each), plus Raiders Football (100 carrots), a black-and-silver fan design with a football crest. Original plain gi colors remain free.
+Open **Gi Shop** on the main menu, or **Gi Shop / Wardrobe** during fighter selection. Preview any design on your animated bunny before buying. All twelve shop gis cost **10 carrots each**, including Raiders Football, the black-and-silver fan design with a football crest. Original plain gi colors remain free.
+
+**Glitter cuties:** Strawberry Sugar (berries and hearts), Cloud Cuddle (clouds and rainbows), Honey Hug (teddy friends), Lavender Lullaby (sleepy moons), Rainbow Ribbon (pastel bows), and Fairy Floss (fairy wings and candy hearts). Each has pearly flecks and soft animated cloth glints. Reduced Motion keeps the glitter finish still, including during combat. The renderer reuses eight shimmer phases within its existing bounded sprite cache.
+
+**Original favorites:** Sakura Bloom, Carrot Club, Moon & Stars, Bamboo Breeze, Golden Flame and Raiders Football. Switch collections in the shop to browse six looks at a time. Existing purchases and equipped outfits remain valid.
 
 Buying deducts carrots once, permanently adds that design to this browser's wardrobe, and equips it. Owned designs can be worn again for free; **Wear a plain gi** removes the print. Choosing a plain color during fighter selection also unequips the design. Custom prints appear on the gi and matching headband in menus, training, solo fights and online matches, preserving fur, bare paws and earned belts. All outfits are cosmetic.
 
