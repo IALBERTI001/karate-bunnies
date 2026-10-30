@@ -1,4 +1,4 @@
-import {giDesign} from './wardrobe.mjs';
+import {giDesign} from './wardrobe.mjs?v=c46f9a2bd14a';
 export const FURS={White:'#FFFDF9',Cream:'#E9D0AA',Gray:'#AAA1A3',Tan:'#D09A64'};
 export const COLORS={Coral:'#EF8E85',Mint:'#91C8A0',Lavender:'#B6A0D5','Sky blue':'#87BCE6',Purple:'#8053BA',Pink:'#EE9BC4',Black:'#292831'};
 // Belt colours by rank. Black (null) leaves the original painted belt untouched.

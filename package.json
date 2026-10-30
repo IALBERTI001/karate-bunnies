@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test wardrobe.test.mjs numbers.test.mjs story.test.mjs lesson.test.mjs combat.test.mjs sprite-bounds.test.mjs audience-render.test.mjs",
+    "test": "node refresh-assets.mjs --check && node --test wardrobe.test.mjs numbers.test.mjs story.test.mjs lesson.test.mjs combat.test.mjs sprite-bounds.test.mjs audience-render.test.mjs",
     "build": "node build.mjs"
   },
   "engines": {

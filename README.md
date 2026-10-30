@@ -34,6 +34,8 @@ This repository contains the standalone Karate Bunnies game.
 
 ## Build
 
+Before publishing a browser-code or stylesheet change, run `node refresh-assets.mjs` and commit the updated URLs. This derives a release hash from the browser files and adds it to the HTML's CSS/module URLs and every browser-module import. Returning players then load a consistent new release rather than stale cached modules. `npm test` checks that these URLs are up to date.
+
     node build.mjs
 
 The dist directory contains the static game and artwork. All twenty campaign fights, settings, and customization work on a static host. Online VS requires the Node server and same-origin /api routes. For the full game deploy this source directory as a Node service; start server.mjs. GitHub stores the source; running a public game URL requires a separate hosting deployment.
