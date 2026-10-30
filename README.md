@@ -2,11 +2,11 @@
 
 ## Gi Shop and wardrobe
 
-Open **Gi Shop** on the main menu, or **Gi Shop / Wardrobe** during fighter selection. Preview any design on your animated bunny before buying. All 22 shop gis cost **10 carrots each**, including Raiders Football, the black-and-silver fan design with a football crest. Original plain gi colors remain free.
+Open **Customize Bunny** on the main menu, or **Customize Bunny** during fighter selection. Preview any design on your animated bunny before buying. All 22 shop gis cost **10 carrots each**, including Raiders Football, the black-and-silver fan design with a football crest. Original plain gi colors remain free.
 
 **Glitter cuties:** Strawberry Sugar (berries and hearts), Cloud Cuddle (clouds and rainbows), Honey Hug (teddy friends), Lavender Lullaby (sleepy moons), Rainbow Ribbon (pastel bows), and Fairy Floss (fairy wings and candy hearts). Each has pearly flecks and soft animated cloth glints. Reduced Motion keeps the glitter finish still, including during combat. The renderer reuses eight shimmer phases within its existing bounded sprite cache.
 
-**Original favorites:** Sakura Bloom, Carrot Club, Moon & Stars, Bamboo Breeze and Golden Flame. All outfits share one scrolling rack by default. The Category dropdown offers All Gi, Glitter Collection, Sports Collection and Original Favorites. All Gi is the default scrolling catalog. On taller desktop and tablet layouts the fitting-room bunny stays visible while you browse. Existing purchases and equipped outfits remain valid.
+**Original favorites:** Sakura Bloom, Carrot Club, Moon & Stars, Bamboo Breeze and Golden Flame. All outfits share one scrolling rack by default. The Category dropdown offers All Gi, Owned, Glitter Collection, Sports Collection and Original Favorites. Owned shows only purchased designs and offers a browse action when the wardrobe is empty. All Gi is the default scrolling catalog. On taller desktop and tablet layouts the fitting-room bunny stays visible while you browse. Existing purchases and equipped outfits remain valid.
 
 **Las Vegas Sports Collection:** Vegas Golden Knights (featured first), Henderson Silver Knights, Las Vegas Aces, Las Vegas Aviators, Athletics · Vegas-bound, UNLV Runnin’ Rebels, Las Vegas Lights FC, Vegas Knight Hawks, Las Vegas Desert Dogs, Vegas Thrill and Raiders Football. Original fan-art prints combine team palettes, sports equipment, jersey stripes and individual crests. Golden Knights gets gold cloth, steel/charcoal panels, red piping and knight visors. No additional bunny sprite sheets are needed.
 
