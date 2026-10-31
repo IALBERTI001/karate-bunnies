@@ -1,7 +1,7 @@
-import {extractSpriteFrames,spritePlacement} from './sprite-bounds.mjs?v=c46f9a2bd14a';
-import {FURS,COLORS,BELTS} from './campaign.mjs?v=c46f9a2bd14a';
-import {GIS,giDesign} from './wardrobe.mjs?v=c46f9a2bd14a';
-import {paintGiPattern,glitterPhase} from './gi-patterns.mjs?v=c46f9a2bd14a';
+import {extractSpriteFrames,spritePlacement} from './sprite-bounds.mjs?v=e55a9d072bdb';
+import {FURS,COLORS,BELTS} from './campaign.mjs?v=e55a9d072bdb';
+import {GIS,giDesign} from './wardrobe.mjs?v=e55a9d072bdb';
+import {paintGiPattern,glitterPhase} from './gi-patterns.mjs?v=e55a9d072bdb';
 const rgb=hex=>hex.match(/[a-f\d]{2}/gi).map(v=>parseInt(v,16)/255);
 const image=async src=>{const i=new Image();i.src=src;await i.decode();return i;};
 export class SpriteBank {

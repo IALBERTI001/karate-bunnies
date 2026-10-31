@@ -1,6 +1,12 @@
 // Cosmetics share one saved record with their wallet: a purchase is one storage write.
 export const WARDROBE_KEY='kb-wardrobe-v1';
 export const GIS=Object.freeze([
+ {id:'pumpkin-patch',name:'Pumpkin Patch',price:10,collection:'halloween',color:'#e99a48',accent:'#526d42',pattern:'halloween',motif:'pumpkin',description:'Smiling pumpkins and garden-green stitches for tiny trick-or-treaters.'},
+ {id:'friendly-ghost',name:'Friendly Ghost',price:10,collection:'halloween',color:'#eee7d8',accent:'#9a88b8',pattern:'halloween',motif:'ghost',description:'Soft ivory, lavender trim, and little ghosts who only say boo-nny.'},
+ {id:'batty-lavender',name:'Batty Lavender',price:10,collection:'halloween',color:'#ac8bcb',accent:'#513357',pattern:'halloween',motif:'bat',description:'Round-winged little bats on a cozy lavender gi.'},
+ {id:'candy-corn',name:'Candy Corn',price:10,collection:'halloween',color:'#e9a238',accent:'#fff0cd',pattern:'halloween',motif:'candy',description:'Vanilla, pumpkin orange, and honey yellow. Sweet little karate.'},
+ {id:'moonlit-kitty',name:'Moonlit Kitty',price:10,collection:'halloween',color:'#34313e',accent:'#edb095',pattern:'halloween',motif:'cat',description:'Peach kitty faces and crescent moons on midnight charcoal.'},
+ {id:'little-witch',name:'Little Witch',price:10,collection:'halloween',color:'#624176',accent:'#a5ccb1',pattern:'halloween',motif:'witch',description:'Minty little witch hats and lucky stars on blackberry purple.'},
  {id:'sakura',name:'Sakura Bloom',price:10,collection:'original',color:'#b85e8b',accent:'#ffe3ee',pattern:'blossom',description:'Soft pink blossoms for brave little paws.'},
  {id:'carrot',name:'Carrot Club',price:10,collection:'original',color:'#4f8d69',accent:'#ffc16a',pattern:'carrot',description:'Garden green with tiny lucky carrots.'},
  {id:'moon',name:'Moon & Stars',price:10,collection:'original',color:'#555091',accent:'#ffe7a1',pattern:'stars',description:'Midnight violet, sprinkled with starlight.'},
@@ -25,7 +31,7 @@ export const GIS=Object.freeze([
  {id:'fairy',name:'Fairy Floss',price:10,collection:'glitter',color:'#c18fcb',accent:'#ffeaf6',pattern:'fairy',glitter:true,description:'Fairy wings, candy hearts, and a little wishful twinkle.'}
 ]);
 export const giDesign=id=>GIS.find(g=>g.id===id)??null;
-export const GI_COLLECTIONS=[{id:'all',name:'All Gi'},{id:'owned',name:'Owned'},{id:'glitter',name:'Glitter Collection'},{id:'sports',name:'Sports Collection'},{id:'original',name:'Original Favorites'}];
+export const GI_COLLECTIONS=[{id:'all',name:'All Gi'},{id:'owned',name:'Owned'},{id:'halloween',name:'Halloween Collection'},{id:'glitter',name:'Glitter Collection'},{id:'sports',name:'Sports Collection'},{id:'original',name:'Original Favorites'}];
 export const collectionGis=(id,owned=[])=>id==='all'?GIS:GIS.filter(g=>id==='owned'?Array.isArray(owned)&&owned.includes(g.id):g.collection===id);
 export const balanceValue=value=>Number.isFinite(Number(value))?Math.max(0,Math.min(Number.MAX_SAFE_INTEGER,Math.floor(Number(value)))):0;
 export function loadWardrobe(raw,legacyBalance=0){

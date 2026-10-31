@@ -244,3 +244,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1d211d}#app{positio
 .replay-training{display:block;margin:16px auto 0;min-height:48px;padding:0 24px}
 
 @media(min-width:701px) and (min-height:700px){.shop-layout{align-items:start}.shop-fitting{position:sticky;top:8px}}
+
+/* Keep the two-line shop title and its eyebrow fully inside small portrait screens. */
+@media(max-width:700px) and (orientation:portrait){.shop-screen .screen-heading{top:12px;height:100px;align-items:flex-start}.shop-screen .screen-heading small{display:block;line-height:1.25}.shop-screen .gi-shop{top:124px}}

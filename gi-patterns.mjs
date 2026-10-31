@@ -2,6 +2,7 @@
 // This preserves bare paws, fur, outlines and the separately recoloured rank belt in every pose.
 export function paintGiPattern(ctx,item){
  ctx.clearRect(0,0,256,256);ctx.fillStyle=item.accent;ctx.strokeStyle=item.accent;
+ if(item.collection==='halloween'){paintHalloweenPrint(ctx,item);return;}
  if(item.pattern==='sports'){paintSportsPrint(ctx,item);return;}
  if(item.glitter){paintCutePrint(ctx,item);return;}
  if(item.pattern==='raiders'){
@@ -98,4 +99,34 @@ function paintCutePrint(ctx,item){
  // Tiny pearly flecks and four-point glints also show on the shop's cloth swatches.
  ctx.save();ctx.fillStyle='#fff9e6';for(let i=0;i<130;i++){const x=(i*73+19)%256,y=(i*113+37)%256;ctx.globalAlpha=.35+(i%4)*.14;ctx.fillRect(x,y,i%5===0?1.5:.8,i%5===0?1.5:.8);}
  ctx.globalAlpha=.9;for(let i=0;i<13;i++)glint(ctx,(i*67+28)%256,(i*97+31)%256,i%3===0?4:2.5);ctx.restore();
+}
+
+// Halloween is a cloth print: the existing shader clips every mark to the gi.
+function halloweenMotif(ctx,type,accent){
+ ctx.fillStyle=accent;ctx.strokeStyle=accent;ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';
+ if(type==='pumpkin'){
+  ctx.beginPath();ctx.ellipse(-4,1,7,10,0,0,7);ctx.ellipse(4,1,7,10,0,0,7);ctx.fill();ctx.beginPath();ctx.moveTo(0,-8);ctx.quadraticCurveTo(-4,-15,4,-15);ctx.stroke();ctx.fillStyle='#ffe6af';for(const x of [-4,4]){ctx.beginPath();ctx.arc(x,-1,1.7,0,7);ctx.fill();}ctx.strokeStyle='#ffe6af';ctx.beginPath();ctx.moveTo(-4,5);ctx.quadraticCurveTo(0,9,4,5);ctx.stroke();
+ }else if(type==='ghost'){
+  ctx.beginPath();ctx.moveTo(-10,12);ctx.lineTo(-10,-1);ctx.bezierCurveTo(-10,-17,10,-17,10,-1);ctx.lineTo(10,12);ctx.lineTo(4,8);ctx.lineTo(0,12);ctx.lineTo(-5,8);ctx.closePath();ctx.fill();ctx.fillStyle='#fff5e4';for(const x of [-4,4]){ctx.beginPath();ctx.ellipse(x,-1,1.5,2.5,0,0,7);ctx.fill();}ctx.strokeStyle='#fff5e4';ctx.beginPath();ctx.moveTo(-3,5);ctx.quadraticCurveTo(0,8,3,5);ctx.stroke();
+ }else if(type==='bat'){
+  ctx.beginPath();ctx.moveTo(-3,-4);ctx.lineTo(-5,-10);ctx.lineTo(0,-7);ctx.lineTo(5,-10);ctx.lineTo(3,-4);ctx.quadraticCurveTo(9,-11,17,-6);ctx.lineTo(11,7);ctx.quadraticCurveTo(5,2,3,12);ctx.lineTo(-3,12);ctx.quadraticCurveTo(-5,2,-11,7);ctx.lineTo(-17,-6);ctx.quadraticCurveTo(-9,-11,-3,-4);ctx.fill();ctx.fillStyle='#ffeacb';for(const x of [-2,2]){ctx.beginPath();ctx.arc(x,0,1,0,7);ctx.fill();}
+ }else if(type==='candy'){
+  ctx.beginPath();ctx.moveTo(0,-13);ctx.lineTo(11,11);ctx.quadraticCurveTo(0,15,-11,11);ctx.closePath();ctx.fillStyle='#fff1d0';ctx.fill();ctx.save();ctx.clip();ctx.fillStyle='#ef9143';ctx.fillRect(-14,-4,28,9);ctx.fillStyle='#f5c24f';ctx.fillRect(-14,5,28,12);ctx.restore();
+ }else if(type==='cat'){
+  ctx.beginPath();ctx.moveTo(-11,8);ctx.lineTo(-11,-11);ctx.lineTo(-4,-5);ctx.lineTo(4,-5);ctx.lineTo(11,-11);ctx.lineTo(11,8);ctx.quadraticCurveTo(0,16,-11,8);ctx.fill();ctx.fillStyle='#38313f';for(const x of [-4,4]){ctx.beginPath();ctx.arc(x,2,1.7,0,7);ctx.fill();}ctx.beginPath();ctx.moveTo(-2,7);ctx.lineTo(2,7);ctx.lineTo(0,10);ctx.fill();
+ }else if(type==='witch'){
+  ctx.beginPath();ctx.moveTo(-11,7);ctx.lineTo(-4,-12);ctx.lineTo(9,-15);ctx.lineTo(4,-7);ctx.lineTo(11,7);ctx.closePath();ctx.fill();ctx.beginPath();ctx.ellipse(0,9,16,4,0,0,7);ctx.fill();ctx.strokeStyle='#efc67d';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-7,3);ctx.lineTo(7,3);ctx.stroke();
+ }
+}
+function paintHalloweenPrint(ctx,item){
+ ctx.save();
+ if(item.motif==='candy'){ctx.fillStyle='#fff0d3';ctx.fillRect(0,105,256,35);ctx.fillStyle='#ec9344';ctx.fillRect(0,140,256,40);ctx.fillStyle='#f2bd4d';ctx.fillRect(0,180,256,76);}
+ // Small trim follows the same cloth UV mapping as the existing collections.
+ ctx.fillStyle=item.accent;ctx.globalAlpha=.65;ctx.fillRect(20,0,4,256);ctx.fillRect(232,0,4,256);ctx.globalAlpha=1;
+ for(let row=0;row<5;row++)for(let col=0;col<5;col++){
+  ctx.save();ctx.translate(22+col*54+(row%2?18:0),24+row*55);ctx.scale(.7,.7);halloweenMotif(ctx,item.motif,item.accent);ctx.restore();
+ }
+ // One larger readable emblem is surrounded by the small fabric repeats.
+ ctx.save();ctx.translate(128,161);ctx.scale(1.45,1.45);halloweenMotif(ctx,item.motif,item.accent);ctx.restore();
+ ctx.restore();
 }
