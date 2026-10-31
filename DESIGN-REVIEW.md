@@ -101,3 +101,7 @@ Use these open gates to guide subsequent work. Resolve or clearly report materia
 ## Halloween collection — 2026-10-31
 
 Integrated six Halloween gi into the latest Customize Bunny shop, preserving existing original, sports, glitter, Owned filtering, ten-carrot pricing, lesson, story, and rank-belt behavior. An initial implementation based on an old local checkout was retained on codex/halloween-initial and was not pushed; final work extends current origin/main instead. Used the existing material-masked cloth-print renderer. Reviewed all six shop previews and the eighteen-action contact sheet, plus phone shop views. Fixed the shop heading clipping on small portrait screens. Browser checks verify purchase/equip/reload, retention of existing owned items, insufficient funds and storage-failure behavior, responsive containment, font sizes, and 1728 fur/outfit/frame renders. Earlier wardrobe/balance tests remain in place. No physical hardware validation is claimed.
+
+## Costume fidelity correction
+
+Removed Halloween all-over stamping, redrew the kitty emblem with feline ears/whiskers/nose and crescent, and separated headband material from body print across collections. Reviewed a 28-outfit contact sheet and Halloween shop/pose captures. Synthetic tests cover headband/jacket separation in upright and inverted orientations. This improves readability and material placement but does not replace the underlying atlas with fully redrawn concept-matched animation art.

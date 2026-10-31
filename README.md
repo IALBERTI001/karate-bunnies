@@ -184,3 +184,7 @@ In Customize Bunny, choose Category → Halloween Collection. Six new gi join th
 The designs use the current cloth-print renderer across all eighteen actions, with matching headbands, customizable fur, and existing belt progression. The original six concept illustrations and generator prompts are preserved in design/halloween as design references; shop previews show the actual animated outfits.
 
 With the server running, node qa-halloween.cjs checks six purchases, saved ownership, reload, old-item retention, free re-equipping, insufficient funds, blocked storage, combat selection, four viewport layouts, readable shop type, and 1728 fur/design/action/frame combinations without WebGL errors. It seeds funds only inside its isolated test browser. Physical-device/Safari validation remains outstanding.
+
+## Costume material correction
+
+Headband material is separated from the body print using the source material and face direction, including rotated poses. The band retains its painted folds and matching palette with contrasting seam detail, while body prints and glitter are suppressed on marked headband material. Halloween now uses a single chest emblem instead of repeating motifs; Moonlit Kitty has pointed ears, inner ears, whiskers, a small nose and crescent. These remain adaptations on the existing sprite shapes, not a full hand-redrawn reproduction of the concept illustrations. qa-headbands.cjs renders all 28 gi across 2016 pose/frame combinations for review; qa-halloween.cjs covers purchases and the six designs across all fur options.

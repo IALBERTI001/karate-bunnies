@@ -1,9 +1,9 @@
-import {paintGiPattern} from './gi-patterns.mjs?v=e55a9d072bdb';
-import {GIS,GI_COLLECTIONS,collectionGis,giDesign,loadWardrobe,purchaseGi,equipGi,persistWardrobe,WARDROBE_KEY} from './wardrobe.mjs?v=e55a9d072bdb';
-import {formatCount} from './numbers.mjs?v=e55a9d072bdb';
-import {STAGES,FURS,COLORS,loadProgress,clearStage,validSkin,beltFor} from './campaign.mjs?v=e55a9d072bdb';
-import {createMatch,input,step,MOVES} from './combat.mjs?v=e55a9d072bdb';
-import {SpriteBank,ArenaArt,drawScene,star,sceneCamera} from './render.mjs?v=e55a9d072bdb';
+import {paintGiPattern} from './gi-patterns.mjs?v=78109aebf0b2';
+import {GIS,GI_COLLECTIONS,collectionGis,giDesign,loadWardrobe,purchaseGi,equipGi,persistWardrobe,WARDROBE_KEY} from './wardrobe.mjs?v=78109aebf0b2';
+import {formatCount} from './numbers.mjs?v=78109aebf0b2';
+import {STAGES,FURS,COLORS,loadProgress,clearStage,validSkin,beltFor} from './campaign.mjs?v=78109aebf0b2';
+import {createMatch,input,step,MOVES} from './combat.mjs?v=78109aebf0b2';
+import {SpriteBank,ArenaArt,drawScene,star,sceneCamera} from './render.mjs?v=78109aebf0b2';
 // Big-moment celebrations (preview: ?fx=v1). Solo only; online play is unchanged.
 const FX=(()=>{try{return new URLSearchParams(location.search).get('fx')!=='off';}catch{return false;}})();
 const POP_WORDS={launch:['Wheee!','Up you go!'],knock:['Pow!','Boom!'],chain:['Combo!','Hi-yah!']};
@@ -25,8 +25,8 @@ function drawPops(ctx,canvas){if(!pops.length)return;pops=pops.filter(p=>wall-p.
   ctx.lineWidth=size*.16;ctx.strokeStyle='#6a4632';ctx.strokeText(p.text,0,0);ctx.fillStyle='#ffe7a8';ctx.fillText(p.text,0,0);
   ctx.lineWidth=size*.05;ctx.strokeStyle='#fff7e6';ctx.globalAlpha=alpha*.6;ctx.strokeText(p.text,0,-size*.04);ctx.restore();}}
 
-import {storyLines,blipSchedule,BLIP,beltLine,CAST} from './story.mjs?v=e55a9d072bdb';
-import {LESSON,CHEERS,LESSON_END,stepDone,glowTargets} from './lesson.mjs?v=e55a9d072bdb';
+import {storyLines,blipSchedule,BLIP,beltLine,CAST} from './story.mjs?v=78109aebf0b2';
+import {LESSON,CHEERS,LESSON_END,stepDone,glowTargets} from './lesson.mjs?v=78109aebf0b2';
 // First-fight lesson (preview: ?tutorial=v1). Runs once, in stage 1, until stage 1 is won or the lesson is finished or skipped.
 // Online VS is hidden until it has a hosted server; ?vs=on (or KB_FLAGS.vs) shows it for development.
 const VS=(()=>{try{return globalThis.KB_FLAGS?.vs===true||new URLSearchParams(location.search).get('vs')==='on';}catch{return false;}})();

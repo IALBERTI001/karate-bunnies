@@ -22,3 +22,19 @@ export function spritePlacement(frame,standingFrame,size){
  const scale=size/(standingFrame.h*1.08);
  return {x:(frame.localX-frame.pivotX)*scale,y:(frame.localY-frame.pivotY)*scale,width:frame.w*scale,height:frame.h*scale,scale};
 }
+
+// Isolate the headband from the jacket using painted material components and the face.
+// The green atlas source is a material ID, not a costume texture UV layout.
+export function markHeadbands(width,height,rgba,frames,mask){
+ const green=p=>rgba[p*4+3]>100&&rgba[p*4+1]>40&&rgba[p*4+1]-Math.max(rgba[p*4],rgba[p*4+2])>7;
+ const white=p=>{const i=p*4,hi=Math.max(rgba[i],rgba[i+1],rgba[i+2]),lo=Math.min(rgba[i],rgba[i+1],rgba[i+2]);return rgba[i+3]>180&&lo>145&&hi-lo<58;};
+ frames.forEach((r,slot)=>{
+  const components=predicate=>{const seen=new Set(),out=[];for(let y=r.y;y<r.y+r.h;y++)for(let x=r.x;x<r.x+r.w;x++){const p=y*width+x;if(seen.has(p)||mask[p*4]!==slot+1||!predicate(p))continue;const pixels=[],todo=[p];seen.add(p);let x0=x,x1=x,y0=y,y1=y,sx=0,sy=0;while(todo.length){const q=todo.pop(),qx=q%width,qy=Math.floor(q/width);pixels.push(q);sx+=qx;sy+=qy;x0=Math.min(x0,qx);x1=Math.max(x1,qx);y0=Math.min(y0,qy);y1=Math.max(y1,qy);for(const n of [q-1,q+1,q-width,q+width]){const nx=n%width,ny=Math.floor(n/width);if(nx<r.x||nx>=r.x+r.w||ny<r.y||ny>=r.y+r.h||seen.has(n)||mask[n*4]!==slot+1||!predicate(n))continue;seen.add(n);todo.push(n);}}out.push({pixels,x0,x1,y0,y1,x:sx/pixels.length,y:sy/pixels.length});}return out;};
+  const face=components(white).sort((a,b)=>b.pixels.length-a.pixels.length)[0],parts=components(green);if(!face||!parts.length)return;
+  const pixels=parts.flatMap(c=>c.pixels);let sx=0,sy=0;for(const q of pixels){sx+=q%width;sy+=Math.floor(q/width);}let dx=face.x-sx/pixels.length,dy=face.y-sy/pixels.length;const length=Math.hypot(dx,dy)||1;dx/=length;dy/=length;
+  // Follow the head's anatomical direction, including rotated launch poses.
+  for(const q of pixels){const x=q%width,y=Math.floor(q/width);const headward=(x-face.x)*dx+(y-face.y)*dy,sideways=Math.abs((x-face.x)*dy-(y-face.y)*dx);if(headward> -r.h*.025||(sideways>r.w*.25&&headward> -r.h*.36))mask[q*4+1]=255;}
+
+ });
+ return mask;
+}

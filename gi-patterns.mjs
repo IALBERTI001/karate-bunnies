@@ -113,7 +113,13 @@ function halloweenMotif(ctx,type,accent){
  }else if(type==='candy'){
   ctx.beginPath();ctx.moveTo(0,-13);ctx.lineTo(11,11);ctx.quadraticCurveTo(0,15,-11,11);ctx.closePath();ctx.fillStyle='#fff1d0';ctx.fill();ctx.save();ctx.clip();ctx.fillStyle='#ef9143';ctx.fillRect(-14,-4,28,9);ctx.fillStyle='#f5c24f';ctx.fillRect(-14,5,28,12);ctx.restore();
  }else if(type==='cat'){
-  ctx.beginPath();ctx.moveTo(-11,8);ctx.lineTo(-11,-11);ctx.lineTo(-4,-5);ctx.lineTo(4,-5);ctx.lineTo(11,-11);ctx.lineTo(11,8);ctx.quadraticCurveTo(0,16,-11,8);ctx.fill();ctx.fillStyle='#38313f';for(const x of [-4,4]){ctx.beginPath();ctx.arc(x,2,1.7,0,7);ctx.fill();}ctx.beginPath();ctx.moveTo(-2,7);ctx.lineTo(2,7);ctx.lineTo(0,10);ctx.fill();
+  // A feline silhouette: tall pointed ears, narrow jaw, no round dog muzzle.
+  ctx.fillStyle=accent;ctx.beginPath();ctx.moveTo(-12,4);ctx.lineTo(-12,-14);ctx.lineTo(-4,-7);ctx.quadraticCurveTo(0,-9,4,-7);ctx.lineTo(12,-14);ctx.lineTo(12,4);ctx.quadraticCurveTo(10,13,0,15);ctx.quadraticCurveTo(-10,13,-12,4);ctx.fill();
+  ctx.fillStyle='#b96c79';for(const d of [-1,1]){ctx.beginPath();ctx.moveTo(d*10,-10);ctx.lineTo(d*6,-6);ctx.lineTo(d*10,-5);ctx.fill();}
+  ctx.fillStyle='#302737';for(const d of [-1,1]){ctx.beginPath();ctx.ellipse(d*4,1,2,3,d*.15,0,7);ctx.fill();}
+  ctx.beginPath();ctx.moveTo(-2,6);ctx.lineTo(2,6);ctx.lineTo(0,9);ctx.closePath();ctx.fill();ctx.strokeStyle='#302737';ctx.lineWidth=1.1;ctx.beginPath();ctx.moveTo(0,9);ctx.quadraticCurveTo(-3,12,-5,9);ctx.moveTo(0,9);ctx.quadraticCurveTo(3,12,5,9);ctx.stroke();
+  for(const d of [-1,1])for(const y of [4,8]){ctx.beginPath();ctx.moveTo(d*8,y);ctx.lineTo(d*17,y-2);ctx.stroke();}
+  ctx.fillStyle='#f9d58e';ctx.beginPath();ctx.arc(19,-15,7,-1.2,1.5);ctx.bezierCurveTo(14,-11,14,-18,21,-21);ctx.closePath();ctx.fill();
  }else if(type==='witch'){
   ctx.beginPath();ctx.moveTo(-11,7);ctx.lineTo(-4,-12);ctx.lineTo(9,-15);ctx.lineTo(4,-7);ctx.lineTo(11,7);ctx.closePath();ctx.fill();ctx.beginPath();ctx.ellipse(0,9,16,4,0,0,7);ctx.fill();ctx.strokeStyle='#efc67d';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-7,3);ctx.lineTo(7,3);ctx.stroke();
  }
@@ -121,12 +127,6 @@ function halloweenMotif(ctx,type,accent){
 function paintHalloweenPrint(ctx,item){
  ctx.save();
  if(item.motif==='candy'){ctx.fillStyle='#fff0d3';ctx.fillRect(0,105,256,35);ctx.fillStyle='#ec9344';ctx.fillRect(0,140,256,40);ctx.fillStyle='#f2bd4d';ctx.fillRect(0,180,256,76);}
- // Small trim follows the same cloth UV mapping as the existing collections.
- ctx.fillStyle=item.accent;ctx.globalAlpha=.65;ctx.fillRect(20,0,4,256);ctx.fillRect(232,0,4,256);ctx.globalAlpha=1;
- for(let row=0;row<5;row++)for(let col=0;col<5;col++){
-  ctx.save();ctx.translate(22+col*54+(row%2?18:0),24+row*55);ctx.scale(.7,.7);halloweenMotif(ctx,item.motif,item.accent);ctx.restore();
- }
- // One larger readable emblem is surrounded by the small fabric repeats.
- ctx.save();ctx.translate(128,161);ctx.scale(1.45,1.45);halloweenMotif(ctx,item.motif,item.accent);ctx.restore();
- ctx.restore();
+ // One chest emblem; no repeated fragments across the jacket or headband.
+ ctx.translate(136,153);ctx.scale(1.8,1.8);halloweenMotif(ctx,item.motif,item.accent);ctx.restore();
 }
