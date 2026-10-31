@@ -188,3 +188,7 @@ With the server running, node qa-halloween.cjs checks six purchases, saved owner
 ## Costume material correction
 
 Headband material is separated from the body print using the source material and face direction, including rotated poses. The band retains its painted folds and matching palette with contrasting seam detail, while body prints and glitter are suppressed on marked headband material. Halloween now uses a single chest emblem instead of repeating motifs; Moonlit Kitty has pointed ears, inner ears, whiskers, a small nose and crescent. These remain adaptations on the existing sprite shapes, not a full hand-redrawn reproduction of the concept illustrations. qa-headbands.cjs renders all 28 gi across 2016 pose/frame combinations for review; qa-halloween.cjs covers purchases and the six designs across all fur options.
+
+### Small costume emblems
+
+Headbands have a separate miniature logo placed on the visible forehead band. Halloween chest logos are now separate, small stamps fitted to visible cloth per pose using cloth-edge clearance, so they avoid paws and lapel boundaries. Back-facing spin poses suppress the front chest stamp. Swatches retain small emblem thumbnails. Independent material/logo canvases prevent one design’s motif colors from leaking into the next design’s material texture.

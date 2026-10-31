@@ -34,6 +34,16 @@ export function markHeadbands(width,height,rgba,frames,mask){
   const pixels=parts.flatMap(c=>c.pixels);let sx=0,sy=0;for(const q of pixels){sx+=q%width;sy+=Math.floor(q/width);}let dx=face.x-sx/pixels.length,dy=face.y-sy/pixels.length;const length=Math.hypot(dx,dy)||1;dx/=length;dy/=length;
   // Follow the head's anatomical direction, including rotated launch poses.
   for(const q of pixels){const x=q%width,y=Math.floor(q/width);const headward=(x-face.x)*dx+(y-face.y)*dy,sideways=Math.abs((x-face.x)*dy-(y-face.y)*dx);if(headward> -r.h*.025||(sideways>r.w*.25&&headward> -r.h*.36))mask[q*4+1]=255;}
+  let best=Infinity,bandPoint=null;for(const q of pixels)if(mask[q*4+1]){const x=q%width,y=Math.floor(q/width),forward=(x-face.x)*dx+(y-face.y)*dy,side=Math.abs((x-face.x)*dy-(y-face.y)*dx),score=(Math.abs(dy)>.7?Math.abs(x-face.x)*3:side*3)+Math.abs(forward);if(forward>=0&&score<best){best=score;bandPoint=[x,y];}}
+  if(bandPoint)r.bandStamp=[(bandPoint[0]-r.x)/r.w,(bandPoint[1]-r.y)/r.h,r.h*.06/r.w,.06];
+  // Distance from visible cloth edges keeps a small chest badge clear of paws and lapels.
+  const rw=r.w,rh=r.h,dist=new Float32Array(rw*rh),cloth=(x,y)=>{const q=(r.y+y)*width+r.x+x;return mask[q*4]===slot+1&&!mask[q*4+1]&&green(q);};
+  for(let y=0;y<rh;y++)for(let x=0;x<rw;x++)dist[y*rw+x]=cloth(x,y)?999:0;
+  for(let y=0;y<rh;y++)for(let x=0;x<rw;x++){const q=y*rw+x;if(dist[q])dist[q]=Math.min(dist[q],x?dist[q-1]+1:1,y?dist[q-rw]+1:1,x&&y?dist[q-rw-1]+1.414:999);}
+  for(let y=rh-1;y>=0;y--)for(let x=rw-1;x>=0;x--){const q=y*rw+x;if(dist[q])dist[q]=Math.min(dist[q],x<rw-1?dist[q+1]+1:1,y<rh-1?dist[q+rw]+1:1,x<rw-1&&y<rh-1?dist[q+rw+1]+1.414:999);}
+  let score=-Infinity;const targetX=face.x-r.x-dx*rh*.25,targetY=face.y-r.y-dy*rh*.25;
+  for(let y=0;y<rh;y++)for(let x=0;x<rw;x++){const headward=(r.x+x-face.x)*dx+(r.y+y-face.y)*dy;if(headward> -rh*.09||headward< -rh*.30)continue;const d=dist[y*rw+x],value=d-Math.hypot(x-targetX,y-targetY)*.25;if(d>=2&&value>score){score=value;const size=Math.min(d*1.35,rh*.085);r.chestStamp=[x/rw,y/rh,size/rw,size/rh];}}
+
 
  });
  return mask;

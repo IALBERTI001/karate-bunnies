@@ -1,8 +1,8 @@
 // Vector cloth prints are masked by the original painted gi material in the sprite shader.
 // This preserves bare paws, fur, outlines and the separately recoloured rank belt in every pose.
-export function paintGiPattern(ctx,item){
+export function paintGiPattern(ctx,item,{material=false}={}){
  ctx.clearRect(0,0,256,256);ctx.fillStyle=item.accent;ctx.strokeStyle=item.accent;
- if(item.collection==='halloween'){paintHalloweenPrint(ctx,item);return;}
+ if(item.collection==='halloween'){paintHalloweenPrint(ctx,item,material);return;}
  if(item.pattern==='sports'){paintSportsPrint(ctx,item);return;}
  if(item.glitter){paintCutePrint(ctx,item);return;}
  if(item.pattern==='raiders'){
@@ -124,9 +124,17 @@ function halloweenMotif(ctx,type,accent){
   ctx.beginPath();ctx.moveTo(-11,7);ctx.lineTo(-4,-12);ctx.lineTo(9,-15);ctx.lineTo(4,-7);ctx.lineTo(11,7);ctx.closePath();ctx.fill();ctx.beginPath();ctx.ellipse(0,9,16,4,0,0,7);ctx.fill();ctx.strokeStyle='#efc67d';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-7,3);ctx.lineTo(7,3);ctx.stroke();
  }
 }
-function paintHalloweenPrint(ctx,item){
+function paintHalloweenPrint(ctx,item,material=false){
  ctx.save();
  if(item.motif==='candy'){ctx.fillStyle='#fff0d3';ctx.fillRect(0,105,256,35);ctx.fillStyle='#ec9344';ctx.fillRect(0,140,256,40);ctx.fillStyle='#f2bd4d';ctx.fillRect(0,180,256,76);}
- // One chest emblem; no repeated fragments across the jacket or headband.
- ctx.translate(136,153);ctx.scale(1.8,1.8);halloweenMotif(ctx,item.motif,item.accent);ctx.restore();
+ // Shop fabric swatches keep one small badge; runtime stamps it per pose.
+ if(!material){ctx.translate(128,160);ctx.scale(.85,.85);halloweenMotif(ctx,item.motif,item.accent);}
+ ctx.restore();
+}
+
+export function paintGiLogo(ctx,item){
+ ctx.clearRect(0,0,256,256);ctx.save();
+ if(item.collection==='halloween'){ctx.translate(128,128);ctx.scale(6,6);halloweenMotif(ctx,item.motif,item.accent);}
+ else{const c=document.createElement('canvas');c.width=c.height=256;paintGiPattern(c.getContext('2d'),item);if(item.pattern==='sports'||item.pattern==='raiders')ctx.drawImage(c,88,132,80,80,28,28,200,200);else if(item.glitter)ctx.drawImage(c,0,0,42,42,20,20,216,216);else ctx.drawImage(c,104,104,44,44,20,20,216,216);}
+ ctx.restore();
 }
