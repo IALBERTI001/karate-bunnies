@@ -247,3 +247,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1d211d}#app{positio
 
 /* Keep the two-line shop title and its eyebrow fully inside small portrait screens. */
 @media(max-width:700px) and (orientation:portrait){.shop-screen .screen-heading{top:12px;height:100px;align-items:flex-start}.shop-screen .screen-heading small{display:block;line-height:1.25}.shop-screen .gi-shop{top:124px}}
+
+/* Leave room for the direct-fight action without crowding phone title copy. */
+@media(max-width:700px) and (orientation:portrait){.title-screen .title-caption{display:none}.title-screen .title-progress{font-size:14px;line-height:1.4;margin-top:12px}.arena-topline .arena-title{min-width:0;flex:1}.arena-topline .arena-title strong{font-size:16px}.arena-topline .arena-menu{white-space:nowrap;flex-shrink:0;font-size:14px;padding:10px}.fight-screen .round-announcement{top:200px}}

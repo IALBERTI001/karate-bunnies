@@ -192,3 +192,7 @@ Headband material is separated from the body print using the source material and
 ### Small costume emblems
 
 Headbands have a separate miniature logo placed on the visible forehead band. Halloween chest logos are now separate, small stamps fitted to visible cloth per pose using cloth-edge clearance, so they avoid paws and lapel boundaries. Back-facing spin poses suppress the front chest stamp. Swatches retain small emblem thumbnails. Independent material/logo canvases prevent one design’s motif colors from leaking into the next design’s material texture.
+
+## Fight Now
+
+Fight Now on the main menu starts a solo bout immediately with the equipped bunny, one randomly chosen arena from all twenty, and a randomized opponent. It skips arena/fighter selection and campaign story scenes. Every win still earns one carrot; loss and draw earn none. Quick bouts do not clear stages, change unlocks, or award campaign belts. The result screen offers Fight Now again or Main menu, so carrot earning continues after the campaign. qa-quick-fight.cjs verifies direct launch, both ends of the arena pool, randomized opponents, preserved appearance, unchanged campaign saves, single rewards, loss/draw handling, pause/resume, repeat bouts and phone/desktop layouts.
