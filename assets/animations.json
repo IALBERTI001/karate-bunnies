@@ -129,6 +129,20 @@
       "loop": false,
       "atlas": 0,
       "startFrame": 60
+    },
+    {
+      "name": "Turnaround right",
+      "fps": 1,
+      "loop": true,
+      "atlas": 3,
+      "startFrame": 0
+    },
+    {
+      "name": "Turnaround left",
+      "fps": 1,
+      "loop": true,
+      "atlas": 3,
+      "startFrame": 4
     }
   ],
   "fur": {
@@ -162,6 +176,12 @@
       "columns": 4,
       "rows": 2,
       "padded": true
+    },
+    {
+      "file": "bunny-turnaround.png",
+      "columns": 4,
+      "rows": 2,
+      "turnaround": true
     }
   ]
 }

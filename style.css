@@ -309,3 +309,9 @@ body .title-screen .title-menu button{width:100%;white-space:nowrap}
 body.hide-screen-controls.story-on .key-strip{display:none}
 .title-screen .menu-vignette{background:linear-gradient(0deg,#171a2070,#211b2120 50%,#211b2155)!important}
 body .title-screen .title-menu button#fight-now{background:linear-gradient(#f6b25e,#d9792f);border-color:#ffe0a8;color:#3b2110;box-shadow:0 4px 0 #8a4b1f}
+
+/* Shop turntable: turn buttons and drag hint under the pedestal */
+#shop-bunny{cursor:grab;touch-action:pan-y}#shop-bunny:active{cursor:grabbing}#shop-bunny:focus-visible{outline:3px solid #ffd58a;outline-offset:2px;border-radius:12px}
+.shop-turn{display:flex;align-items:center;justify-content:center;gap:12px;margin:-8px auto 10px;color:#f5e5ca;font:14px system-ui}
+body .shop-fitting .shop-turn-btn{width:44px;min-width:44px;min-height:44px;height:44px;padding:0;border-radius:50%;font-size:22px;line-height:1;background:#2e3a2c;color:#ffe8b1;border:2px solid #c9a96b;box-shadow:0 3px 0 #1a2219}
+body .shop-fitting .shop-turn-btn:hover{background:#3b4a38}

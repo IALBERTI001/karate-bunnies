@@ -1,10 +1,10 @@
 <!doctype html><meta charset=utf-8><body style="margin:0;background:#e9dcc6"><canvas id=c></canvas><script type=module>
 import {SpriteBank} from './render.mjs';import {GIS} from './wardrobe.mjs';
 const bank=new SpriteBank();await bank.load();
-const poses=(new URLSearchParams(location.search).get('poses')||'0,4,6,7,15').split(',').map(Number);
+const poses=(new URLSearchParams(location.search).get('poses')||'0,4,6,7,15').split(',');
 const only=new URLSearchParams(location.search).get('only');const list=only?GIS.filter(g=>only.split(',').includes(g.id)):GIS;
 const S=+(new URLSearchParams(location.search).get('size')||200),W=S*1.05,H=S*1.12;
 const c=document.getElementById('c');c.width=W*poses.length;c.height=H*list.length;const x=c.getContext('2d');
-list.forEach((g,r)=>{x.fillStyle=r%2?'#e9dcc6':'#f3e8d6';x.fillRect(0,r*H,c.width,H);x.fillStyle='#000';x.font='14px sans-serif';x.fillText(g.name,6,r*H+16);poses.forEach((p,i)=>bank.draw(x,i*W+W/2,r*H+H-8,S,p,p===7?.12:0,{fur:'White',gi:'Mint',belt:'Black',design:g.id},1,{sparkle:false}));});
+list.forEach((g,r)=>{x.fillStyle=r%2?'#e9dcc6':'#f3e8d6';x.fillRect(0,r*H,c.width,H);x.fillStyle='#000';x.font='14px sans-serif';x.fillText(g.name,6,r*H+16);poses.forEach((p,i)=>{const [an,fr]=String(p).split('.').map(Number);bank.draw(x,i*W+W/2,r*H+H-8,S,an,an===7?.12:(fr||0),{fur:'White',gi:'Mint',belt:'Black',design:g.id},1,{sparkle:false});});});
 document.title='done';
 </script>
