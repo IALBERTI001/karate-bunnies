@@ -1,5 +1,23 @@
 # Karate Bunnies
 
+## Gi Shop and wardrobe
+
+Open **Customize Bunny** on the main menu, or **Customize Bunny** during fighter selection. Preview any design on your animated bunny before buying. All 22 shop gis cost **10 carrots each**, including Raiders Football, the black-and-silver fan design with a football crest. Original plain gi colors remain free.
+
+**Glitter cuties:** Strawberry Sugar (berries and hearts), Cloud Cuddle (clouds and rainbows), Honey Hug (teddy friends), Lavender Lullaby (sleepy moons), Rainbow Ribbon (pastel bows), and Fairy Floss (fairy wings and candy hearts). Each has pearly flecks and soft animated cloth glints. Reduced Motion keeps the glitter finish still, including during combat. The renderer reuses eight shimmer phases within its existing bounded sprite cache.
+
+**Original favorites:** Sakura Bloom, Carrot Club, Moon & Stars, Bamboo Breeze and Golden Flame. All outfits share one scrolling rack by default. The Category dropdown offers All Gi, Owned, Glitter Collection, Sports Collection and Original Favorites. Owned shows only purchased designs and offers a browse action when the wardrobe is empty. All Gi is the default scrolling catalog. On taller desktop and tablet layouts the fitting-room bunny stays visible while you browse. Existing purchases and equipped outfits remain valid.
+
+**Las Vegas Sports Collection:** Vegas Golden Knights (featured first), Henderson Silver Knights, Las Vegas Aces, Las Vegas Aviators, Athletics · Vegas-bound, UNLV Runnin’ Rebels, Las Vegas Lights FC, Vegas Knight Hawks, Las Vegas Desert Dogs, Vegas Thrill and Raiders Football. Original fan-art prints combine team palettes, sports equipment, jersey stripes and individual crests. Golden Knights gets gold cloth, steel/charcoal panels, red piping and knight visors. No additional bunny sprite sheets are needed.
+
+Team references checked October 30, 2026: [Golden Knights](https://www.nhl.com/goldenknights/), [Silver Knights](https://www.hendersonsilverknights.com/), [Aces basketball](https://aces.wnba.com/), [Aviators baseball](https://www.milb.com/las-vegas/ballpark), [UNLV](https://unlvrebels.com/), [Lights FC](https://www.lasvegaslightsfc.com/), [Vegas Thrill](https://mlvb.com/teams/vegas-thrill), and [regional sports overview](https://businessinclarkcounty.com/clark-county-top-industries-in-nevada/sports-athletics/). The Athletics outfit is labelled Vegas-bound because their [Las Vegas ballpark is planned for 2028](https://ballparkexperience.athletics.com/). Basketball outfits represent the Aces and UNLV; the [NBA is exploring expansion](https://pr.nba.com/nba-board-of-governors-potential-expansion-las-vegas-seattle), so no invented Las Vegas NBA franchise is included. This is a curated regional sports set, not a claim to enumerate every local amateur or school team.
+
+Buying deducts carrots once, permanently adds that design to this browser's wardrobe, and equips it. Owned designs can be worn again for free; **Wear a plain gi** removes the print. Choosing a plain color during fighter selection also unequips the design. Custom prints appear on the gi and matching headband in menus, training, solo fights and online matches, preserving fur, bare paws and earned belts. All outfits are cosmetic.
+
+`wardrobe.mjs` contains the catalog and purchase/equip validation. The `kb-wardrobe-v1` local-storage record saves the carrot balance, owned IDs and equipped ID together, so a purchase cannot save its debit separately from ownership. Existing `kb-carrots-v1` balances migrate on first use and that key remains a compatibility mirror. A failed purchase save spends nothing. Saves remain per browser, with no account sync or server-backed inventory.
+
+`gi-patterns.mjs` paints vector cloth prints; `render.mjs` masks them to the existing gi material for every animation pose. No additional bunny atlases are needed. `wardrobe.test.mjs` covers prices, exact deductions, duplicate purchase rejection, insufficient funds, ownership, migration, corrupt data and storage failures; it is included in the main test command. The server integration test also checks a custom gi survives matchmaking.
+
 Play in a browser: https://ialberti001.github.io/karate-bunnies/ (GitHub Pages, served from `main`). A first visit starts with training.
 
 A playable browser fighting game with a twenty-fight campaign, original bunny artwork, selectable fur and gi colors, touch and keyboard controls, and real two-player matchmaking on the included server.
@@ -15,6 +33,8 @@ Open http://127.0.0.1:8787. The server has no third-party dependencies. PORT cha
 This repository contains the standalone Karate Bunnies game.
 
 ## Build
+
+Before publishing a browser-code or stylesheet change, run `node refresh-assets.mjs` and commit the updated URLs. This derives a release hash from the browser files and adds it to the HTML's CSS/module URLs and every browser-module import. Returning players then load a consistent new release rather than stale cached modules. `npm test` checks that these URLs are up to date.
 
     node build.mjs
 
@@ -156,3 +176,23 @@ Settings > On-screen buttons: Auto (default) shows the d-pad and Attack/Guard on
 ## Running the older QA scripts
 
 The scripts written before story scenes read KB_GAME_URL. Run them against the earlier game with `KB_GAME_URL='http://127.0.0.1:8787/?story=off&fx=off&vs=on'`; qa-story, qa-fx, qa-lesson and qa-buttons cover the current default. qa-arena-labels.cjs fails on the original game too (it expects every arena action in the first phone screen, which the typography pass changed).
+
+## Halloween Collection
+
+In Customize Bunny, choose Category → Halloween Collection. Six new gi join the existing wardrobe: Pumpkin Patch, Friendly Ghost, Batty Lavender, Candy Corn, Moonlit Kitty, and Little Witch. Each costs 10 carrots, following the existing shop pricing. Buying equips the design; Owned includes purchased Halloween gi for free re-equipping. The existing single-record wardrobe save preserves balance, earlier purchases, and equipped items.
+
+The designs use the current cloth-print renderer across all eighteen actions, with matching headbands, customizable fur, and existing belt progression. The original six concept illustrations and generator prompts are preserved in design/halloween as design references; shop previews show the actual animated outfits.
+
+With the server running, node qa-halloween.cjs checks six purchases, saved ownership, reload, old-item retention, free re-equipping, insufficient funds, blocked storage, combat selection, four viewport layouts, readable shop type, and 1728 fur/design/action/frame combinations without WebGL errors. It seeds funds only inside its isolated test browser. Physical-device/Safari validation remains outstanding.
+
+## Costume material correction
+
+Headband material is separated from the body print using the source material and face direction, including rotated poses. The band retains its painted folds and matching palette with contrasting seam detail, while body prints and glitter are suppressed on marked headband material. Halloween now uses a single chest emblem instead of repeating motifs; Moonlit Kitty has pointed ears, inner ears, whiskers, a small nose and crescent. These remain adaptations on the existing sprite shapes, not a full hand-redrawn reproduction of the concept illustrations. qa-headbands.cjs renders all 28 gi across 2016 pose/frame combinations for review; qa-halloween.cjs covers purchases and the six designs across all fur options.
+
+### Small costume emblems
+
+Headbands have a separate miniature logo placed on the visible forehead band. Halloween chest logos are now separate, small stamps fitted to visible cloth per pose using cloth-edge clearance, so they avoid paws and lapel boundaries. Back-facing spin poses suppress the front chest stamp. Swatches retain small emblem thumbnails. Independent material/logo canvases prevent one design’s motif colors from leaking into the next design’s material texture.
+
+## Fight Now
+
+Fight Now on the main menu starts a solo bout immediately with the equipped bunny, one randomly chosen arena from all twenty, and a randomized opponent. It skips arena/fighter selection and campaign story scenes. Every win still earns one carrot; loss and draw earn none. Quick bouts do not clear stages, change unlocks, or award campaign belts. The result screen offers Fight Now again or Main menu, so carrot earning continues after the campaign. qa-quick-fight.cjs verifies direct launch, both ends of the arena pool, randomized opponents, preserved appearance, unchanged campaign saves, single rewards, loss/draw handling, pause/resume, repeat bouts and phone/desktop layouts.

@@ -2,6 +2,7 @@ dist/
 qa-*.png
 
 node_modules/
+preview/
 *.log
 .env
 .env.*

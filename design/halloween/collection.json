@@ -1,0 +1,47 @@
+{
+  "generator": "built-in image_gen",
+  "designs": [
+    {
+      "id": "pumpkin-patch",
+      "name": "Pumpkin Patch",
+      "file": "pumpkin-patch.png",
+      "prompt": "Use case: stylized-concept. Create one production-quality full-body costume design illustration for Karate Bunnies. Reference image: existing approved bunny character lineup; match its soft rounded chibi bunny anatomy, oversized ears, fluffy white fur, expressive large dark eyes, tiny paws, painted fabric shading and clean dark outlines. Show ONLY ONE WHITE-FUR bunny, no lineup or extras. Identical friendly karate guard pose facing three-quarter right, both small fists near chest, feet planted, ears fully visible, centered with generous transparent padding. Outfit is a true karate gi jacket and trousers with a BLACK BELT and BARE PAWS, matching headband with short flowing tails. Spooky cute Halloween collection: cozy and playful, never scary. Keep clothing practical for animation: no dangling props, no shoes, no hat, no cape, no changes to bunny identity. Strong readable broad color blocks; limited tiny decoration; preserve pink ear interiors and nose. Transparent background, no ground rectangle, no text or labels, no watermark. Costume spec: Warm pumpkin-orange gi, dark moss-green lapel piping and sleeve cuffs, matching orange headband with one small embroidered green leaf, a single small smiling pumpkin patch on the left chest.",
+      "status": "concept artwork; not a combat animation or store integration"
+    },
+    {
+      "id": "friendly-ghost",
+      "name": "Friendly Ghost",
+      "file": "friendly-ghost.png",
+      "prompt": "Use case: stylized-concept. Create one production-quality full-body costume design illustration for Karate Bunnies. Reference image: existing approved bunny character lineup; match its soft rounded chibi bunny anatomy, oversized ears, fluffy white fur, expressive large dark eyes, tiny paws, painted fabric shading and clean dark outlines. Show ONLY ONE WHITE-FUR bunny, no lineup or extras. Identical friendly karate guard pose facing three-quarter right, both small fists near chest, feet planted, ears fully visible, centered with generous transparent padding. Outfit is a true karate gi jacket and trousers with a BLACK BELT and BARE PAWS, matching headband with short flowing tails. Spooky cute Halloween collection: cozy and playful, never scary. Keep clothing practical for animation: no dangling props, no shoes, no hat, no cape, no changes to bunny identity. Strong readable broad color blocks; limited tiny decoration; preserve pink ear interiors and nose. Transparent background, no ground rectangle, no text or labels, no watermark. Costume spec: Soft ivory gi with misty lavender lapel piping and cuffs, matching ivory headband, a single friendly smiling lavender ghost patch on the left chest. Clearly distinguish the ivory cloth from white fur through warm fabric shading.",
+      "status": "concept artwork; not a combat animation or store integration"
+    },
+    {
+      "id": "batty-lavender",
+      "name": "Batty Lavender",
+      "file": "batty-lavender.png",
+      "prompt": "Use case: stylized-concept. Create one production-quality full-body costume design illustration for Karate Bunnies. Reference image: existing approved bunny character lineup; match its soft rounded chibi bunny anatomy, oversized ears, fluffy white fur, expressive large dark eyes, tiny paws, painted fabric shading and clean dark outlines. Show ONLY ONE WHITE-FUR bunny, no lineup or extras. Identical friendly karate guard pose facing three-quarter right, both small fists near chest, feet planted, ears fully visible, centered with generous transparent padding. Outfit is a true karate gi jacket and trousers with a BLACK BELT and BARE PAWS, matching headband with short flowing tails. Spooky cute Halloween collection: cozy and playful, never scary. Keep clothing practical for animation: no dangling props, no shoes, no hat, no cape, no changes to bunny identity. Strong readable broad color blocks; limited tiny decoration; preserve pink ear interiors and nose. Transparent background, no ground rectangle, no text or labels, no watermark. Costume spec: Dusty lavender gi with deep plum lapel piping and cuffs, matching lavender headband, one adorable charcoal bat silhouette patch with round wings on the left chest. No actual wings.",
+      "status": "concept artwork; not a combat animation or store integration"
+    },
+    {
+      "id": "candy-corn",
+      "name": "Candy Corn",
+      "file": "candy-corn.png",
+      "prompt": "Use case: stylized-concept. Create one production-quality full-body costume design illustration for Karate Bunnies. Reference image: existing approved bunny character lineup; match its soft rounded chibi bunny anatomy, oversized ears, fluffy white fur, expressive large dark eyes, tiny paws, painted fabric shading and clean dark outlines. Show ONLY ONE WHITE-FUR bunny, no lineup or extras. Identical friendly karate guard pose facing three-quarter right, both small fists near chest, feet planted, ears fully visible, centered with generous transparent padding. Outfit is a true karate gi jacket and trousers with a BLACK BELT and BARE PAWS, matching headband with short flowing tails. Spooky cute Halloween collection: cozy and playful, never scary. Keep clothing practical for animation: no dangling props, no shoes, no hat, no cape, no changes to bunny identity. Strong readable broad color blocks; limited tiny decoration; preserve pink ear interiors and nose. Transparent background, no ground rectangle, no text or labels, no watermark. Costume spec: Honey-yellow gi trousers and lower jacket, warm orange middle jacket, ivory shoulder panels, neat orange lapel piping, matching orange headband with a small yellow stripe. A tiny candy-corn chest patch. Clear wearable karate gi construction, restrained three-color blocks.",
+      "status": "concept artwork; not a combat animation or store integration"
+    },
+    {
+      "id": "moonlit-kitty",
+      "name": "Moonlit Kitty",
+      "file": "moonlit-kitty.png",
+      "prompt": "Use case: stylized-concept. Create one production-quality full-body costume design illustration for Karate Bunnies. Reference image: existing approved bunny character lineup; match its soft rounded chibi bunny anatomy, oversized ears, fluffy white fur, expressive large dark eyes, tiny paws, painted fabric shading and clean dark outlines. Show ONLY ONE WHITE-FUR bunny, no lineup or extras. Identical friendly karate guard pose facing three-quarter right, both small fists near chest, feet planted, ears fully visible, centered with generous transparent padding. Outfit is a true karate gi jacket and trousers with a BLACK BELT and BARE PAWS, matching headband with short flowing tails. Spooky cute Halloween collection: cozy and playful, never scary. Keep clothing practical for animation: no dangling props, no shoes, no hat, no cape, no changes to bunny identity. Strong readable broad color blocks; limited tiny decoration; preserve pink ear interiors and nose. Transparent background, no ground rectangle, no text or labels, no watermark. Costume spec: Charcoal-black gi with warm peach-orange lapel piping and cuffs, matching charcoal headband, one small peach cat face and crescent moon embroidery on the left chest. No cat ears, no mask.",
+      "status": "concept artwork; not a combat animation or store integration"
+    },
+    {
+      "id": "little-witch",
+      "name": "Little Witch",
+      "file": "little-witch.png",
+      "prompt": "Use case: stylized-concept. Create one production-quality full-body costume design illustration for Karate Bunnies. Reference image: existing approved bunny character lineup; match its soft rounded chibi bunny anatomy, oversized ears, fluffy white fur, expressive large dark eyes, tiny paws, painted fabric shading and clean dark outlines. Show ONLY ONE WHITE-FUR bunny, no lineup or extras. Identical friendly karate guard pose facing three-quarter right, both small fists near chest, feet planted, ears fully visible, centered with generous transparent padding. Outfit is a true karate gi jacket and trousers with a BLACK BELT and BARE PAWS, matching headband with short flowing tails. Spooky cute Halloween collection: cozy and playful, never scary. Keep clothing practical for animation: no dangling props, no shoes, no hat, no cape, no changes to bunny identity. Strong readable broad color blocks; limited tiny decoration; preserve pink ear interiors and nose. Transparent background, no ground rectangle, no text or labels, no watermark. Costume spec: Deep blackberry-purple gi with muted mint-green lapel piping and cuffs, matching purple headband with a mint stitched star, one small mint witch-hat patch on the left chest. No actual hat, no broom, no cape.",
+      "status": "concept artwork; not a combat animation or store integration"
+    }
+  ]
+}
