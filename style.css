@@ -305,3 +305,7 @@ body.hide-screen-controls .result-shown .key-strip{display:none}
 body .title-screen .title-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;width:min(460px,92vw)}
 body .title-screen .title-menu button{width:100%;white-space:nowrap}
 @media (max-height:520px){body .title-screen .title-caption{display:none}}
+/* Review 2: the key strip never sits under story dialogue; title bunnies at full colour; Fight Now reads differently from Play story. */
+body.hide-screen-controls.story-on .key-strip{display:none}
+.title-screen .menu-vignette{background:linear-gradient(0deg,#171a2070,#211b2120 50%,#211b2155)!important}
+body .title-screen .title-menu button#fight-now{background:linear-gradient(#f6b25e,#d9792f);border-color:#ffe0a8;color:#3b2110;box-shadow:0 4px 0 #8a4b1f}
