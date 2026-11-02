@@ -48,3 +48,9 @@ test('swing events say whether the move came from the tap chain', () => {
   assert.equal(tap.chain, true); run(m, 0.8); attack(m, 'up');
   assert.equal(m.events.filter(e => e.type === 'swing').at(-1).chain, false);
 });
+
+test('lesson partner steps back into reach after being pushed away', () => {
+  const m = ready(); m.lesson = { mode: 'idle' }; m.fighters[1].x = 800;
+  for (let i = 0; i < 90; i++) step(m, 1 / 60);
+  assert.ok(Math.abs(m.fighters[1].x - m.fighters[0].x) <= 160, String(m.fighters[1].x - m.fighters[0].x));
+});

@@ -2,7 +2,7 @@ import {mkdir,copyFile,cp,writeFile,readdir,rm} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';import path from 'node:path';
 // Static upload package (CrazyGames and other hosts): game code, used assets only, and a dated build stamp shown in Settings.
 const root=path.dirname(fileURLToPath(import.meta.url));const output=path.join(root,'dist');await rm(output,{recursive:true,force:true});await mkdir(output,{recursive:true});
-for(const file of ['index.html','style.css','main.mjs','render.mjs','sprite-bounds.mjs','campaign.mjs','combat.mjs','numbers.mjs','story.mjs','lesson.mjs','sdk.mjs'])await copyFile(path.join(root,file),path.join(output,file));
+for(const file of ['index.html','style.css','main.mjs','render.mjs','sprite-bounds.mjs','campaign.mjs','combat.mjs','numbers.mjs','story.mjs','lesson.mjs','sdk.mjs','music.mjs'])await copyFile(path.join(root,file),path.join(output,file));
 const UNUSED=new Set(['character-lineup.png']);
 await cp(path.join(root,'assets'),path.join(output,'assets'),{recursive:true,filter:src=>!UNUSED.has(path.basename(src))});
 const stamp=new Date().toISOString().slice(0,16).replace('T',' ')+' UTC';

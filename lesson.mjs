@@ -1,4 +1,4 @@
-// First-fight lesson (preview: ?tutorial=v1). One move at a time; each step ticks off from a real move.
+// Training lesson (first launch and Replay training). One move at a time; each step ticks off from a real move.
 // say = [coach, line] (6 words or fewer). glow = controls to highlight: attack, guard, up, down,
 // forward, back (forward/back resolve against the bunny's facing). mode = what Mochi does meanwhile.
 export const LESSON = [

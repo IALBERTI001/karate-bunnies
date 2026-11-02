@@ -1,4 +1,4 @@
-// Story scenes for the 20-stage campaign (preview: ?story=v1).
+// Story scenes for the 20-stage campaign (on by default; ?story=off turns them off).
 // Lines stay at 6 words or fewer; the blip voice carries the feeling.
 export const MAX_WORDS = 6;
 
@@ -104,7 +104,7 @@ export function blipSchedule(text, pitch) {
   return { blips: out, duration: t };
 }
 
-// Spoken when a win earns a new belt (story preview). The hero's belt changes colour on this line.
+// Spoken when a win earns a new belt (story mode). The hero's belt changes colour on this line.
 export const BELT_LINES = {
   Yellow: ['hazel', 'A yellow belt! You earned it!'],
   Green:  ['bramble', 'A green belt! So proud!'],

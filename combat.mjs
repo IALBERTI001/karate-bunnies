@@ -24,8 +24,9 @@ export function input(m,index,event){const f=m.fighters[index];if(!f||m.phase!==
 function startMove(f,name){f.move=name;f.action='attack';f.animation=MOVES[name].animation;f.time=0;f.hit=false;f.guard=false;}
 function random(m){m.ai.seed=(Math.imul(m.ai.seed,1664525)+1013904223)>>>0;return m.ai.seed/4294967296;}
 export function updateAI(m,dt){if(m.phase!=='fight')return;
- // Lesson: the partner stands still, or on 'jab' walks close and throws one slow punch every 1.6s.
- if(m.lesson){const f=m.fighters[1],p=m.fighters[0];m.ai.wait-=dt;if(!canAct(f))return;f.input.left=false;f.input.right=false;f.input.guard=false;if(m.lesson.mode!=='jab'||m.ai.wait>0)return;if(Math.abs(f.x-p.x)>150){f.input[p.x<f.x?'left':'right']=true;return;}f.combo=0;input(m,1,{type:'attackDown'});input(m,1,{type:'attackUp'});f.combo=0;m.ai.wait=1.6;return;}
+ // Lesson: the partner stays within reach; on 'jab' it also throws one slow punch every 1.6s.
+ if(m.lesson){const f=m.fighters[1],p=m.fighters[0];m.ai.wait-=dt;if(!canAct(f))return;f.input.left=false;f.input.right=false;f.input.guard=false;// The partner always steps back into reach so every practice move connects.
+ if(Math.abs(f.x-p.x)>150){f.input[p.x<f.x?'left':'right']=true;return;}if(m.lesson.mode!=='jab'||m.ai.wait>0)return;f.combo=0;input(m,1,{type:'attackDown'});input(m,1,{type:'attackUp'});f.combo=0;m.ai.wait=1.6;return;}
 const f=m.fighters[1],p=m.fighters[0],d=clamp((m.stage-1)/19,0,1);m.ai.wait-=dt;m.ai.guard-=dt;if(!canAct(f))return;
  if(m.ai.guard>0){input(m,1,{type:'direction',key:'guard',value:true});return;}
  if(m.ai.wait>0)return;

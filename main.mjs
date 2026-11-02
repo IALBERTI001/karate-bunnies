@@ -1,10 +1,13 @@
 import {formatCount} from './numbers.mjs';
 import {GameSDK} from './sdk.mjs';
+import {startMusic} from './music.mjs';
+// Mix: music sits about 5 dB under the effects; a gentle limiter on the master bus keeps peaks from clipping.
+const MASTER_GAIN=4,MUSIC_TRIM=.061;
 import {BUILD} from './version.mjs';
 import {STAGES,FURS,COLORS,loadProgress,clearStage,validSkin,beltFor} from './campaign.mjs';
 import {createMatch,input,step,MOVES} from './combat.mjs';
 import {SpriteBank,ArenaArt,drawScene,star,sceneCamera} from './render.mjs';
-// Big-moment celebrations (preview: ?fx=v1). Solo only; online play is unchanged.
+// Big-moment celebrations (on by default; ?fx=off turns them off). Solo only; online play is unchanged.
 const FX=(()=>{try{return new URLSearchParams(location.search).get('fx')!=='off';}catch{return false;}})();
 const POP_WORDS={launch:['Wheee!','Up you go!'],knock:['Pow!','Boom!'],chain:['Combo!','Hi-yah!']};
 let freezeUntil=0,slowUntil=0,pops=[],lastPop=-9;
@@ -27,7 +30,7 @@ function drawPops(ctx,canvas){if(!pops.length)return;pops=pops.filter(p=>wall-p.
 
 import {storyLines,blipSchedule,BLIP,beltLine,CAST} from './story.mjs';
 import {LESSON,CHEERS,LESSON_END,stepDone,glowTargets} from './lesson.mjs';
-// First-fight lesson (preview: ?tutorial=v1). Runs once, in stage 1, until stage 1 is won or the lesson is finished or skipped.
+// Training lesson: runs in the first-launch training bout (and Replay training in Settings).
 // Online VS is hidden until it has a hosted server; ?vs=on (or KB_FLAGS.vs) shows it for development.
 const VS=(()=>{try{return globalThis.KB_FLAGS?.vs===true||new URLSearchParams(location.search).get('vs')==='on';}catch{return false;}})();
 // A host page can switch previews on with globalThis.KB_FLAGS (used where the address cannot carry ?tutorial=v1).
@@ -36,7 +39,7 @@ function showWelcome(){if(TUTORIAL_PARAM==='off')return false;if(TUTORIAL_PARAM=
 const COARSE=(()=>{try{return matchMedia('(pointer: coarse)').matches;}catch{return false;}})();
 let lesson=null;
 function lessonWanted(){return !session&&modeState?.mode==='training';}
-function welcome(){home();view='welcome';$('.carrot-wallet')?.remove();const menu=$('.title-menu');menu.innerHTML='<button class="primary" id="start-training">Start training</button><button class="secondary" id="skip-training">Skip to main menu</button>';const note=$('.title-progress');if(note)note.textContent='Learn your moves with Coach Hazel and Coach Bramble.';$('#start-training').onclick=()=>startTraining();$('#skip-training').onclick=()=>{storage.write('kb-lesson-v1',true);go('home');};$('#start-training').focus({preventScroll:true});}
+function welcome(){home();view='welcome';$('.carrot-wallet')?.remove();const menu=$('.title-menu');menu.innerHTML='<button class="primary" id="start-training">Start training</button><button class="secondary" id="skip-training">Skip to main menu</button>';const note=$('.title-progress');if(note)note.textContent='';$('#start-training').onclick=()=>startTraining();$('#skip-training').onclick=()=>{storage.write('kb-lesson-v1',true);go('home');};$('#start-training').focus({preventScroll:true});}
 // Training: a practice bout with Mochi in Tiny Paws Dojo. Not a campaign fight: no progress, no carrots, no story lines.
 function startTraining(){closeModal();resetInputs();endStory(false);endLesson(false);stage={...STAGES[0]};chosenOpponent=null;modeState.mode='training';match=createMatch({stage:1});for(const f of match.fighters)f.animation=15;paused=false;particles=[];fxReset();lossBow=false;eventId=0;shownResult=false;finishAt=0;accumulator=0;fightDOM();soundInit();}
 function speakLine(key,text){const c=CAST[key];if(c)speakBlips(blipSchedule(text,c.pitch).blips);}
@@ -105,8 +108,8 @@ GameSDK.onMute(()=>volumes());
 app.addEventListener('contextmenu',e=>e.preventDefault());
 ['pointerdown','touchend','click','keydown'].forEach(t=>window.addEventListener(t,()=>{if(audio&&audio.state!=='running')audio.resume().catch(()=>{});},{passive:true}));
 let audio,masterMusic,masterEffects,musicTimer,musicIndex=0;
-function soundInit(){if(!audio){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;audio=new Audio();masterMusic=audio.createGain();masterMusic.connect(audio.destination);masterEffects=audio.createGain();masterEffects.connect(audio.destination);musicTimer=setInterval(()=>{if(document.hidden||!audio||audio.state!=='running')return;const melody=[261.63,329.63,392,329.63,293.66,349.23,440,349.23];tone(melody[musicIndex++%8],.55,.035,'sine',masterMusic);},600);}audio.resume().catch(()=>{});volumes();}
-function volumes(){if(audio){const on=GameSDK.muted?0:1;masterMusic.gain.setTargetAtTime(settings.music*on,audio.currentTime,.05);masterEffects.gain.setTargetAtTime(settings.effects*on,audio.currentTime,.05);}}
+function soundInit(){if(!audio){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;audio=new Audio();const bus=audio.createGain();bus.gain.value=MASTER_GAIN;const limiter=audio.createDynamicsCompressor();limiter.threshold.value=-12;limiter.knee.value=6;limiter.ratio.value=4;limiter.attack.value=.003;limiter.release.value=.25;bus.connect(limiter);limiter.connect(audio.destination);masterMusic=audio.createGain();masterMusic.connect(bus);masterEffects=audio.createGain();masterEffects.connect(bus);musicTimer=startMusic(audio,masterMusic,{isPaused:()=>document.hidden||!audio||audio.state!=='running'});}audio.resume().catch(()=>{});volumes();}
+function volumes(){if(audio){const on=GameSDK.muted?0:1;masterMusic.gain.setTargetAtTime(settings.music*MUSIC_TRIM*on,audio.currentTime,.05);masterEffects.gain.setTargetAtTime(settings.effects*on,audio.currentTime,.05);}}
 function tone(freq,duration=.1,volume=.1,type='sine',destination=masterEffects){if(!audio||audio.state!=='running')return;const o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.001,audio.currentTime);g.gain.exponentialRampToValueAtTime(Math.max(.002,volume),audio.currentTime+.012);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);o.connect(g);g.connect(destination);o.start();o.stop(audio.currentTime+duration+.02);}
 function sfx(type){if(type==='hit'){tone(185,.09,.12,'triangle');setTimeout(()=>tone(520,.08,.03),25);}else if(type==='block')tone(610,.08,.07);else if(type==='finish'){[523,659,784].forEach((f,i)=>setTimeout(()=>tone(f,.35,.06),i*140));}else if(type==='swing')tone(280,.05,.025,'triangle');else tone(660,.07,.04);}
 function toast(text){$('.toast')?.remove();const e=document.createElement('div');e.className='toast';e.role='status';e.textContent=text;app.append(e);clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.remove(),3500);}
