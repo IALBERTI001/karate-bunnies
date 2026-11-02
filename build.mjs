@@ -1,7 +1,10 @@
-import {mkdir,copyFile,cp,writeFile} from 'node:fs/promises';
+import {mkdir,copyFile,cp,writeFile,readdir,rm} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';import path from 'node:path';
-const root=path.dirname(fileURLToPath(import.meta.url));const output=path.join(root,'dist');await mkdir(output,{recursive:true});
-for(const file of ['index.html','style.css','main.mjs','render.mjs','sprite-bounds.mjs','campaign.mjs','combat.mjs','numbers.mjs','story.mjs','lesson.mjs'])await copyFile(path.join(root,file),path.join(output,file));
-await cp(path.join(root,'assets'),path.join(output,'assets'),{recursive:true});
-await writeFile(path.join(output,'BUILD.txt'),'Karate Bunnies static campaign build. Online matchmaking requires the included Node server from the source project.\n');
-console.log('Static build ready in karate-bunnies/dist. Full campaign works on a static host; online VS requires server.mjs.');
+// Static upload package (CrazyGames and other hosts): game code, used assets only, and a dated build stamp shown in Settings.
+const root=path.dirname(fileURLToPath(import.meta.url));const output=path.join(root,'dist');await rm(output,{recursive:true,force:true});await mkdir(output,{recursive:true});
+for(const file of ['index.html','style.css','main.mjs','render.mjs','sprite-bounds.mjs','campaign.mjs','combat.mjs','numbers.mjs','story.mjs','lesson.mjs','sdk.mjs'])await copyFile(path.join(root,file),path.join(output,file));
+const UNUSED=new Set(['character-lineup.png']);
+await cp(path.join(root,'assets'),path.join(output,'assets'),{recursive:true,filter:src=>!UNUSED.has(path.basename(src))});
+const stamp=new Date().toISOString().slice(0,16).replace('T',' ')+' UTC';
+await writeFile(path.join(output,'version.mjs'),`export const BUILD = '${stamp}';\n`);
+console.log(`Static build ${stamp} ready in dist (${(await readdir(path.join(output,'assets'))).length} assets). Online VS needs server.mjs and stays hidden.`);
