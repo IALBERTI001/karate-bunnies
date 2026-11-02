@@ -301,3 +301,7 @@ body.hide-screen-controls .result-shown .key-strip{display:none}
 
 /* Leave room for the direct-fight action without crowding phone title copy. */
 @media(max-width:700px) and (orientation:portrait){.title-screen .title-caption{display:none}.title-screen .title-progress{font-size:14px;line-height:1.4;margin-top:12px}.arena-topline .arena-title{min-width:0;flex:1}.arena-topline .arena-title strong{font-size:16px}.arena-topline .arena-menu{white-space:nowrap;flex-shrink:0;font-size:14px;padding:10px}.fight-screen .round-announcement{top:200px}}
+/* Four title actions (Fight Now, Play story, Customize Bunny, Settings) as a 2x2 grid so the belt meter and caption stay on screen. */
+body .title-screen .title-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;width:min(460px,92vw)}
+body .title-screen .title-menu button{width:100%;white-space:nowrap}
+@media (max-height:520px){body .title-screen .title-caption{display:none}}

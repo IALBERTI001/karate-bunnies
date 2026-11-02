@@ -1,14 +1,14 @@
-import {paintGiPattern} from './gi-patterns.mjs?v=b7907ff12c76';
-import {GIS,GI_COLLECTIONS,collectionGis,giDesign,loadWardrobe,purchaseGi,equipGi,persistWardrobe,WARDROBE_KEY} from './wardrobe.mjs?v=b7907ff12c76';
-import {formatCount} from './numbers.mjs?v=b7907ff12c76';
-import {GameSDK} from './sdk.mjs?v=b7907ff12c76';
-import {startMusic} from './music.mjs?v=b7907ff12c76';
+import {paintGiPattern} from './gi-patterns.mjs?v=b4309fdd64c2';
+import {GIS,GI_COLLECTIONS,collectionGis,giDesign,loadWardrobe,purchaseGi,equipGi,persistWardrobe,WARDROBE_KEY} from './wardrobe.mjs?v=b4309fdd64c2';
+import {formatCount} from './numbers.mjs?v=b4309fdd64c2';
+import {GameSDK} from './sdk.mjs?v=b4309fdd64c2';
+import {startMusic} from './music.mjs?v=b4309fdd64c2';
 // Mix: music sits about 5 dB under the effects; a gentle limiter on the master bus keeps peaks from clipping.
 const MASTER_GAIN=4,MUSIC_TRIM=.061;
-import {BUILD} from './version.mjs?v=b7907ff12c76';
-import {STAGES,FURS,COLORS,loadProgress,clearStage,validSkin,beltFor,BELT_AWARDS} from './campaign.mjs?v=b7907ff12c76';
-import {createMatch,input,step,MOVES} from './combat.mjs?v=b7907ff12c76';
-import {SpriteBank,ArenaArt,drawScene,star,sceneCamera} from './render.mjs?v=b7907ff12c76';
+import {BUILD} from './version.mjs?v=b4309fdd64c2';
+import {STAGES,FURS,COLORS,loadProgress,clearStage,validSkin,beltFor,BELT_AWARDS} from './campaign.mjs?v=b4309fdd64c2';
+import {createMatch,input,step,MOVES} from './combat.mjs?v=b4309fdd64c2';
+import {SpriteBank,ArenaArt,drawScene,star,sceneCamera} from './render.mjs?v=b4309fdd64c2';
 // Big-moment celebrations (on by default; ?fx=off turns them off). Solo only; online play is unchanged.
 const FX=(()=>{try{return new URLSearchParams(location.search).get('fx')!=='off';}catch{return false;}})();
 const POP_WORDS={launch:['Wheee!','Up you go!'],knock:['Pow!','Boom!'],chain:['Combo!','Hi-yah!']};
@@ -30,8 +30,8 @@ function drawPops(ctx,canvas){if(!pops.length)return;pops=pops.filter(p=>wall-p.
   ctx.lineWidth=size*.16;ctx.strokeStyle='#6a4632';ctx.strokeText(p.text,0,0);ctx.fillStyle='#ffe7a8';ctx.fillText(p.text,0,0);
   ctx.lineWidth=size*.05;ctx.strokeStyle='#fff7e6';ctx.globalAlpha=alpha*.6;ctx.strokeText(p.text,0,-size*.04);ctx.restore();}}
 
-import {storyLines,blipSchedule,BLIP,beltLine,CAST} from './story.mjs?v=b7907ff12c76';
-import {LESSON,CHEERS,LESSON_END,stepDone,glowTargets,LESSON_KO,LESSON_REWARD} from './lesson.mjs?v=b7907ff12c76';
+import {storyLines,blipSchedule,BLIP,beltLine,CAST} from './story.mjs?v=b4309fdd64c2';
+import {LESSON,CHEERS,LESSON_END,stepDone,glowTargets,LESSON_KO,LESSON_REWARD} from './lesson.mjs?v=b4309fdd64c2';
 // Training lesson: runs in the first-launch training bout (and Replay training in Settings).
 // Online VS is hidden until it has a hosted server; ?vs=on (or KB_FLAGS.vs) shows it for development.
 const VS=(()=>{try{return globalThis.KB_FLAGS?.vs===true||new URLSearchParams(location.search).get('vs')==='on';}catch{return false;}})();
@@ -225,7 +225,7 @@ function renderFight(dt){if(!match)return;if(!paused&&!session&&!storyState?.hol
 }
 function reportGameplay(){GameSDK.gameplay(view==='fight'&&!!match&&match.phase!=='done'&&!paused&&!modal&&!storyState?.hold);}
 function loop(time){reportGameplay();const dt=Math.min(.05,(time-rafTime)/1000||0);rafTime=time;wall=time/1000;if(session&&time-lastPoll>90){lastPoll=time;pollOnline();}
- if(['home','welcome','campaign','custom','settings','search','shop'].includes(view)){const bg=$('#menu-scene'),still=!['home','welcome'].includes(view),bgKey=still&&bg&&[view,stage?.id,chapterIndex,bg.clientWidth,bg.clientHeight].join('|');if(bg&&(!still||bg.dataset.drawn!==bgKey)){if(still)bg.dataset.drawn=bgKey;const demoTime=settings.reduced?0:wall,cycle=Math.floor(demoTime/2)%5;const fighters=[{x:215,z:0,facing:1,animation:['home','welcome'].includes(view)?[0,4,6,3,15][cycle]:0,time:demoTime%2},{x:785,z:0,facing:-1,animation:['home','welcome'].includes(view)?[3,11,3,4,15][cycle]:0,time:demoTime%2}];const bctx=fitCover(bg);drawScene(bctx,bank,art,['home','welcome'].includes(view)?STAGES[0]:view==='campaign'?STAGES[chapterIndex*4]:stage,demoTime,{fighters:['home','welcome'].includes(view)?fighters:[],skins:[heroSkin(),{fur:'Cream',gi:'Mint'}],hero:true,reduced:settings.reduced});if(still)softenBackdrop(bg,bctx);}
+ if(['home','welcome','campaign','custom','settings','search','shop'].includes(view)){const bg=$('#menu-scene'),still=!['home','welcome'].includes(view),bgKey=still&&bg&&[view,stage?.id,chapterIndex,bg.clientWidth,bg.clientHeight].join('|');if(bg&&(!still||bg.dataset.drawn!==bgKey)){if(still)bg.dataset.drawn=bgKey;const demoTime=settings.reduced?0:wall,cycle=Math.floor(demoTime/2)%5;const tall=bg.clientHeight>bg.clientWidth;const fighters=[{x:tall?405:215,z:0,facing:1,animation:['home','welcome'].includes(view)?[0,4,6,3,15][cycle]:0,time:demoTime%2},{x:tall?595:785,z:0,facing:-1,animation:['home','welcome'].includes(view)?[3,11,3,4,15][cycle]:0,time:demoTime%2}];const bctx=fitCover(bg);drawScene(bctx,bank,art,['home','welcome'].includes(view)?STAGES[0]:view==='campaign'?STAGES[chapterIndex*4]:stage,demoTime,{fighters:['home','welcome'].includes(view)?fighters:[],skins:[heroSkin(),{fur:'Cream',gi:'Mint'}],hero:true,reduced:settings.reduced});if(still)softenBackdrop(bg,bctx);}
 if(view==='custom'){for(const [id,rival]of [['custom-bunny',false],['rival-bunny',true]]){const c=$('#'+id),ctx=c.getContext('2d');ctx.clearRect(0,0,300,450);if(!rival||chosenOpponent){ctx.fillStyle='#1c231b38';ctx.beginPath();ctx.ellipse(150,425,78,13,0,0,Math.PI*2);ctx.fill();bank.draw(ctx,150,425,400,0,settings.reduced?0:wall,rival?{fur:chosenOpponent.fur,gi:chosenOpponent.gi}:heroSkin(),rival?-1:1);}else{ctx.fillStyle='#fff4d388';ctx.font='90px Georgia';ctx.textAlign='center';ctx.fillText('?',150,260);}}}
 if(view==='shop'){const c=$('#shop-bunny');if(c){const ctx=c.getContext('2d');ctx.clearRect(0,0,360,390);ctx.fillStyle='#1c231b38';ctx.beginPath();ctx.ellipse(180,365,66,10,0,0,7);ctx.fill();bank.draw(ctx,180,365,330,0,settings.reduced?0:wall,{...heroSkin(),design:shopCategory==='owned'&&!wardrobe.owned.length?null:shopSelection});}}
 if(view==='search'){const c=$('#search-bunny');if(c){const ctx=c.getContext('2d');ctx.clearRect(0,0,500,220);bank.draw(ctx,240,215,215,0,settings.reduced?0:wall,dressedSkin());const elapsed=Math.floor((time-searchStarted)/1000);$('#search-time').textContent=`${elapsed}s searching · A real player, never a disguised computer opponent.`;if(elapsed>=30)$('#keep-searching').hidden=false;}}
