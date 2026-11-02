@@ -13,7 +13,7 @@ globalThis.__close=(hp)=>{const [a,b]=match.fighters;a.x=440;b.x=530;a.facing=1;
   // Buttons shown: software rendering here is too slow for timed hits on the larger hidden-buttons arena.
   await p.addInitScript(()=>{try{if(!localStorage.getItem('kb-settings-v1'))localStorage.setItem('kb-settings-v1',JSON.stringify({music:.25,effects:.5,reduced:false,shake:true,large:false,buttons:'show'}));}catch{}});
   await p.goto(url);if(reduced){await p.evaluate(()=>localStorage.setItem('kb-settings-v1',JSON.stringify({music:.3,effects:.5,reduced:true,shake:false,large:false})));await p.reload();}
-  await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();await p.locator('#confirm-fighter').click();await p.locator('#begin').click();
+  await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();if(await p.locator('#confirm-fighter').count())await p.locator('#confirm-fighter').click();await p.locator('#begin').click();
   if(await p.locator('#story-skip').count())await p.locator('#story-skip').click();await p.waitForFunction(()=>__fx().phase==='fight',null,{timeout:20000});return p;};
  const land=async(p,dir,want,shot,hp)=>{for(let t=0;t<8;t++){await p.evaluate(h=>__close(h),hp);
    if(dir){await p.keyboard.down('j');await p.keyboard.down(dir);await p.waitForTimeout(40);await p.keyboard.up('j');await p.keyboard.up(dir);}

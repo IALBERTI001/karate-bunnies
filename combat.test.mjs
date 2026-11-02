@@ -54,3 +54,18 @@ test('lesson partner steps back into reach after being pushed away', () => {
   for (let i = 0; i < 90; i++) step(m, 1 / 60);
   assert.ok(Math.abs(m.fighters[1].x - m.fighters[0].x) <= 160, String(m.fighters[1].x - m.fighters[0].x));
 });
+
+test('lesson finale allows a knockout; normal lesson steps keep the health floor', () => {
+  const m = createMatch({ stage: 1 }); m.phase = 'fight'; m.lesson = { mode: 'idle' };
+  const hitUntilDone = () => { for (let n = 0; n < 40 && m.phase !== 'done'; n++) { input(m, 0, { type: 'attackDown' }); input(m, 0, { type: 'attackUp' }); for (let i = 0; i < 40; i++) step(m, 1 / 60); } };
+  m.fighters[1].hp = 36; hitUntilDone();
+  assert.equal(m.fighters[1].hp, 35); assert.notEqual(m.phase, 'done');
+  m.lesson = { mode: 'idle', ko: true }; m.fighters[1].hp = 6; hitUntilDone();
+  assert.equal(m.phase, 'done'); assert.equal(m.result, 'player');
+});
+
+test('fighters ease apart after the fight so the victory pose never overlaps', () => {
+  const m = createMatch({ stage: 1 }); m.phase = 'done'; m.fighters[0].x = 430; m.fighters[1].x = 570;
+  for (let i = 0; i < 120; i++) step(m, 1 / 60);
+  assert.ok(m.fighters[1].x - m.fighters[0].x >= 229);
+});

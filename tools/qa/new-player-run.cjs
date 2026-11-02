@@ -25,9 +25,10 @@ const words=()=>{let n=0;const seen=[];for(const el of document.querySelectorAll
  await think();await p.keyboard.down('k');await p.waitForFunction(()=>__np.state().step>=3,null,{timeout:30000}).catch(()=>{});await p.keyboard.up('k');
  await think();await until(4,()=>key(0,'w'));await p.waitForTimeout(200);await frame('high-kick');
  await think();await until(5,()=>key(0,'ArrowRight'));await think();await until(6,()=>key(0,'s'));await think();await until(7,()=>key(0,'ArrowLeft'));
- await p.locator('#lesson-menu').waitFor({timeout:30000}).catch(()=>{});await frame('lesson-end');
+ await think();await p.waitForFunction(()=>__np.state().phase==='fight',null,{timeout:30000}).catch(()=>{});await frame('finale');for(let i=0;i<8&&(await st()).phase==='fight';i++){await key();await p.waitForTimeout(500);}await p.waitForTimeout(700);await frame('ko');
+ await p.locator('#lesson-menu').waitFor({timeout:30000}).catch(()=>{});await p.waitForTimeout(1200);await frame('lesson-end');
  await think();if(await p.locator('#lesson-menu').count())await p.locator('#lesson-menu').click();await p.locator('#fight').waitFor();await frame('main-menu');
- await think();await p.locator('#fight').click();await frame('arenas');await think();await p.locator('[data-stage="1"]').click();await frame('fighter');await think();await p.locator('#confirm-fighter').click();await think();await p.locator('#begin').click();
+ await think();await p.locator('#fight').click();await frame('arenas');await think();await p.locator('[data-stage="1"]').click();await frame('fighter');await think();if(await p.locator('#confirm-fighter').count()){await p.locator('#confirm-fighter').click();await think();}await p.locator('#begin').click();
  await p.locator('.story-bubble').waitFor();await p.waitForTimeout(800);await frame('story-before');await think();
  while(await p.locator('.story-scene').count()){await p.keyboard.press('Enter');await p.waitForTimeout(900);}
  await p.waitForFunction(()=>__np.state().phase==='fight',null,{timeout:60000});await frame('stage1-fight');

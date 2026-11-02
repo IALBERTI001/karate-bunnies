@@ -7,7 +7,7 @@ const inject=async p=>p.route('**/main.mjs',async route=>{const r=await route.fe
  await route.fulfill({response:r,body:source+`\nglobalThis.__testResult=(res)=>{match.phase='done';match.result=res;match.fighters.forEach((f,i)=>{const lost=res==='player'?i===1:i===0;f.hp=lost?0:100;f.animation=lost?17:16;f.time=0;f.move=null;f.z=0;});finish();};globalThis.__clock=()=>match.time;globalThis.__phase=()=>match.phase;globalThis.__belt=()=>heroSkin().belt;globalThis.__anims=()=>match.fighters.map(f=>f.animation);`});});
 const toFight=async(p,url,stageId=1)=>{await p.goto(url);if(stageId>1)await p.evaluate(n=>localStorage.setItem('kb-campaign-v1',JSON.stringify({cleared:[...Array(n-1).keys()].map(i=>i+1)})),stageId);if(stageId>1)await p.reload();
  await p.locator('#fight').click();const tab=p.locator(`[data-chapter="${Math.floor((stageId-1)/4)}"]`);if(await tab.count())await tab.first().click();
- await p.locator(`[data-stage="${stageId}"]`).click();await p.locator('#confirm-fighter').click();return (await p.locator('#opponent-choice').textContent()).trim();};
+ await p.locator(`[data-stage="${stageId}"]`).click();if(await p.locator('#confirm-fighter').count())await p.locator('#confirm-fighter').click();return (await p.locator('#opponent-choice').textContent()).trim();};
 (async()=>{const b=await chromium.launch({headless:true,...(process.env.KB_BROWSER_CHANNEL?{channel:process.env.KB_BROWSER_CHANNEL}:{}),args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--autoplay-policy=no-user-gesture-required']});
  const errors=[];const results=[];
  // 1. Full flow on a phone.

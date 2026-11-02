@@ -25,7 +25,7 @@ globalThis.__close=()=>{const [a,b]=match.fighters;a.x=440;b.x=550;};`;
  assert.equal(await p.locator('#fight').count(),0,'first launch shows training, not the full menu');assert.ok(await p.locator('#skip-training').isVisible());
  await p.screenshot({path:`${OUT}/qa-training-welcome-desktop.png`});
  await train(p);assert.equal(await p.locator('.arena-title small').textContent(),'TRAINING');assert.equal(await p.locator('.story-scene').count(),0,'no story lines in training');
- assert.match(await p.locator('.lesson-say').textContent(),/Tap Attack/);assert.deepEqual(await glows(p),['attack']);assert.match(await p.locator('.lesson-keys').textContent(),/J/);
+ assert.match(await p.locator('.lesson-say').textContent(),/Press J/,'keyboard wording on a PC');assert.deepEqual(await glows(p),['attack']);
  const t0=(await p.evaluate(()=>__m())).time;
  await untilStep(p,1,()=>key.tap(p));await waitStep(p,1);{const mm=await p.evaluate(()=>__m());assert.equal(mm.oppSwings,0,'Mochi does not attack before the guard step: '+mm.log);}
  await untilStep(p,2,async()=>{for(let k=0;k<4;k++){await key.tap(p);await p.waitForTimeout(560);}});await waitStep(p,2);
@@ -38,15 +38,19 @@ globalThis.__close=()=>{const [a,b]=match.fighters;a.x=440;b.x=550;};`;
  await untilStep(p,5,()=>key.hold(p,fwd==='right'?'ArrowRight':'ArrowLeft'));await waitStep(p,5);
  await untilStep(p,6,()=>key.hold(p,'s'));await waitStep(p,6);
  await untilStep(p,7,()=>key.hold(p,fwd==='right'?'ArrowLeft':'ArrowRight'));
- await p.locator('#lesson-menu').waitFor({timeout:8000});let m=await p.evaluate(()=>__m());
- assert.match(await p.locator('.lesson-say').textContent(),/ready, little one/);assert.ok(t0-m.time<0.6,'clock held: '+m.time);assert.ok(m.php>=35&&m.ohp>=35);
+ // Finale: a real knockout, then the K.O. title, the one-time carrot reward and the end card.
+ await p.waitForFunction(()=>/knock Mochi down/.test(document.querySelector('.lesson-say')?.textContent||''),null,{timeout:15000});
+ for(let i=0;i<12&&(await p.evaluate(()=>__m())).phase!=='done';i++){await p.evaluate(()=>__close());await key.tap(p);await p.waitForTimeout(500);}
+ await p.locator('.round-announcement h2').waitFor({timeout:8000});assert.equal(await p.locator('.round-announcement h2').textContent(),'K.O.!');
+ await p.locator('#lesson-menu').waitFor({timeout:8000});let m=await p.evaluate(()=>__m());assert.match(await p.locator('.lesson-reward').textContent(),/\+3 carrots/);assert.match(await p.locator('.lesson-tip').textContent(),/Settings/);
+ assert.match(await p.locator('.lesson-say').textContent(),/ready, little one/);assert.ok(t0-m.time<0.6,'clock held: '+m.time);assert.ok(m.php>=35&&m.ohp===0,'Mochi is knocked out: '+m.ohp);
  await p.waitForTimeout(1500);m=await p.evaluate(()=>__m());assert.ok(t0-m.time<0.6,'practice bout does not start after the lesson');assert.ok(await p.locator('#lesson-menu').isVisible(),'end card waits for the player');
  await p.screenshot({path:`${OUT}/qa-training-end-desktop.png`});
  await p.locator('#lesson-menu').click();await p.locator('#fight').waitFor();m=await p.evaluate(()=>__m());
- assert.equal(m.view,'home');assert.equal(m.carrots,0,'training pays no carrots');assert.equal(m.cleared,0,'training is not a campaign win');done.push('first launch → training → main menu');
+ assert.equal(m.view,'home');assert.equal(m.carrots,3,'training pays a one-time 3 carrots');assert.equal(m.cleared,0,'training is not a campaign win');done.push('first launch → training → main menu');
  // Later launches start at the main menu; stage 1 has no lesson.
  await p.reload();await p.locator('#fight').waitFor();assert.equal(await p.locator('#start-training').count(),0,'second launch starts at the menu');
- await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();await p.locator('#confirm-fighter').click();await p.locator('#begin').click();
+ await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();if(await p.locator('#confirm-fighter').count())await p.locator('#confirm-fighter').click();await p.locator('#begin').click();
  if(await p.locator('#story-skip').count())await p.locator('#story-skip').click();await p.waitForFunction(()=>__m().phase==='fight',null,{timeout:30000});await p.waitForTimeout(600);
  assert.equal(await p.locator('.lesson-card').count(),0,'no lesson in stage 1');done.push('runs once');
  // Replay training from Settings.

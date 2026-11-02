@@ -135,7 +135,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1d211d}#app{positio
 .carrot-reward{font:700 18px/1.4 system-ui;color:#ffe0a0;margin:0 0 10px;text-align:center}
 .carrot-reward span{font-size:16px;color:#fff0ce}
 @media(max-width:700px){.carrot-wallet{top:22px;left:14px;font-size:14px;padding:8px 10px}.campaign-summary .carrot-balance{font-size:14px}.carrot-reward{font-size:16px;margin:0 0 8px}.carrot-reward span{font-size:14px}}
-@media(orientation:landscape) and (max-height:550px){.carrot-wallet{top:14px;left:14px}.round-result-controls:has(.carrot-reward){min-height:110px}.carrot-reward{margin-bottom:4px;font-size:16px}}
+@media(orientation:landscape) and (max-height:550px){.carrot-wallet{top:14px;left:14px}.round-result-controls{min-height:110px}.carrot-reward{margin-bottom:4px;font-size:16px}}
 
 /* Story scenes (preview: ?story=v1). The dialogue box takes over the bottom HUD band, so the arena and both bunnies stay fully visible.
    The bubble's tail points up toward whoever is speaking. Result actions return when the scene ends. */
@@ -210,8 +210,44 @@ body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-se
 img,canvas{-webkit-user-drag:none}
 
 /* Short desktop windows (CrazyGames 821x462, 800x450, 910x512): the result banner replaces the arena title row so it never covers the bunnies. */
-@media (max-height:560px) and (min-aspect-ratio:4/3){.arena-wrap:has(.round-announcement) .arena-topline{visibility:hidden}.fight-screen .round-announcement{top:92px;padding:4px 16px}.fight-screen .round-announcement h2{font-size:26px}
+@media (max-height:560px) and (min-aspect-ratio:4/3){.result-shown .arena-topline{visibility:hidden}.fight-screen .round-announcement{top:92px;padding:4px 16px}.fight-screen .round-announcement h2{font-size:26px}
 /* While results show, the bottom band takes its own space under the arena instead of covering the bunnies. */
 .fight-controls.round-result-controls{position:relative!important;inset:auto!important}}
 /* Very short landscape (phones on their side): the banner sits on the floor below the bunnies' feet. */
 @media (max-height:430px) and (orientation:landscape){.fight-screen .round-announcement{top:auto;bottom:4px;padding:2px 16px}.fight-screen .round-announcement h2{font-size:22px}}
+
+/* QA round 2 (Nov 2): staged payoffs, visible keys, calmer backdrops behind menus. */
+/* Victory / K.O.: a big golden title over the top bar (bars hide during results), clear of the fighters. */
+.result-shown .arena-topline{visibility:hidden}
+body .arena-wrap .round-announcement{top:4px!important;bottom:auto!important;left:0!important;right:0!important;padding:0!important;background:none!important;border:0!important;animation:kb-title-pop .55s cubic-bezier(.2,1.5,.4,1) both}
+body .arena-wrap .round-announcement h2{font:bold clamp(46px,11vh,104px)/1.05 Georgia,'Times New Roman',serif!important;color:#ffe7a8;letter-spacing:.03em;text-shadow:0 3px 0 #8a4b2a,0 -1px 0 #8a4b2a,2px 0 0 #8a4b2a,-2px 0 0 #8a4b2a,0 7px 0 #5b2f1b,0 12px 26px #000b}
+@keyframes kb-title-pop{0%{transform:scale(.35) rotate(-4deg);opacity:0}60%{opacity:1}100%{transform:none}}
+.reduced-motion .round-announcement{animation:none!important}
+/* Carrot rewards count up and bump. */
+.carrot-reward,.lesson-reward{font-weight:700}
+.count{display:inline-block;font-weight:800}
+.count.bump{animation:kb-bump .45s ease-out}
+@keyframes kb-bump{0%{transform:scale(1)}40%{transform:scale(1.45);color:#f4a24e}100%{transform:scale(1)}}
+.lesson-card .lesson-reward{display:block;margin:2px 0 8px;font:700 18px system-ui,sans-serif;color:#87502e}
+.lesson-card .lesson-reward span{font-weight:600;color:#6d5a44}
+/* Keyboard strip in fights when on-screen buttons are hidden (desktop). */
+.key-strip{display:none;position:absolute;left:50%;bottom:8px;transform:translateX(-50%);margin:0;padding:5px 14px;border-radius:999px;background:#1d1a14b3;color:#f6e3c1;font:600 14px system-ui,sans-serif;white-space:nowrap;pointer-events:none;letter-spacing:.01em}
+body.hide-screen-controls .key-strip{display:block}
+body.hide-screen-controls .result-shown .key-strip{display:none}
+@media (max-width:900px){.key-strip{font-size:14px;padding:4px 10px}}
+/* Belt progress on the main menu: what the next fights earn. */
+.belt-meter{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font:700 15px system-ui,sans-serif!important;color:#fff1d5;text-shadow:0 1px 3px #000c}
+.belt-meter i{display:inline-block;width:120px;height:12px;border-radius:7px;background:linear-gradient(90deg,var(--b) var(--p),#3a3226 var(--p));border:2px solid #f6dba2;box-shadow:0 1px 3px #0008}
+/* Backdrops behind menus (arenas, fighter, settings): soft and dim so painted bunnies never sit behind text. */
+/* (drawn soft and dim into the canvas once per screen; see main.mjs; a CSS filter here halved the fight frame rate) */
+.arena-select .stage:disabled{opacity:1!important;filter:grayscale(.75) brightness(.6)}
+.settings-screen .page{background:#1d1a14a6!important;border-radius:16px;padding:12px 18px!important}
+/* Empty health reads as a soft track, not a black slab. */
+.health-track{background:#4a4033!important}
+/* Light swatches get a dark check. */
+.swatch.selected[data-fur="White"]:after,.swatch.selected[data-fur="Cream"]:after{color:#3d372b;text-shadow:none}
+.result-shown .fight-header{visibility:hidden}
+/* Settings scrolls on short windows: a visible, styled scrollbar says there is more below. */
+.settings-screen{scrollbar-width:auto;scrollbar-color:#d8b77a #2a241b}
+.settings-screen::-webkit-scrollbar{width:12px}.settings-screen::-webkit-scrollbar-track{background:#2a241b}.settings-screen::-webkit-scrollbar-thumb{background:#d8b77a;border-radius:8px;border:3px solid #2a241b}
+.lesson-card .lesson-tip{margin:0 0 8px;font:600 14px system-ui,sans-serif;color:#6d5a44}

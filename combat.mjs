@@ -37,7 +37,7 @@ const f=m.fighters[1],p=m.fighters[0],d=clamp((m.stage-1)/19,0,1);m.ai.wait-=dt;
  const choice=random(m);if(choice<.25+d*.2){const special=['low','high','front','spin'][Math.floor(random(m)*4)];f.hold=true;f.selection=special;input(m,1,{type:'attackUp'});}else{input(m,1,{type:'attackDown'});input(m,1,{type:'attackUp'});}
  m.ai.wait=.35+(1-d)*.5+random(m)*.4;
 }
-export function step(m,dt,{ai=true}={}){dt=clamp(dt,0,.05);if(m.phase==='done'){for(const f of m.fighters)f.time+=dt;return;}m.clock+=dt;
+export function step(m,dt,{ai=true}={}){dt=clamp(dt,0,.05);if(m.phase==='done'){for(const f of m.fighters)f.time+=dt;const [a,b]=m.fighters,gap=b.x-a.x;if(Math.abs(gap)<230){const sign=gap>=0?1:-1,push=Math.min(120*dt,(230-Math.abs(gap))/2);a.x=clamp(a.x-push*sign,90,910);b.x=clamp(b.x+push*sign,90,910);}return;}m.clock+=dt;
  if(m.phase==='intro'){for(const f of m.fighters)f.time+=dt;m.intro=Math.max(0,m.intro-dt);if(m.intro===0){m.phase='fight';for(const f of m.fighters){f.animation=0;f.time=0;}pushEvent(m,'start');}return;}
  if(ai)updateAI(m,dt);if(!m.lesson)m.time=Math.max(0,m.time-dt);
  for(const f of m.fighters){f.time+=dt;f.invuln=Math.max(0,f.invuln-dt);f.stun=Math.max(0,f.stun-dt);if(f.hold)f.heldTime+=dt;
@@ -53,6 +53,6 @@ export function step(m,dt,{ai=true}={}){dt=clamp(dt,0,.05);if(m.phase==='done'){
  for(let i=0;i<2;i++){const f=m.fighters[i],o=m.fighters[1-i];if(!f.move&&!f.hold)f.facing=o.x>=f.x?1:-1;}
  // Collect contacts before resolving them so simultaneous clean hits can trade.
  const contacts=[];for(let i=0;i<2;i++){const f=m.fighters[i],o=m.fighters[1-i],mv=MOVES[f.move];if(mv&&!f.hit&&f.time>=mv.startup&&f.time<=mv.startup+mv.active&&o.invuln<=0&&o.z<10&&Math.abs(f.x-o.x)<=mv.reach&&(o.x-f.x)*f.facing>0){f.hit=true;contacts.push({i,mv});}}
- for(const {i,mv} of contacts){const f=m.fighters[i],o=m.fighters[1-i];if(o.guard&&o.facing===-f.facing){o.x=clamp(o.x+f.facing*12,90,910);pushEvent(m,'block',{fighter:1-i,x:o.x});}else{o.hp=Math.max(m.lesson?35:0,o.hp-mv.damage);o.x=clamp(o.x+f.facing*mv.push,90,910);o.move=null;o.hold=false;o.selection=null;o.guard=false;o.combo=0;o.invuln=.50;o.stun=.46;o.time=0;o.animation=mv.push>50?12:11;o.action='hit';if(mv.launch){o.vz=410;o.z=1;o.stun=.5;o.animation=13;}pushEvent(m,'hit',{fighter:1-i,x:o.x,damage:mv.damage,launch:!!mv.launch,move:f.move,chain:!!f.chained&&f.move==='spin'});}}
+ for(const {i,mv} of contacts){const f=m.fighters[i],o=m.fighters[1-i];if(o.guard&&o.facing===-f.facing){o.x=clamp(o.x+f.facing*12,90,910);pushEvent(m,'block',{fighter:1-i,x:o.x});}else{o.hp=Math.max(m.lesson&&!m.lesson.ko?35:0,o.hp-mv.damage);o.x=clamp(o.x+f.facing*mv.push,90,910);o.move=null;o.hold=false;o.selection=null;o.guard=false;o.combo=0;o.invuln=.50;o.stun=.46;o.time=0;o.animation=mv.push>50?12:11;o.action='hit';if(mv.launch){o.vz=410;o.z=1;o.stun=.5;o.animation=13;}pushEvent(m,'hit',{fighter:1-i,x:o.x,damage:mv.damage,launch:!!mv.launch,move:f.move,chain:!!f.chained&&f.move==='spin'});}}
  if(a.hp<=0||b.hp<=0||m.time<=0){m.phase='done';m.result=a.hp===b.hp?'draw':a.hp>b.hp?'player':'opponent';for(let i=0;i<2;i++){const f=m.fighters[i];f.move=null;f.hold=false;f.z=0;f.animation=m.result==='draw'?15:((m.result==='player')===(i===0)?16:17);f.time=0;}pushEvent(m,'finish',{result:m.result});}
 }
