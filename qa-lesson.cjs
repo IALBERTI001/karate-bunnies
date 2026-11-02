@@ -10,7 +10,7 @@ globalThis.__close=()=>{const [a,b]=match.fighters;a.x=440;b.x=550;};`;
 (async()=>{const b=await chromium.launch({headless:true,...(process.env.KB_BROWSER_CHANNEL?{channel:process.env.KB_BROWSER_CHANNEL}:{}),args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const errors=[],done=[];
  const open=async(url,opts={width:1100,height:820})=>{const ctx=await b.newContext({viewport:{width:opts.width,height:opts.height},hasTouch:!!opts.touch,isMobile:!!opts.touch});const p=await ctx.newPage();p.on('pageerror',e=>errors.push(e.message));
-  await p.route('**/main.mjs',async r=>{const f=await r.fetch();await r.fulfill({response:f,body:(await f.text())+hooks});});
+  await p.route('**/main.mjs*',async r=>{const f=await r.fetch();await r.fulfill({response:f,body:(await f.text())+hooks});});
   // Buttons shown: software rendering in the test browser is too slow for timed taps on the larger hidden-buttons arena (qa-buttons.cjs covers that mode).
   await p.addInitScript(()=>{try{if(!localStorage.getItem('kb-settings-v1'))localStorage.setItem('kb-settings-v1',JSON.stringify({music:.25,effects:.5,reduced:false,shake:true,large:false,buttons:'show'}));}catch{}});await p.goto(url);return p;};
  const train=async p=>{await p.locator('#start-training').click();await p.waitForFunction(()=>__m().phase==='fight'&&__m().step===0,null,{timeout:30000});};
@@ -50,7 +50,7 @@ globalThis.__close=()=>{const [a,b]=match.fighters;a.x=440;b.x=550;};`;
  assert.equal(m.view,'home');assert.equal(m.carrots,3,'training pays a one-time 3 carrots');assert.equal(m.cleared,0,'training is not a campaign win');done.push('first launch → training → main menu');
  // Later launches start at the main menu; stage 1 has no lesson.
  await p.reload();await p.locator('#fight').waitFor();assert.equal(await p.locator('#start-training').count(),0,'second launch starts at the menu');
- await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();if(await p.locator('#confirm-fighter').count())await p.locator('#confirm-fighter').click();await p.locator('#begin').click();
+ await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();if(await p.locator('#confirm-fighter').count())if(await p.locator('#confirm-fighter').count())await p.locator('#confirm-fighter').click();await p.locator('#begin').click();
  if(await p.locator('#story-skip').count())await p.locator('#story-skip').click();await p.waitForFunction(()=>__m().phase==='fight',null,{timeout:30000});await p.waitForTimeout(600);
  assert.equal(await p.locator('.lesson-card').count(),0,'no lesson in stage 1');done.push('runs once');
  // Replay training from Settings.

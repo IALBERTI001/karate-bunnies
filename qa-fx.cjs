@@ -9,11 +9,11 @@ globalThis.__close=(hp)=>{const [a,b]=match.fighters;a.x=440;b.x=530;a.facing=1;
 (async()=>{const b=await chromium.launch({headless:true,...(process.env.KB_BROWSER_CHANNEL?{channel:process.env.KB_BROWSER_CHANNEL}:{}),args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const errors=[],done=[];
  const open=async(url,vw=1100,vh=820,reduced=false)=>{const p=await b.newPage({viewport:{width:vw,height:vh}});p.setDefaultTimeout(90000);p.setDefaultNavigationTimeout(90000);await p.addInitScript(()=>{try{if(!localStorage.getItem('kb-lesson-v1'))localStorage.setItem('kb-lesson-v1','true');}catch{}});p.on('pageerror',e=>errors.push(e.message));
-  await p.route('**/main.mjs',async r=>{const f=await r.fetch();await r.fulfill({response:f,body:(await f.text())+hooks});});
+  await p.route('**/main.mjs*',async r=>{const f=await r.fetch();await r.fulfill({response:f,body:(await f.text())+hooks});});
   // Buttons shown: software rendering here is too slow for timed hits on the larger hidden-buttons arena.
   await p.addInitScript(()=>{try{if(!localStorage.getItem('kb-settings-v1'))localStorage.setItem('kb-settings-v1',JSON.stringify({music:.25,effects:.5,reduced:false,shake:true,large:false,buttons:'show'}));}catch{}});
   await p.goto(url);if(reduced){await p.evaluate(()=>localStorage.setItem('kb-settings-v1',JSON.stringify({music:.3,effects:.5,reduced:true,shake:false,large:false})));await p.reload();}
-  await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();if(await p.locator('#confirm-fighter').count())await p.locator('#confirm-fighter').click();await p.locator('#begin').click();
+  await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();if(await p.locator('#confirm-fighter').count())if(await p.locator('#confirm-fighter').count())await p.locator('#confirm-fighter').click();await p.locator('#begin').click();
   if(await p.locator('#story-skip').count())await p.locator('#story-skip').click();await p.waitForFunction(()=>__fx().phase==='fight',null,{timeout:20000});return p;};
  const land=async(p,dir,want,shot,hp)=>{for(let t=0;t<8;t++){await p.evaluate(h=>__close(h),hp);
    if(dir){await p.keyboard.down('j');await p.keyboard.down(dir);await p.waitForTimeout(40);await p.keyboard.up('j');await p.keyboard.up(dir);}

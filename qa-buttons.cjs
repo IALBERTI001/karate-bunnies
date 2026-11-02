@@ -7,8 +7,8 @@ const hooks=`\nglobalThis.__win=()=>{match.phase='done';match.result='player';ma
 (async()=>{const b=await chromium.launch({headless:true,...(process.env.KB_BROWSER_CHANNEL?{channel:process.env.KB_BROWSER_CHANNEL}:{}),args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const errors=[],done=[];
  const open=async(url,o={width:1280,height:800})=>{const p=await b.newPage({viewport:{width:o.width,height:o.height},hasTouch:!!o.touch,isMobile:!!o.touch});p.setDefaultTimeout(90000);p.setDefaultNavigationTimeout(90000);await p.addInitScript(()=>{try{if(!localStorage.getItem('kb-lesson-v1'))localStorage.setItem('kb-lesson-v1','true');}catch{}});p.on('pageerror',e=>errors.push(e.message));
-  await p.route('**/main.mjs',async r=>{const f=await r.fetch();await r.fulfill({response:f,body:(await f.text())+hooks});});await p.goto(url);return p;};
- const begin=async p=>{await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();if(await p.locator('#confirm-fighter').count())await p.locator('#confirm-fighter').click();await p.locator('#begin').click();};
+  await p.route('**/main.mjs*',async r=>{const f=await r.fetch();await r.fulfill({response:f,body:(await f.text())+hooks});});await p.goto(url);return p;};
+ const begin=async p=>{await p.locator('#fight').click();await p.locator('[data-stage="1"]').click();if(await p.locator('#confirm-fighter').count())if(await p.locator('#confirm-fighter').count())await p.locator('#confirm-fighter').click();await p.locator('#begin').click();};
  const shown=p=>p.locator('#attack').isVisible();
  // 1. PC, Auto: story band shows, buttons hidden during the fight, result buttons shown.
  let p=await open(BASE+'/');await begin(p);await p.locator('.story-bubble').waitFor();
