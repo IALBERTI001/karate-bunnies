@@ -1,0 +1,171 @@
+{
+ "atlases": [
+  {
+   "file": "bunny3d-moves.png",
+   "columns": 5,
+   "rows": 5,
+   "passes": true
+  },
+  {
+   "file": "bunny3d-kicks.png",
+   "columns": 5,
+   "rows": 5,
+   "passes": true
+  },
+  {
+   "file": "bunny3d-reactions.png",
+   "columns": 6,
+   "rows": 5,
+   "passes": true
+  },
+  {
+   "file": "bunny3d-turnaround.png",
+   "columns": 4,
+   "rows": 2,
+   "turnaround": true,
+   "passes": true
+  }
+ ],
+ "animations": [
+  {
+   "name": "Idle",
+   "fps": 5,
+   "loop": true,
+   "atlas": 0,
+   "startFrame": 1
+  },
+  {
+   "name": "Walk forward",
+   "fps": 8,
+   "loop": true,
+   "atlas": 0,
+   "startFrame": 5
+  },
+  {
+   "name": "Walk backward",
+   "fps": 8,
+   "loop": true,
+   "atlas": 0,
+   "startFrame": 9
+  },
+  {
+   "name": "Guard",
+   "fps": 7,
+   "loop": true,
+   "atlas": 0,
+   "startFrame": 13
+  },
+  {
+   "name": "Punch one",
+   "fps": 10,
+   "loop": false,
+   "atlas": 0,
+   "startFrame": 17
+  },
+  {
+   "name": "Punch two",
+   "fps": 10,
+   "loop": false,
+   "atlas": 0,
+   "startFrame": 21
+  },
+  {
+   "name": "Combo kick",
+   "fps": 9,
+   "loop": false,
+   "atlas": 1,
+   "startFrame": 1
+  },
+  {
+   "name": "Spinning kick",
+   "fps": 9,
+   "loop": false,
+   "atlas": 1,
+   "startFrame": 5
+  },
+  {
+   "name": "Low kick",
+   "fps": 9,
+   "loop": false,
+   "atlas": 1,
+   "startFrame": 9
+  },
+  {
+   "name": "High head kick",
+   "fps": 9,
+   "loop": false,
+   "atlas": 1,
+   "startFrame": 13
+  },
+  {
+   "name": "Front chest kick",
+   "fps": 9,
+   "loop": false,
+   "atlas": 1,
+   "startFrame": 17
+  },
+  {
+   "name": "Hit reaction",
+   "fps": 9,
+   "loop": false,
+   "atlas": 2,
+   "startFrame": 1
+  },
+  {
+   "name": "Knockback",
+   "fps": 8,
+   "loop": false,
+   "atlas": 2,
+   "startFrame": 5
+  },
+  {
+   "name": "Airborne launch",
+   "fps": 7,
+   "loop": false,
+   "atlas": 2,
+   "startFrame": 9
+  },
+  {
+   "name": "Landing",
+   "fps": 8,
+   "loop": false,
+   "atlas": 2,
+   "startFrame": 13
+  },
+  {
+   "name": "Bow",
+   "fps": 6,
+   "loop": false,
+   "atlas": 2,
+   "startFrame": 17
+  },
+  {
+   "name": "Victory",
+   "fps": 6,
+   "loop": false,
+   "atlas": 2,
+   "startFrame": 21
+  },
+  {
+   "name": "Defeat recovery",
+   "fps": 6,
+   "loop": false,
+   "atlas": 2,
+   "startFrame": 25
+  },
+  {
+   "name": "Turnaround right",
+   "fps": 1,
+   "loop": true,
+   "atlas": 3,
+   "startFrame": 0
+  },
+  {
+   "name": "Turnaround left",
+   "fps": 1,
+   "loop": true,
+   "atlas": 3,
+   "startFrame": 4
+  }
+ ]
+}

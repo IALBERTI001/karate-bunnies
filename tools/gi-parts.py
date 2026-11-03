@@ -4,7 +4,8 @@
 #   blue  = trousers (shop turnaround only; the small fight sprites have no clean hem lines): cloth pieces below the belt that the ink lines separate from the jacket (the jacket skirt stays jacket)
 # Paws held in front of the jacket and the tail get no trim. Also writes assets/gi-anchors.json: the belt centre of
 # every atlas cell, so prints and gradients stay put on the body from pose to pose.
-# Usage: python3 tools/gi-parts.py [--debug outdir]   (numpy, scipy, Pillow)
+# Usage: python3 tools/gi-parts.py [--set 3d] [--debug outdir]   (numpy, scipy, Pillow)
+# Atlases with "passes" (the Blender puppet) carry exact headband and trouser masks in parts-pass<set>-<n>.png.
 import json, sys, numpy as np
 from pathlib import Path
 from PIL import Image
@@ -12,8 +13,9 @@ from scipy import ndimage as nd
 root = Path(__file__).resolve().parent.parent / 'assets'
 ss = lambda a, b, x: (lambda t: t * t * (3 - 2 * t))(np.clip((x - a) / (b - a), 0, 1))
 debug = sys.argv[sys.argv.index('--debug') + 1] if '--debug' in sys.argv else None
+SET = '-' + sys.argv[sys.argv.index('--set') + 1] if '--set' in sys.argv else ''
 anchors = []
-for i, atlas in enumerate(json.loads((root / 'animations.json').read_text())['atlases']):
+for i, atlas in enumerate(json.loads((root / f'animations{SET}.json').read_text())['atlases']):
     c = np.asarray(Image.open(root / atlas['file']).convert('RGBA'), dtype=np.float32) / 255
     r, g, b, a = c[..., 0], c[..., 1], c[..., 2], c[..., 3]
     hi, lo = c[..., :3].max(-1), c[..., :3].min(-1)
@@ -24,11 +26,11 @@ for i, atlas in enumerate(json.loads((root / 'animations.json').read_text())['at
     pink = (r - g > .12) & (r - b > .08)
     fur = (a > .5) & ~gi & (hi > .55) & ((sat < .45) | pink)
     fur = nd.binary_opening(fur, iterations=1)
-    belt = np.asarray(Image.open(root / f'belt-mask-{i}.png').convert('L')) > 127
+    belt = np.asarray(Image.open(root / f'belt-mask{SET}-{i}.png').convert('L')) > 127
     # Trim: a band of cloth along the fur edge. Paws held in front of the jacket also border cloth; keep only edges
     # where the fur continues past the cloth outline (neck, wrist, ankle), approximated by fur blobs of limb size.
     # Paws held in front of the jacket and the tail are fur islands mostly ringed by cloth: no trim around those.
-    core, nl = nd.label(nd.binary_erosion(fur, iterations=4 if atlas.get('turnaround') else 1))
+    core, nl = nd.label(nd.binary_erosion(fur, iterations=4 if atlas.get('turnaround') or atlas.get('passes') else 1))
     _, (iy, ix) = nd.distance_transform_edt(core == 0, return_indices=True)
     lab = np.where(fur, core[iy, ix], 0)
     ring = nd.binary_dilation(fur, iterations=2) & ~fur
@@ -60,7 +62,10 @@ for i, atlas in enumerate(json.loads((root / 'animations.json').read_text())['at
     # Atlases without a face in every view (the shop turnaround) mark their headband here, in the green channel:
     # cloth pieces that do not touch the belt and sit above the collar.
     band = np.zeros(gi.shape, bool)
-    if atlas.get('turnaround'):
+    passes = np.asarray(Image.open(root / f'parts-pass{SET}-{i}.png').convert('RGB'), dtype=np.float32) / 255 if atlas.get('passes') else None
+    if passes is not None:
+        band = passes[..., 1] > .5
+    elif atlas.get('turnaround'):
         for k in range(cols * rows):
             y0, x0 = int(k // cols * cell), int(k % cols * cw); ys_, xs_ = slice(y0, int(y0 + cell)), slice(x0, int(x0 + cw))
             g_, b_ = (green[ys_, xs_] > .97) & ~belt[ys_, xs_], nd.binary_dilation(belt[ys_, xs_], iterations=4)
@@ -74,10 +79,11 @@ for i, atlas in enumerate(json.loads((root / 'animations.json').read_text())['at
                 fy = np.nonzero(lab_ == f)[0]
                 if fy.mean() < collar: band[ys_, xs_] |= lab_ == f
         band = nd.binary_dilation(band, iterations=3) & (green > .2)
+    if passes is not None: band = nd.binary_dilation(band, iterations=1) & (green > .2)
     # Trousers: with the ink lines as walls, cloth pieces that touch the belt are the jacket (its skirt hangs below the
     # knot); separate pieces whose middle is below the knot are trouser legs.
     legs = np.zeros(gi.shape, bool)
-    for k in range(cols * rows if atlas.get('turnaround') else 0):
+    for k in range(cols * rows if atlas.get('turnaround') and passes is None else 0):
         if cells[k] is None: continue
         y0, x0 = int(k // cols * cell), int(k % cols * cw); ys_, xs_ = slice(y0, int(y0 + cell)), slice(x0, int(x0 + cw))
         solid = (green[ys_, xs_] > .9) & (g[ys_, xs_] > .42) & ~belt[ys_, xs_] & ~band[ys_, xs_]
@@ -93,14 +99,15 @@ for i, atlas in enumerate(json.loads((root / 'animations.json').read_text())['at
     jacket = gi & ~nd.binary_dilation(legs, iterations=3)
     legs_soft = nd.binary_dilation(legs, iterations=3) & (green > .2) & ~(jacket & ~gi)
     lower = np.clip(nd.gaussian_filter(legs_soft.astype(np.float32), .8), 0, 1) * (green > .2)
+    if passes is not None: lower = np.clip(nd.gaussian_filter(passes[..., 2], .6), 0, 1) * (green > .2)
     out = np.zeros(c.shape[:2] + (3,), np.uint8)
     out[..., 2] = np.round(lower * 255)
     out[..., 1] = np.round(band * green * 255)
     out[..., 0] = np.round(trim * 255); 
-    Image.fromarray(out).save(root / f'gi-parts-{i}.png', optimize=True)
-    print(f'gi-parts-{i}.png trim', int((trim > .5).sum()))
+    Image.fromarray(out).save(root / f'gi-parts{SET}-{i}.png', optimize=True)
+    print(f'gi-parts{SET}-{i}.png trim', int((trim > .5).sum()))
     if debug:
         vis = (c[..., :3] * 255).astype(np.uint8).copy(); vis[a < .3] = 200
         vis[trim > .5] = [230, 60, 60]; vis[band & (trim <= .5)] = [60, 80, 220]; vis[(lower > .5) & (trim <= .5)] = [40, 170, 230]
         Image.fromarray(vis).save(f'{debug}/parts-{i}.png')
-(root / 'gi-anchors.json').write_text(json.dumps(anchors, separators=(',', ':')))
+(root / f'gi-anchors{SET}.json').write_text(json.dumps(anchors, separators=(',', ':')))
