@@ -6,6 +6,10 @@ import bpy, bmesh, math
 from mathutils import Vector, Matrix, Quaternion
 import kbpuppet  # materials and colour helpers
 
+LEG = .25  # extra leg length: real kicks need legs that reach past the round body
+def warp(v):
+    v = Vector(v); t = min(max((v.z - .15) / (.92 - .15), 0.0), 1.0); return Vector((v.x, v.y, v.z + LEG * t))
+
 def ss(a, b, x):
     t = min(max((x - a) / (b - a), 0.0), 1.0); return t * t * (3 - 2 * t)
 
@@ -32,10 +36,10 @@ def bone_table():
     for s, L in ((1, 'L'), (-1, 'R')):
         T[f'ear_a.{L}'] = ((s * .34, .04, 2.82), (s * .43, .04, 3.45), 'head', True, False)
         T[f'ear_b.{L}'] = ((s * .43, .04, 3.45), (s * .5, .04, 4.15), f'ear_a.{L}', True, True)
-        T[f'upper_arm.{L}'] = ((s * .6, 0, 1.58), (s * .86, .08, 1.18), 'chest', True, False)
-        T[f'forearm.{L}'] = ((s * .86, .08, 1.18), (s * .98, -.02, .8), f'upper_arm.{L}', True, True)
-        T[f'hand_ik.{L}'] = ((s * .98, -.02, .8), (s * .98, -.22, .8), 'root', False, False)
-        T[f'hand.{L}'] = ((s * .98, -.02, .8), (s * .98, -.22, .8), f'hand_ik.{L}', True, False)
+        T[f'upper_arm.{L}'] = ((s * .52, 0, 1.58), (s * .86, .08, 1.0), 'chest', True, False)
+        T[f'forearm.{L}'] = ((s * .86, .08, 1.0), (s * .96, -.04, .42), f'upper_arm.{L}', True, True)
+        T[f'hand_ik.{L}'] = ((s * .96, -.04, .42), (s * .96, -.24, .42), 'root', False, False)
+        T[f'hand.{L}'] = ((s * .96, -.04, .42), (s * .96, -.24, .42), f'hand_ik.{L}', True, False)
         T[f'thigh.{L}'] = ((s * .3, 0, .92), (s * .32, -.07, .53), 'pelvis', True, False)
         T[f'shin.{L}'] = ((s * .32, -.07, .53), (s * .34, 0, .15), f'thigh.{L}', True, True)
         T[f'foot_ik.{L}'] = ((s * .34, 0, .15), (s * .34, -.4, .15), 'root', False, False)
@@ -50,7 +54,7 @@ def build_armature(scene):
     bpy.context.view_layer.objects.active = rig; bpy.ops.object.mode_set(mode='EDIT')
     T = bone_table()
     for n, (h, t, par, deform, conn) in T.items():
-        eb = arm.edit_bones.new(n); eb.head, eb.tail = h, t; eb.use_deform = deform
+        eb = arm.edit_bones.new(n); eb.head, eb.tail = warp(h), warp(t); eb.use_deform = deform
     for n, (h, t, par, deform, conn) in T.items():
         eb = arm.edit_bones[n]
         if par: eb.parent = arm.edit_bones[par]; eb.use_connect = conn
@@ -117,6 +121,7 @@ class Parts:
     def __init__(self, rig, decals):
         self.rig, self.decals, self.objs, self.groups = rig, decals, [], {}
     def add(self, name, bm, mat, weights, mask='none', decal=False, smooth=True, subsurf=0, bevel=0):
+        for v in bm.verts: v.co = warp(v.co)
         me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
         ob = bpy.data.objects.new(name, me); (self.decals if decal else bpy.context.scene.collection).objects.link(ob)
         me.materials.append(mat); ob['mask'] = mask; ob.parent = self.rig
@@ -168,19 +173,19 @@ def build_body(rig, decals):
         P.add(f'ear.{L}', ellipsoid(mid, (.31, .13, (e2 - e0).length / 2 + .06), R), FUR, earw)
         P.add(f'inner.{L}', ellipsoid(mid + Vector((0, -.09, -.02)), (.2, .06, (e2 - e0).length / 2 - .06), R), m['PINK'], earw, decal=True)
     # torso: tapered jacket, round shoulders, skirt over the trousers, fur V and lapels
-    P.add('jacket', cone((0, 0, 1.36), .72, .55, .72, .75), GI, torso, subsurf=2)
-    P.add('shoulders', ellipsoid((0, 0, 1.64), (.68, .46, .2)), GI, rigid('chest'))
-    P.add('skirt', cone((0, 0, .9), .78, .7, .3, .78), GI, rigid('pelvis'), subsurf=2)
+    P.add('jacket', cone((0, 0, 1.36), .64, .5, .72, .76), GI, torso, subsurf=2)
+    P.add('shoulders', ellipsoid((0, 0, 1.64), (.6, .42, .2)), GI, rigid('chest'))
+    P.add('skirt', cone((0, 0, .95), .7, .63, .26, .78), GI, rigid('pelvis'), subsurf=2)
     bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=True, segments=3, radius1=.24, radius2=0, depth=.05)
-    _xf(bm, Matrix.Translation((0, -.42, 1.6)) @ Matrix.Rotation(math.radians(90), 4, 'X') @ Matrix.Rotation(math.radians(180), 4, 'Z') @ Matrix.Diagonal((1, 1.3, 1, 1)))
+    _xf(bm, Matrix.Translation((0, -.38, 1.6)) @ Matrix.Rotation(math.radians(90), 4, 'X') @ Matrix.Rotation(math.radians(180), 4, 'Z') @ Matrix.Diagonal((1, 1.3, 1, 1)))
     P.add('chestV', bm, FUR, rigid('chest'), smooth=False)
     for s in (1, -1):
-        P.add(f'lapel{s}', box((s * .3, -.43, 1.7), (-s * .03, -.56, 1.06), .1, .05), GI, torso, smooth=False, bevel=.02)
+        P.add(f'lapel{s}', box((s * .27, -.39, 1.7), (-s * .03, -.51, 1.06), .1, .05), GI, torso, smooth=False, bevel=.02)
     # belt, knot and hanging ends
-    P.add('belt', ring((0, 0, 1.06), .73, .57, 1.3, .085), m['BELT'], rigid('pelvis'), 'belt')
-    P.add('knot', ellipsoid((0, -.58, 1.06), (.12, .08, .1)), m['BELT'], rigid('pelvis'), 'belt')
+    P.add('belt', ring((0, 0, 1.06), .66, .52, 1.3, .085), m['BELT'], rigid('pelvis'), 'belt')
+    P.add('knot', ellipsoid((0, -.53, 1.06), (.12, .08, .1)), m['BELT'], rigid('pelvis'), 'belt')
     for s in (1, -1):
-        P.add(f'beltend{s}', box((s * .04, -.6, 1.01), (s * .14, -.64, .67), .11, .045), m['BELT'], rigid('pelvis'), 'belt', smooth=False, bevel=.015)
+        P.add(f'beltend{s}', box((s * .04, -.55, 1.01), (s * .14, -.59, .72), .11, .045), m['BELT'], rigid('pelvis'), 'belt', smooth=False, bevel=.015)
     P.add('tail', ellipsoid((0, .58, 1.0), (.28, .25, .28)), FUR, rigid('tail'))
     # head
     P.add('head', ellipsoid(HEAD_C, HEAD_S, segs=48), FUR, rigid('head'))
