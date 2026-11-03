@@ -25,66 +25,67 @@ RES = int(argv[2]) if len(argv) > 2 else 512
 # Hands are offsets from the chest bone's head and feet are positions on the ground, both in body space (they turn
 # with a spin, not with the hips); `root` steps the whole fighter.
 GROUND = .15
+# Poses below are read from side-on reference sheets of a real karate athlete (design/karate-refs, generated with
+# ChatGPT on Nov 3 2026): long low stance, upright torso turned ~55 degrees toward the camera; punches keep the head
+# at one height and the torso upright while the stance lengthens; kick chambers stand tall on a straight supporting
+# leg; kick impacts lean the trunk back just enough to balance the leg (about 30 degrees for a head kick).
 def stance(**kw):
-    p = dict(root=(0, 0, 0), spin=0, pelvis=(0, 0, -.3), pelvisRot=(4, 0, -58), spine=(4, 0, -4), chest=(0, 0, -8), head=(4, 0, 14),
-             footL=(.12, -.7, GROUND), footR=(-.16, .7, GROUND), footLRot=(0, 0, -8), footRRot=(0, 0, -60),
-             handL=(.1, -.62, .22), handR=(-.12, -.32, .24), eyes='open', mouth='smile', ears=0, ties=0, yaw=90)
+    p = dict(root=(0, 0, 0), spin=0, pelvis=(0, 0, -.28), pelvisRot=(0, 0, -55), spine=(2, 0, 0), chest=(0, 0, -5), head=(0, 0, 10),
+             footL=(.1, -.82, GROUND), footR=(-.15, .78, GROUND), footLRot=(0, 0, -5), footRRot=(0, 0, -60),
+             handL=(.14, -.72, .18), handR=(-.08, -.28, .28), eyes='open', mouth='smile', ears=0, ties=0, yaw=90)
     p.update(kw); return p
 FOCUS = dict(eyes='focus')
 MOVES = {}
-# Combo 1 - jab (kizami-zuki): the lead foot slides in, the lead hip and shoulder push forward (turning even more
-# side-on), the lead fist drives straight to chin height; the head stays level; slide back to stance.
-MOVES['punch1'] = [stance(**FOCUS, pelvis=(0, 0, -.26), handL=(.12, -.5, .2)),
-                   stance(**FOCUS, root=(0, -.28, 0), footL=(.12, -.8, GROUND), pelvisRot=(6, 0, -72), chest=(2, 0, -14), head=(4, 0, 32),
-                          handL=(.12, -1.55, .3), handR=(-.12, -.3, .26), mouth='open', ties=-8),
-                   stance(**FOCUS, root=(0, -.3, 0), footL=(.12, -.8, GROUND), pelvisRot=(6, 0, -74), chest=(2, 0, -14), head=(4, 0, 32),
-                          handL=(.12, -1.52, .3), handR=(-.12, -.3, .26), ties=-4),
-                   stance(root=(0, -.1, 0))]
-# Combo 2 - reverse punch (gyaku-zuki): from side-on, the rear heel drives and the back leg straightens, the hips
-# turn square to the target, the shoulders follow, the rear fist drives straight out as the lead fist pulls back
-# to the hip (hikite); the front knee bends over the foot; head level; kiai.
-MOVES['punch2'] = [stance(**FOCUS, handR=(-.22, -.05, -.28), handL=(.1, -.66, .22)),
-                   stance(**FOCUS, root=(0, -.15, 0), pelvis=(0, 0, -.34), pelvisRot=(8, 0, -32), spine=(6, 0, 2), chest=(2, 0, 4), head=(2, 0, 4),
-                          footL=(.12, -.85, GROUND), footR=(-.16, .9, GROUND), footRRot=(0, 0, -25),
-                          handR=(-.02, -1.25, .24), handL=(.24, .02, -.26), mouth='shout', ties=-12),
-                   stance(**FOCUS, root=(0, -.15, 0), pelvis=(0, 0, -.34), pelvisRot=(8, 0, -33), spine=(6, 0, 2), chest=(2, 0, 4), head=(2, 0, 4),
-                          footL=(.12, -.85, GROUND), footR=(-.16, .9, GROUND), footRRot=(0, 0, -25),
-                          handR=(-.02, -1.22, .24), handL=(.24, .02, -.26), mouth='open', ties=-7),
+# Combo 1 - jab (kizami-zuki): the front foot slides on and the stance lengthens, the lead hip and shoulder drive,
+# the body turns more side-on, the lead arm extends level at chin height, rear fist at the chin, head level.
+MOVES['punch1'] = [stance(**FOCUS, pelvis=(0, 0, -.3)),
+                   stance(**FOCUS, root=(0, -.18, 0), footL=(.1, -1.02, GROUND), pelvis=(0, 0, -.33), pelvisRot=(0, 0, -66), chest=(0, 0, -9),
+                          handL=(.12, -1.0, .24), ties=-6),
+                   stance(**FOCUS, root=(0, -.24, 0), footL=(.1, -1.08, GROUND), pelvis=(0, 0, -.34), pelvisRot=(0, 0, -72), chest=(0, 0, -12),
+                          handL=(.1, -1.6, .3), mouth='open', ties=-10),
+                   stance(root=(0, -.08, 0))]
+# Combo 2 - reverse punch (gyaku-zuki): rear fist to the hip; then the rear heel drives, the back leg straightens and
+# the stance lengthens and lowers, the hips turn toward square while the torso stays upright, the rear arm drives out
+# level at shoulder height and the lead fist pulls back to the hip; head level.
+MOVES['punch2'] = [stance(**FOCUS, handR=(-.2, -.05, -.3), handL=(.12, -.78, .18)),
+                   stance(**FOCUS, root=(0, -.1, 0), pelvis=(0, 0, -.36), pelvisRot=(0, 0, -38), chest=(0, 0, 0), footL=(.1, -.98, GROUND),
+                          footR=(-.15, .98, GROUND), footRRot=(0, 0, -35), handR=(-.05, -.85, .2), handL=(.24, -.1, -.22), ties=-6),
+                   stance(**FOCUS, root=(0, -.14, 0), pelvis=(0, 0, -.38), pelvisRot=(0, 0, -30), chest=(0, 0, 4), footL=(.1, -1.02, GROUND),
+                          footR=(-.15, 1.02, GROUND), footRRot=(0, 0, -30), handR=(-.02, -1.6, .3), handL=(.26, .05, -.28), mouth='shout', ties=-12),
                    stance(root=(0, -.05, 0))]
-# Combo 3 - roundhouse (mawashi-geri) with the rear leg, flowing on from the reverse punch: the front (supporting)
-# foot pivots out until its heel points at the target, the rear knee chambers high and comes across, the hip turns
-# over, the trunk leans away to balance the leg, the kicking-side arm swings back, the other guards the face; the
-# shin snaps out flat, instep first; re-chamber and set down.
-def rear_kick(chamber, target, foot_aim, lean, roll=0, hips_turn=60, pivot=100, low=False, step=0, arms_back=True):
-    sup = dict(footL=(.1, -.6, GROUND), footLRot=(0, 0, pivot), pelvis=(0, 0, -.42 if low else -.12))
-    back = dict(handR=(-.35, .3, -.05), handL=(.12, -.45, .3)) if arms_back else {}
-    return [stance(**FOCUS, **sup, footR=chamber, footRRot=foot_aim, pelvisRot=(lean * .4, roll * .4, hips_turn * .4 - 30), spine=(lean * .3, 0, 0), chest=(0, 0, -hips_turn * .3),
-                   handR=(-.2, -.1, .1)),
-            stance(**FOCUS, **sup, root=(0, -step, 0), footR=target, footRRot=foot_aim, pelvisRot=(lean, roll, hips_turn - 30), spine=(lean * .5, roll * .5, 0),
-                   chest=(0, 0, -hips_turn * .55), head=(0, 0, 10), mouth='shout', ties=-16, **back),
-            stance(**FOCUS, **sup, root=(0, -step, 0), footR=(target[0], target[1] + .05, target[2] - .05), footRRot=foot_aim, pelvisRot=(lean * .95, roll, hips_turn - 30),
-                   spine=(lean * .5, roll * .5, 0), chest=(0, 0, -hips_turn * .55), head=(0, 0, 10), mouth='open', ties=-10, **back),
-            stance(root=(0, -step * .6, 0))]
-MOVES['combo_kick'] = rear_kick((-.15, -.3, 1.0), (-.02, -1.35, 1.2), 'point', -24, roll=14, hips_turn=75, pivot=120, step=.15)
-# Combo 4 / back - spinning back kick (ushiro-geri): turn on the front foot until the back faces the target, knee to
-# the chest, trunk hunched forward; drive the heel straight back at the target, the hips pushing back behind it;
-# land while the back still faces it, then turn back into stance. Frame 1 is the back view the game uses.
-MOVES['spin_kick'] = [stance(**FOCUS, spin=95, pelvisRot=(14, 0, 0), spine=(14, 0, 0), chest=(0, 0, 0), head=(0, 0, -35),
-                             footL=(.0, -.2, GROUND), footR=(-.25, -.15, .7), footRRot='point', handL=(.15, -.35, .2), handR=(-.15, -.35, .2), ties=-14),
-                      stance(**FOCUS, spin=180, root=(0, -.25, 0), pelvisRot=(30, 0, -50), spine=(22, 0, -10), chest=(0, 0, -10), head=(-10, 0, 30),
-                             footL=(.08, -.3, GROUND), footR=(-.05, 1.2, 1.05), footRRot='sole', handL=(.2, -.35, .1), handR=(-.2, -.35, .1), mouth='shout', ties=-20),
-                      stance(**FOCUS, spin=180, root=(0, -.25, 0), pelvisRot=(28, 0, -50), spine=(20, 0, -10), chest=(0, 0, -10), head=(-10, 0, 30),
-                             footL=(.08, -.3, GROUND), footR=(-.05, 1.17, 1.0), footRRot='sole', handL=(.2, -.35, .1), handR=(-.2, -.35, .1), mouth='open', ties=-12),
-                      stance(root=(0, -.15, 0))]
-# W - high kick with the rear leg: knee chambers high, then the straight leg rises past the head as the trunk leans
-# back to balance it (the lower the trunk, the higher the leg) and the hips push forward; arms keep guard.
-MOVES['high_kick'] = rear_kick((-.12, -.4, 1.35), (-.06, -.85, 2.5), 'sole', -36, hips_turn=20, pivot=40, step=.1, arms_back=False)
-# S - low kick: sink on the bent supporting leg, the front foot pivots, the hip turns over and the rear shin
-# sweeps low at the opponent's legs; the trunk stays upright.
-MOVES['low_kick'] = rear_kick((-.15, -.25, .45), (-.02, -1.35, .3), 'point', -6, hips_turn=55, pivot=110, low=True, step=.1)
-# Forward - front push kick (mae-geri) with the rear leg: knee up to the chest, toes pulled back, then the hips thrust
-# forward behind the ball of the foot at chest height, upper body upright; retract to the chamber and set down.
-MOVES['front_kick'] = rear_kick((-.12, -.3, 1.1), (-.05, -1.3, 1.35), 'sole', -12, hips_turn=15, pivot=30, step=.2, arms_back=False)
+def chamber_pose(foot, pivot, **kw):  # stand tall on the front leg, rear knee up, supporting foot pivoting
+    return stance(**FOCUS, pelvis=(0, 0, -.02), pelvisRot=(-3, 0, -35), spine=(-3, 0, 0), chest=(0, 0, -12),
+                  footL=(.06, -.62, GROUND), footLRot=(0, 0, pivot), footR=foot, **kw)
+def kick(chamber, chamber_aim, target, aim, lean, pivot, hips=10, chest=-35, support_bend=0, arm_back=True, step=.1):
+    sup = dict(footL=(.06, -.62, GROUND), footLRot=(0, 0, pivot), pelvis=(0, 0, -.02 - support_bend))
+    arms = dict(handR=(-.32, .38, -.18), handL=(.1, -.42, .34)) if arm_back else dict(handL=(.14, -.55, .26), handR=(-.1, -.3, .3))
+    hit = lambda d, m: stance(**FOCUS, **sup, root=(0, -step, 0), footR=(target[0], target[1] + d, target[2] - d), footRRot=aim,
+                             pelvisRot=(lean, 0, hips), spine=(lean * .25, 0, 0), chest=(0, 0, chest), head=(0, 0, 12), mouth=m, ties=-16, **arms)
+    return [chamber_pose(chamber, pivot * .6, footRRot=chamber_aim, handL=(.14, -.55, .26), handR=(-.1, -.3, .3)),
+            hit(0, 'shout'), hit(.05, 'open'), stance(root=(0, -step * .5, 0))]
+# Combo 3 - roundhouse to the head (rear leg): chamber tall with the knee at the belt; at impact the supporting foot
+# has pivoted ~135 degrees, the hip has turned over, the leg is flat at head height, the trunk leans back ~30 degrees,
+# the kicking-side arm swings back and the other guards the face.
+MOVES['combo_kick'] = kick((-.12, -.38, .95), 'point', (-.05, -1.45, 2.2), 'point', lean=-30, pivot=135, hips=10, chest=-38)
+# Combo 4 / back - spinning back kick (ushiro-geri): pivot on the front foot and look over the shoulder as the rear
+# knee draws up to the chest; at impact the back faces the camera and the target, the trunk leans away and the heel
+# drives out flat at chest height; land and turn back into stance. Frame 1 is the back view the game uses.
+MOVES['spin_kick'] = [stance(**FOCUS, spin=110, pelvis=(0, 0, -.04), pelvisRot=(12, 0, 0), spine=(8, 0, 0), chest=(0, 0, 0), head=(0, 0, -50),
+                             footL=(.0, -.25, GROUND), footR=(-.2, -.2, .9), footRRot='point', handL=(.15, -.35, .2), handR=(-.15, -.35, .2), ties=-14),
+                      stance(**FOCUS, spin=180, root=(0, -.2, 0), pelvis=(0, 0, -.02), pelvisRot=(28, 0, -70), spine=(14, 0, -10), chest=(0, 0, -10), head=(-6, 0, 40),
+                             footL=(.05, -.3, GROUND), footR=(-.05, 1.45, 1.45), footRRot='sole', handL=(.2, -.35, .1), handR=(-.2, -.35, .1), mouth='shout', ties=-20),
+                      stance(**FOCUS, spin=180, root=(0, -.2, 0), pelvis=(0, 0, -.02), pelvisRot=(26, 0, -70), spine=(13, 0, -10), chest=(0, 0, -10), head=(-6, 0, 40),
+                             footL=(.05, -.3, GROUND), footR=(-.05, 1.4, 1.4), footRRot='sole', handL=(.2, -.35, .1), handR=(-.2, -.35, .1), mouth='open', ties=-12),
+                      stance(root=(0, -.1, 0))]
+# W - high front kick (jodan mae-geri, rear leg): knee to the chest with the foot hanging under it; then the leg rises
+# nearly vertical with the sole above head height, the trunk leans back ~20 degrees, the supporting leg stays straight.
+MOVES['high_kick'] = kick((-.12, -.42, .85), 'point', (-.08, -.9, 2.85), 'sole', lean=-20, pivot=40, hips=-40, chest=-8, arm_back=False)
+# S - low roundhouse (gedan mawashi-geri, rear leg): the knee lifts low and comes across, the supporting knee bends,
+# the hip turns over and the shin swings flat at knee height; trunk upright.
+MOVES['low_kick'] = kick((-.08, -.3, .62), 'point', (-.05, -1.5, .72), 'point', lean=-6, pivot=110, hips=0, chest=-30, support_bend=.16, arm_back=False)
+# Forward - front push kick (chudan mae-geri, rear leg): same tall chamber, then the hips thrust forward behind the
+# sole at stomach height with the upper body nearly upright.
+MOVES['front_kick'] = kick((-.12, -.42, .85), 'point', (-.08, -1.55, 1.5), 'sole', lean=-10, pivot=30, hips=-40, chest=-8, arm_back=False, step=.18)
 MOVES['idle'] = [stance()]
 
 # ---------- posing ----------
