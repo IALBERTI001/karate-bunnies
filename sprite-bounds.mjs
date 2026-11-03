@@ -41,8 +41,8 @@ export function markHeadbands(width,height,rgba,frames,mask){
   for(let y=0;y<rh;y++)for(let x=0;x<rw;x++)dist[y*rw+x]=cloth(x,y)?999:0;
   for(let y=0;y<rh;y++)for(let x=0;x<rw;x++){const q=y*rw+x;if(dist[q])dist[q]=Math.min(dist[q],x?dist[q-1]+1:1,y?dist[q-rw]+1:1,x&&y?dist[q-rw-1]+1.414:999);}
   for(let y=rh-1;y>=0;y--)for(let x=rw-1;x>=0;x--){const q=y*rw+x;if(dist[q])dist[q]=Math.min(dist[q],x<rw-1?dist[q+1]+1:1,y<rh-1?dist[q+rw]+1:1,x<rw-1&&y<rh-1?dist[q+rw+1]+1.414:999);}
-  let score=-Infinity;const targetX=face.x-r.x-dx*rh*.25,targetY=face.y-r.y-dy*rh*.25;
-  for(let y=0;y<rh;y++)for(let x=0;x<rw;x++){const headward=(r.x+x-face.x)*dx+(r.y+y-face.y)*dy;if(headward> -rh*.09||headward< -rh*.30)continue;const d=dist[y*rw+x],value=d-Math.hypot(x-targetX,y-targetY)*.25;if(d>=2&&value>score){score=value;const size=Math.min(d*1.35,rh*.085);r.chestStamp=[x/rw,y/rh,size/rw,size/rh];}}
+  let score=-Infinity;const side=rh*.06,targetX=face.x-r.x-dx*rh*.25-dy*side,targetY=face.y-r.y-dy*rh*.25+dx*side,minSize=rh*.06;
+  for(let y=0;y<rh;y++)for(let x=0;x<rw;x++){const headward=(r.x+x-face.x)*dx+(r.y+y-face.y)*dy;if(headward> -rh*.09||headward< -rh*.30)continue;const d=dist[y*rw+x],value=Math.min(d,minSize*.6)-Math.hypot(x-targetX,y-targetY)*.25;if(d>=Math.max(2,minSize*.3)&&value>score){score=value;const size=Math.min(Math.max(d*1.35,minSize),rh*.085);r.chestStamp=[x/rw,y/rh,size/rw,size/rh];}}
 
 
  });

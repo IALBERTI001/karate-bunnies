@@ -1,5 +1,7 @@
 # Garment map for the gi shader (assets/gi-parts-<n>.png), so gi designs follow the clothes instead of being a flat wallpaper:
 #   red   = trim: the gi edge where cloth meets fur (collar, sleeve cuffs, trouser hems), soft-edged
+#   green = headband (shop turnaround only)
+#   blue  = trousers (shop turnaround only; the small fight sprites have no clean hem lines): cloth pieces below the belt that the ink lines separate from the jacket (the jacket skirt stays jacket)
 # Paws held in front of the jacket and the tail get no trim. Also writes assets/gi-anchors.json: the belt centre of
 # every atlas cell, so prints and gradients stay put on the body from pose to pose.
 # Usage: python3 tools/gi-parts.py [--debug outdir]   (numpy, scipy, Pillow)
@@ -72,13 +74,33 @@ for i, atlas in enumerate(json.loads((root / 'animations.json').read_text())['at
                 fy = np.nonzero(lab_ == f)[0]
                 if fy.mean() < collar: band[ys_, xs_] |= lab_ == f
         band = nd.binary_dilation(band, iterations=3) & (green > .2)
+    # Trousers: with the ink lines as walls, cloth pieces that touch the belt are the jacket (its skirt hangs below the
+    # knot); separate pieces whose middle is below the knot are trouser legs.
+    legs = np.zeros(gi.shape, bool)
+    for k in range(cols * rows if atlas.get('turnaround') else 0):
+        if cells[k] is None: continue
+        y0, x0 = int(k // cols * cell), int(k % cols * cw); ys_, xs_ = slice(y0, int(y0 + cell)), slice(x0, int(x0 + cw))
+        solid = (green[ys_, xs_] > .9) & (g[ys_, xs_] > .42) & ~belt[ys_, xs_] & ~band[ys_, xs_]
+        solid = nd.binary_erosion(solid, iterations=1)
+        lab_, nn = nd.label(solid)
+        near = nd.binary_dilation(belt[ys_, xs_], iterations=5)
+        by = cells[k][1] - y0
+        for f, sl in enumerate(nd.find_objects(lab_), 1):
+            m = lab_[sl] == f
+            if m.sum() < 30 or (m & near[sl]).any(): continue
+            if np.nonzero(m)[0].mean() + sl[0].start > by + cell * .03: legs[ys_, xs_][sl] |= m
+    # Grow the legs back over their soft edges, but never into the jacket.
+    jacket = gi & ~nd.binary_dilation(legs, iterations=3)
+    legs_soft = nd.binary_dilation(legs, iterations=3) & (green > .2) & ~(jacket & ~gi)
+    lower = np.clip(nd.gaussian_filter(legs_soft.astype(np.float32), .8), 0, 1) * (green > .2)
     out = np.zeros(c.shape[:2] + (3,), np.uint8)
+    out[..., 2] = np.round(lower * 255)
     out[..., 1] = np.round(band * green * 255)
     out[..., 0] = np.round(trim * 255); 
     Image.fromarray(out).save(root / f'gi-parts-{i}.png', optimize=True)
     print(f'gi-parts-{i}.png trim', int((trim > .5).sum()))
     if debug:
         vis = (c[..., :3] * 255).astype(np.uint8).copy(); vis[a < .3] = 200
-        vis[trim > .5] = [230, 60, 60]; vis[band & (trim <= .5)] = [60, 80, 220]
+        vis[trim > .5] = [230, 60, 60]; vis[band & (trim <= .5)] = [60, 80, 220]; vis[(lower > .5) & (trim <= .5)] = [40, 170, 230]
         Image.fromarray(vis).save(f'{debug}/parts-{i}.png')
 (root / 'gi-anchors.json').write_text(json.dumps(anchors, separators=(',', ':')))
