@@ -1,14 +1,14 @@
-import {paintGiSwatch} from './gi-patterns.mjs?v=15107df915f0';
-import {GIS,GI_COLLECTIONS,collectionGis,giDesign,loadWardrobe,purchaseGi,equipGi,persistWardrobe,WARDROBE_KEY} from './wardrobe.mjs?v=15107df915f0';
-import {formatCount} from './numbers.mjs?v=15107df915f0';
-import {GameSDK} from './sdk.mjs?v=15107df915f0';
-import {startMusic} from './music.mjs?v=15107df915f0';
+import {paintGiSwatch} from './gi-patterns.mjs?v=ecae8d50c892';
+import {GIS,GI_COLLECTIONS,collectionGis,giDesign,loadWardrobe,purchaseGi,equipGi,persistWardrobe,WARDROBE_KEY} from './wardrobe.mjs?v=ecae8d50c892';
+import {formatCount} from './numbers.mjs?v=ecae8d50c892';
+import {GameSDK} from './sdk.mjs?v=ecae8d50c892';
+import {startMusic} from './music.mjs?v=ecae8d50c892';
 // Mix: music sits about 5 dB under the effects; a gentle limiter on the master bus keeps peaks from clipping.
 const MASTER_GAIN=4,MUSIC_TRIM=.061;
-import {BUILD} from './version.mjs?v=15107df915f0';
-import {STAGES,FURS,COLORS,loadProgress,clearStage,validSkin,beltFor,BELT_AWARDS} from './campaign.mjs?v=15107df915f0';
-import {createMatch,input,step,MOVES} from './combat.mjs?v=15107df915f0';
-import {SpriteBank,ArenaArt,drawScene,star,sceneCamera} from './render.mjs?v=15107df915f0';
+import {BUILD} from './version.mjs?v=ecae8d50c892';
+import {STAGES,FURS,COLORS,loadProgress,clearStage,validSkin,beltFor,BELT_AWARDS} from './campaign.mjs?v=ecae8d50c892';
+import {createMatch,input,step,MOVES} from './combat.mjs?v=ecae8d50c892';
+import {SpriteBank,ArenaArt,drawScene,star,sceneCamera} from './render.mjs?v=ecae8d50c892';
 // Big-moment celebrations (on by default; ?fx=off turns them off). Solo only; online play is unchanged.
 const FX=(()=>{try{return new URLSearchParams(location.search).get('fx')!=='off';}catch{return false;}})();
 const POP_WORDS={launch:['Wheee!','Up you go!'],knock:['Pow!','Boom!'],chain:['Combo!','Hi-yah!']};
@@ -30,8 +30,8 @@ function drawPops(ctx,canvas){if(!pops.length)return;pops=pops.filter(p=>wall-p.
   ctx.lineWidth=size*.16;ctx.strokeStyle='#6a4632';ctx.strokeText(p.text,0,0);ctx.fillStyle='#ffe7a8';ctx.fillText(p.text,0,0);
   ctx.lineWidth=size*.05;ctx.strokeStyle='#fff7e6';ctx.globalAlpha=alpha*.6;ctx.strokeText(p.text,0,-size*.04);ctx.restore();}}
 
-import {storyLines,blipSchedule,BLIP,beltLine,CAST} from './story.mjs?v=15107df915f0';
-import {LESSON,CHEERS,LESSON_END,stepDone,glowTargets,LESSON_KO,LESSON_REWARD} from './lesson.mjs?v=15107df915f0';
+import {storyLines,blipSchedule,BLIP,beltLine,CAST} from './story.mjs?v=ecae8d50c892';
+import {LESSON,CHEERS,LESSON_END,stepDone,glowTargets,LESSON_KO,LESSON_REWARD} from './lesson.mjs?v=ecae8d50c892';
 // Training lesson: runs in the first-launch training bout (and Replay training in Settings).
 // Online VS is hidden until it has a hosted server; ?vs=on (or KB_FLAGS.vs) shows it for development.
 const VS=(()=>{try{return globalThis.KB_FLAGS?.vs===true||new URLSearchParams(location.search).get('vs')==='on';}catch{return false;}})();

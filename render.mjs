@@ -1,14 +1,14 @@
-import {extractSpriteFrames,spritePlacement,markHeadbands} from './sprite-bounds.mjs?v=15107df915f0';
-import {FURS,COLORS,BELTS} from './campaign.mjs?v=15107df915f0';
-import {GIS,giDesign} from './wardrobe.mjs?v=15107df915f0';
-import {paintGiTile,paintGiEmblem,paintGiBack,glitterPhase} from './gi-patterns.mjs?v=15107df915f0';
+import {extractSpriteFrames,spritePlacement,markHeadbands} from './sprite-bounds.mjs?v=ecae8d50c892';
+import {FURS,COLORS,BELTS} from './campaign.mjs?v=ecae8d50c892';
+import {GIS,giDesign} from './wardrobe.mjs?v=ecae8d50c892';
+import {paintGiTile,paintGiEmblem,paintGiBack,glitterPhase} from './gi-patterns.mjs?v=ecae8d50c892';
 // Asset files share the module release tag, so a returning player never mixes new code with cached old art.
 const V=new URL(import.meta.url).search;
 const rgb=hex=>hex.match(/[a-f\d]{2}/gi).map(v=>parseInt(v,16)/255);
 const image=async src=>{const i=new Image();i.src=src;await i.decode();return i;};
 export class SpriteBank {
  async load(){
-  const SET=new URLSearchParams(globalThis.location?.search??'').get('art')==='3d'?'-3d':'';this.manifest=await fetch('assets/animations'+SET+'.json'+V).then(r=>r.json());this.images=await Promise.all(this.manifest.atlases.map(a=>image('assets/'+a.file+V)));this.beltImages=await Promise.all(this.manifest.atlases.map((a,i)=>image('assets/belt-soft'+SET+'-'+i+'.png'+V).catch(()=>null)));this.partImages=await Promise.all(this.manifest.atlases.map((a,i)=>image('assets/gi-parts'+SET+'-'+i+'.png'+V).catch(()=>null)));this.anchors=await fetch('assets/gi-anchors'+SET+'.json'+V).then(r=>r.json()).catch(()=>[]);this.cache=new Map();this.rects=[];this.masks=[];
+  const SET=(new URLSearchParams(globalThis.location?.search??'').get('art')??globalThis.KB_ART)==='3d'?'-3d':'';this.manifest=await fetch('assets/animations'+SET+'.json'+V).then(r=>r.json());this.images=await Promise.all(this.manifest.atlases.map(a=>image('assets/'+a.file+V)));this.beltImages=await Promise.all(this.manifest.atlases.map((a,i)=>image('assets/belt-soft'+SET+'-'+i+'.png'+V).catch(()=>null)));this.partImages=await Promise.all(this.manifest.atlases.map((a,i)=>image('assets/gi-parts'+SET+'-'+i+'.png'+V).catch(()=>null)));this.anchors=await fetch('assets/gi-anchors'+SET+'.json'+V).then(r=>r.json()).catch(()=>[]);this.cache=new Map();this.rects=[];this.masks=[];
   this.manifest.atlases.forEach((a,ai)=>{const im=this.images[ai],c=document.createElement('canvas');c.width=im.width;c.height=im.height;const cx=c.getContext('2d',{willReadFrequently:true});cx.drawImage(im,0,0);const data=cx.getImageData(0,0,c.width,c.height).data,tw=im.width/a.columns,th=im.height/a.rows,rects=[];
    const {frames,mask}=extractSpriteFrames(im.width,im.height,data,a.columns,a.rows);
    if(frames.some(r=>!r))throw Error('Sprite atlas has an unidentified pose: '+a.file);
