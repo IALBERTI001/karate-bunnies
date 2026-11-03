@@ -24,3 +24,22 @@ python3 tools/soften-belt-masks.py --set 3d && python3 tools/gi-parts.py --set 3
 The optional `[ids]` re-renders only some frames, for example `combo_kick,victory` or `idle-0`.
 
 Change a pose by editing `poses.py`, and the look by editing `kbpuppet.py`. Then rerun the steps above.
+
+## The weighted rig (Nov 3): `kbrig.py` + `moves.py`
+
+The bunny is built once in sections (head, torso, pelvis, two-part arms and legs, paws, feet, two-part ears,
+two-part ribbons). Each section is weighted to its own bone, with blends only at the elbows, knees, waist and mid-ear.
+Arms and legs use IK. Faces are keyed parts (open, focus, happy, hurt; smile, open, shout).
+
+`moves.py` keys the 4-hit combo (jab, reverse punch, roundhouse, spinning back kick) and the WASD kicks (high, low,
+front push, spinning back kick), 4 frames each, on one timeline with a marker per move. It renders colour and mask
+passes and saves `bunny-rig.blend`, so you can open it, scrub the moves and pose the bunny by hand.
+
+```
+blender -b --factory-startup -P tools/blender/moves.py -- out [moves] [res]
+```
+
+Lessons learned:
+- Aim strikes in screen space. From a three-quarter view, a strike aimed "forward" mostly travels toward the camera.
+- Don't use Blender's IK stretch: it scales bones in every direction, so stretched limbs get fat. `moves.py` lengthens limbs along their bones only.
+- Turn Preserve Volume off on stretched limbs.
