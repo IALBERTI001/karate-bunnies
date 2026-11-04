@@ -91,12 +91,9 @@ SIDE_FOLD = dict(dir=(-.1, -.92, .38), fold=140, toward=(-.45, .85, .1), foot='p
 #  impact: leg straight at ~45 deg up from the hip, foot above the kicker's own head, trunk ~47 deg back, head tilted back
 #          with the eyes on the target, the rear arm flung straight back as a counterweight, hip right over the standing foot;
 #  re-chamber: the foot folds back to the hip with the trunk still ~40 deg back; then the leg comes down and the trunk rises.
-MOVES['combo_kick'] = kick4(dict(dir=(-.1, -.95, .2), fold=115, toward=(0, 0, -1), foot='point'), (-.05, -1.75, 2.55), 'instep',
-                            hips=85, pivot=135, heel=25, rechamber=dict(dir=(-.1, -.85, -.1), fold=120, toward=(0, .5, 1), foot='point'),
-                            re_hips=60, re_pivot=110, chest=-30, fold_hips=25, fold_pivot=70, fold_lean=-28, re_lean=-36, lean=-44,
-                            fold_arms=dict(handL=(.18, -.6, .55), handR=(-.45, .55, -.1)),
-                            arms=dict(handL=(.25, -.55, .7), handR=(-.35, 1.1, -.05)),  # rear arm flung straight back as the counterweight
-                            re_arms=dict(handL=(.2, -.6, .6), handR=(-.4, .7, -.35)))
+MOVES['combo_kick'] = kick4(dict(dir=(-.1, -.6, .8), fold=150, toward=(0, 0, -1), foot='point'), (-.05, -2.05, 2.45), 'instep',
+                            hips=85, pivot=135, heel=25, rechamber=SIDE_FOLD, re_hips=55, re_pivot=105, chest=-45, fold_hips=10, fold_pivot=60,
+                            arms=dict(handR=(-.5, .5, .05), handL=(.18, -.45, .55)))  # kicking-side arm swings back clear of the body, the other guards the face
 # Combo 4 / back - spinning back kick (ushiro-geri): turn on the lead foot, look over the shoulder and tuck the heel
 # under the body with the knees together; drive the heel straight back from underneath with the hips behind it;
 # re-tuck, land with the back still to the target, turn back. Frame 1 (the tuck, back view) is the one the game shows.
@@ -191,7 +188,7 @@ def pose_once(rig, P, adj):
     # The head stays level and the eyes stay on the opponent: it takes the body's turn (within a neck's range), not its lean.
     # Readability: the face never turns fully away from the camera outside a spin (at least one eye shows).
     body = P['pelvisRot'][2] + P['spine'][2] + P['chest'][2]
-    look = P.get('look', 'opponent' if P.get('weight') in ('L', 'R') else 'camera')  # kicking or bowing: eyes on the opponent, even in profile
+    look = P.get('look', 'camera')  # game camera: the face stays toward the viewer (side-view footage angles do not transfer)  # kicking or bowing: eyes on the opponent, even in profile
     lim = 0 if look == 'opponent' else 30
     turn = (max(lim, min(75, body)) if P.get('mirror') else max(-75, min(-lim, body))) + P['spin']  # a mirrored (southpaw) fighter turns the other way
     # On a big-headed character the head is most of the silhouette: if it stayed perfectly level a 40 degree trunk lean
