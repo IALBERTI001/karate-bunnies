@@ -59,42 +59,59 @@ MOVES['punch2'] = [stance(**FOCUS, handR=(-.2, -.05, -.3), handL=(.12, -.78, .18
                           footR=(-.15, .8, GROUND), footRRot=(0, 0, -25), drive='R', handR=(-.02, -1.65, .3), handL=(.26, .05, -.28), mouth='shout',
                           weight=.65, ties=-12),
                    stance(root=(0, -.05, 0), weight=.5)]
-def chamber_pose(foot, pivot, hips, knee='lead', **kw):  # weight onto the lead leg, rear knee up and leading
-    return stance(**FOCUS, pelvis=(0, 0, -.06), pelvisRot=(-3, 0, hips), spine=(-2, 0, 0), chest=(0, 0, -12), weight='L',
-                  footL=(.06, -.62, GROUND), footLRot=(0, 0, pivot), footR=foot, kneeR=knee, **kw)
-def kick(chamber, target, surface, lean, pivot, hips, chest=-35, ch_hips=None, support_bend=0, arm_back=True, step=.1, knee='up', thrust=0):
-    sup = dict(footL=(.06, -.62, GROUND), footLRot=(0, 0, pivot), pelvis=(0, 0, -.06 - support_bend), weight='L', thrust=thrust)
-    arms = dict(handR=(-.32, .38, -.18), handL=(.1, -.42, .34)) if arm_back else dict(handL=(.14, -.55, .26), handR=(-.1, -.3, .3))
-    hit = lambda d, m: stance(**FOCUS, **sup, root=(0, -step, 0), footR=(target[0], target[1] + d, target[2] - d), strikeR=surface, kneeR=knee,
-                             pelvisRot=(lean, 0, hips), spine=(lean * .25, 0, 0), chest=(0, 0, chest), head=(0, 0, 12), mouth=m, ties=-16, **arms)
-    return [chamber_pose(chamber, pivot * .5, hips * .4 - 30 if ch_hips is None else ch_hips, handL=(.14, -.55, .26), handR=(-.1, -.3, .3)),
-            hit(0, 'shout'), hit(.06, 'open'), stance(root=(0, -step * .5, 0), weight=.5)]
-# Combo 3 - roundhouse to the head (rear leg, mawashi-geri): the weight goes onto the lead leg and the knee chambers
-# pointing at the target; then the standing foot pivots (heel toward the target) and the pelvis turns over, which is
-# what throws the shin; the trunk leans away exactly as far as balance needs; the instep lands on the head.
-MOVES['combo_kick'] = kick((-.12, -.45, 1.15), (-.05, -2.05, 2.45), 'instep', lean=-6, pivot=105, hips=58, chest=-42)
-# Combo 4 / back - spinning back kick (ushiro-geri): turn on the lead foot and look over the shoulder as the knee
-# draws up; at impact the back faces the target, the knee points down and the heel drives straight out at chest
-# height with the hips behind it; land and turn back into stance. Frame 1 is the back view the game uses.
+# Every kick is four beats (karate-body-mechanics): FOLD the leg tight into the chamber (hip and knee both bent, heel to
+# the buttock), SNAP out to the target, WHIP back to the same chamber with the knee still up, then set the foot down
+# in stance. The standing leg carries the weight from the fold on and turns on the BALL of its foot (heel lifted); the
+# trunk drops away from the kick as far as the kick's height asks (leanMin) and the balance rule does the rest.
+GUARD = dict(handL=(.14, -.55, .26), handR=(-.1, -.3, .3))
+def sup(pivot, heel=0, bend=0, thrust=0):
+    return dict(footL=(.06, -.62, GROUND), footLRot=(0, 0, pivot), heelL=heel, pelvis=(0, 0, -.06 - bend), weight='L', thrust=thrust)
+def lean_for(z):  # how far the trunk must drop away for a kick at height z (from the reference footage)
+    return -30 if z >= 2.3 else (-10 if z >= 1.4 else None)
+def kick4(fold, target, surface, hips, pivot, heel, rechamber=None, re_hips=None, re_pivot=None, chest=-30, bend=0, thrust=0, step=.1,
+          arms=None, fold_hips=-20, fold_pivot=30, knee='up'):
+    arms = arms or GUARD
+    f0 = stance(**FOCUS, **sup(fold_pivot, heel * .5, bend), pelvisRot=(0, 0, fold_hips), spine=(-2, 0, 0), chest=(0, 0, -12),
+                footR=(0, 0, 1), chamberR=fold, **GUARD)
+    f1 = stance(**FOCUS, **sup(pivot, heel, bend, thrust), root=(0, -step, 0), footR=target, strikeR=surface, kneeR=knee, leanMin=lean_for(target[2]),
+                pelvisRot=(0, 0, hips), chest=(0, 0, chest), head=(0, 0, 12), mouth='shout', ties=-16, **arms)
+    f2 = stance(**FOCUS, **sup(pivot if re_pivot is None else re_pivot, heel, bend), root=(0, -step, 0), footR=(0, 0, 1), chamberR=rechamber or fold,
+                pelvisRot=(0, 0, hips if re_hips is None else re_hips), chest=(0, 0, chest * .6), head=(0, 0, 12), mouth='open', ties=-10, **GUARD)
+    return [f0, f1, f2, stance(root=(0, -step * .5, 0), weight=.5)]
+FRONT_FOLD = lambda up: dict(dir=(-.05, -.6 + up * .2, .8 + up * .1), fold=150, toward=(0, 0, -1), foot='flex')
+SIDE_FOLD = dict(dir=(-.1, -.92, .38), fold=140, toward=(-1, .35, 0), foot='point')  # roundhouse re-chamber: knee horizontal
+# Combo 3 - roundhouse to the head (mawashi-geri, rear leg): fold the knee straight up in front; the standing foot
+# rises onto its ball and pivots until its heel faces the target, which turns the knee from vertical to horizontal;
+# the hips turn over until the belly faces past the target, the trunk drops away ~30 deg and the instep snaps into the
+# head; whip back to a horizontal chamber, turn the standing foot and hips back in, then land.
+MOVES['combo_kick'] = kick4(dict(dir=(-.1, -.6, .8), fold=150, toward=(0, 0, -1), foot='point'), (-.05, -2.05, 2.45), 'instep',
+                            hips=85, pivot=135, heel=25, rechamber=SIDE_FOLD, re_hips=55, re_pivot=105, chest=-45, fold_hips=10, fold_pivot=60,
+                            arms=dict(handR=(-.32, .38, -.18), handL=(.1, -.42, .34)))
+# Combo 4 / back - spinning back kick (ushiro-geri): turn on the lead foot, look over the shoulder and tuck the heel
+# under the body with the knees together; drive the heel straight back from underneath with the hips behind it;
+# re-tuck, land with the back still to the target, turn back. Frame 1 (the tuck, back view) is the one the game shows.
+TUCK = dict(dir=(0, -.3, -.95), fold=140, toward=(0, 1, 0), foot='flex')
 MOVES['spin_kick'] = [stance(**FOCUS, spin=110, pelvis=(0, 0, -.06), pelvisRot=(12, 0, 0), spine=(8, 0, 0), chest=(0, 0, 0), head=(0, 0, -50),
-                             footL=(.0, -.25, GROUND), footR=(-.2, -.2, .95), footRRot='point', kneeR='lead', weight='L',
+                             footL=(.0, -.25, GROUND), footLRot=(0, 0, 0), heelL=10, footR=(0, 0, 1), chamberR=TUCK, weight='L',
                              handL=(.15, -.35, .2), handR=(-.15, -.35, .2), ties=-14),
                       stance(**FOCUS, spin=180, root=(0, -.2, 0), pelvis=(0, 0, -.06), pelvisRot=(20, 0, -70), spine=(10, 0, -10), chest=(0, 0, -10),
-                             head=(-6, 0, 40), footL=(.05, -.3, GROUND), footR=(-.05, 1.3, 1.5), strikeR='heel', kneeR='down', weight='L',
+                             head=(-6, 0, 40), footL=(.05, -.3, GROUND), heelL=15, footR=(-.05, 1.22, 1.5), strikeR='heel', kneeR='down', weight='L',
                              handL=(.2, -.35, .1), handR=(-.2, -.35, .1), mouth='shout', ties=-20),
-                      stance(**FOCUS, spin=180, root=(0, -.2, 0), pelvis=(0, 0, -.06), pelvisRot=(18, 0, -70), spine=(9, 0, -10), chest=(0, 0, -10),
-                             head=(-6, 0, 40), footL=(.05, -.3, GROUND), footR=(-.05, 1.26, 1.45), strikeR='heel', kneeR='down', weight='L',
+                      stance(**FOCUS, spin=180, root=(0, -.2, 0), pelvis=(0, 0, -.06), pelvisRot=(16, 0, -70), spine=(8, 0, -10), chest=(0, 0, -10),
+                             head=(-6, 0, 40), footL=(.05, -.3, GROUND), heelL=10, footR=(0, 0, 1), chamberR=TUCK, weight='L',
                              handL=(.2, -.35, .1), handR=(-.2, -.35, .1), mouth='open', ties=-12),
                       stance(root=(0, -.1, 0), weight=.5)]
-# W - high front kick (jodan mae-geri, rear leg): knee up to the chest, then the hips thrust forward and the leg rises
-# with the toes pulled back so the ball of the foot lands under the chin; the trunk leans back to balance the leg.
-MOVES['high_kick'] = kick((-.12, -.5, 1.2), (-.05, -1.5, 2.8), 'ball', lean=-10, pivot=30, hips=-12, chest=-6, ch_hips=-30, arm_back=False, knee='up', thrust=.1)
-# S - low roundhouse (gedan mawashi-geri, rear leg): sink on the bent standing leg, pivot, turn the pelvis over and
-# whip the instep and shin flat into the thigh; trunk upright.
-MOVES['low_kick'] = kick((-.08, -.38, .8), (-.05, -2.15, .8), 'instep', lean=-4, pivot=90, hips=42, chest=-30, support_bend=.16, arm_back=False)
-# Forward - front kick (chudan mae-geri, rear leg): same chamber, then the hips drive forward behind the ball of the
-# foot at stomach height; the upper body only counter-leans as much as balance needs.
-MOVES['front_kick'] = kick((-.12, -.5, 1.2), (-.05, -2.4, 1.65), 'ball', lean=-6, pivot=30, hips=-18, chest=-8, ch_hips=-30, arm_back=False, step=.18, thrust=.15)
+# W - high front kick (jodan mae-geri, rear leg): fold the knee high to the chest with the toes pulled back; the hips
+# thrust forward and the trunk drops back ~30 deg as the ball of the foot rises under the chin; whip back, land.
+MOVES['high_kick'] = kick4(FRONT_FOLD(1), (-.05, -1.5, 2.8), 'ball', hips=-12, pivot=30, heel=15, chest=-6, thrust=.1)
+# S - low roundhouse (gedan mawashi-geri, rear leg): sink on the bent standing leg, fold the knee up, pivot on the
+# ball of the standing foot and turn the hips over as the instep and shin whip flat into the thigh; trunk upright.
+MOVES['low_kick'] = kick4(dict(dir=(-.1, -.75, .6), fold=135, toward=(0, 0, -1), foot='point'), (-.05, -2.15, .8), 'instep',
+                          hips=60, pivot=105, heel=20, rechamber=dict(dir=(-.15, -.97, .15), fold=130, toward=(-1, .35, 0), foot='point'),
+                          re_hips=40, re_pivot=85, chest=-30, bend=.14, fold_hips=5, fold_pivot=50)
+# Forward - front kick (chudan mae-geri, rear leg): fold, then the hips drive forward behind the ball of the foot at
+# stomach height (toes pulled back), a short impact, whip back to the fold, land.
+MOVES['front_kick'] = kick4(FRONT_FOLD(0), (-.05, -2.4, 1.65), 'ball', hips=-18, pivot=30, heel=10, chest=-8, thrust=.15, step=.18)
 MOVES['idle'] = [stance(weight=.5)]
 KIND = dict(punch1='punch', punch2='punch', combo_kick='roundhouse', spin_kick='spin', high_kick='front', low_kick='low', front_kick='front')
 
@@ -132,6 +149,11 @@ def foot_frame(aim, hip, ankle):  # 'point': toes lead along the leg; 'sole': so
     else: ax_z, ax_y = -d, (-(up - d * up.dot(d)).normalized() if abs(d.z) < .95 else Vector((0, 1, 0)))
     ax_x = ax_y.cross(ax_z).normalized(); return Matrix((ax_x, ax_y, ax_z)).transposed()
 
+BALL = Vector((0, -.32, -.12))  # ball of the foot (the toe joint) from the ankle, foot rest frame
+def foot_axes(toe_dir, top_hint):  # foot frame with its toes (-Y) along toe_dir and its top (+Z) toward top_hint
+    ay = -toe_dir.normalized(); az = (top_hint - ay * top_hint.dot(ay)).normalized(); ax = ay.cross(az)
+    return Matrix((ax, ay, az)).transposed()
+
 def pose_once(rig, P, adj):
     for pb in rig.pose.bones: pb.matrix_basis = Matrix.Identity(4)
     upd()
@@ -156,22 +178,40 @@ def pose_once(rig, P, adj):
         set_bone(rig, f'hand_ik.{L}', Rc, t)
         # legs
         fb = Vector(P['foot' + L]); planted = fb.z <= GROUND + .02; goal = R0 + Rs @ fb
-        fr = P['foot' + L + 'Rot']; surface = P.get('strike' + L); hip = rig.pose.bones[f'thigh.{L}'].head.copy()
+        fr = P['foot' + L + 'Rot']; surface = P.get('strike' + L); ch = P.get('chamber' + L)
+        hip = rig.pose.bones[f'thigh.{L}'].head.copy(); a_ = rig.pose.bones[f'thigh.{L}'].bone.length; b_ = rig.pose.bones[f'shin.{L}'].bone.length
         aim = SURF_AIM[surface] if surface else (fr if isinstance(fr, str) else None)
-        ankle = goal.copy()
-        if surface:  # work the ankle back from the striking surface so the impact is centred on the target
+        ankle = goal.copy(); Rch = None; heel = 0; toe = None; Rflat = None
+        if ch:  # folded chamber: thigh along `dir`, shin folded back by `fold` degrees toward `toward` (heel to the buttock)
+            d = (Rs @ Vector(ch['dir'])).normalized(); tw = Rs @ Vector(ch.get('toward', (0, 0, -1)))
+            pp = (tw - d * tw.dot(d)).normalized(); f = math.radians(ch['fold'])
+            sh = d * math.cos(f) + pp * math.sin(f); kn = hip + d * a_; ankle = kn + sh * b_; hint = kn - hip
+            if ch.get('foot', 'point') == 'point': Rch = foot_axes(sh, -d)              # toes continue the shin (instep leads)
+            else: Rch = foot_axes((Rs @ Vector((0, -1, 0)) - sh * (Rs @ Vector((0, -1, 0))).dot(sh)), -sh)  # toes pulled back, foot square to the shin
+        elif surface:  # work the ankle back from the striking surface so the impact is centred on the target
             for _ in range(4): ankle = goal - foot_frame(aim, hip, ankle) @ Vector(SURFACE[surface])
         if planted:
-            toe = Rs @ rotm(fr) @ Vector((0, -1, 0)); hint = toe  # knee tracks the toes
-        else:
+            Rflat = Rs @ rotm(fr); toe = Rflat @ Vector((0, -1, 0)); hint = toe  # knee tracks the toes
+            heel = P.get('heel' + L, 0)  # up on the ball of the foot: the ball stays on the floor, the heel lifts
+            if heel: ankle = goal + Rflat @ BALL - (Rflat @ rotm((heel, 0, 0))) @ BALL
+        elif not ch:
             k = P.get('knee' + L, 'lead')
             hint = {'lead': Rs @ Vector((0, -1, 0)) + Vector((0, 0, .7)), 'up': Vector((0, 0, 1)) + Rs @ Vector((0, -.3, 0)),
                     'down': Vector((0, 0, -1)) + Rs @ Vector((0, .3, 0))}[k]
-            toe = None
         H, knee, t = solve_limb(rig, f'thigh.{L}', f'shin.{L}', ankle, hint, True)
-        Rf = foot_frame(aim, H, t) if aim else Rs @ rotm(fr)
+        if planted: Rf = Rflat @ rotm((heel, 0, 0))
+        elif Rch is not None: Rf = Rch
+        else: Rf = foot_frame(aim, H, t) if aim else Rs @ rotm(fr)
         set_bone(rig, f'foot_ik.{L}', Rf, t)
-        out['legs'][L] = dict(planted=planted, hip=H, knee=knee, ankle=t, toe=toe, mid=t + (toe * .12 if toe is not None else Vector()))
+        # toes: flat on the floor when standing (also on the ball), pulled back for the ball of the foot, pointed for the instep
+        if planted: Rt = Rflat
+        elif surface == 'ball' or (ch and ch.get('foot') == 'flex'): Rt = Rf @ rotm((-45, 0, 0))
+        elif surface in ('instep',) or aim == 'point' or (ch and ch.get('foot', 'point') == 'point'): Rt = Rf @ rotm((10, 0, 0))
+        else: Rt = Rf
+        set_bone(rig, f'toe.{L}', Rt)
+        contact = t + Rf @ BALL - (Rflat @ BALL if planted else Rf @ BALL) if planted else t
+        out['legs'][L] = dict(planted=planted, hip=H, knee=knee, ankle=t, contact=contact, heel=heel, toe=toe,
+                              mid=(goal + toe * (.3 if heel else .12)) if toe is not None else t)  # on the ball of the foot the support moves to the ball
         if surface:
             hit = t + Rf @ Vector(SURFACE[surface]); drive = (goal - H).normalized()
             face = Rf @ Vector({'ball': (0, 0, -1), 'heel': (0, 0, -1), 'sole': (0, 0, -1), 'instep': (0, 0, 1)}[surface])
@@ -190,6 +230,7 @@ def apply_pose(rig, P, fid=''):
         fx, fy, fz = P['foot' + w + 'Rot']; hy = P['pelvisRot'][2]
         P['foot' + w + 'Rot'] = (fx, fy, min(max(fz, hy - KM.HIP_FOOT_MAX), hy + KM.HIP_FOOT_MAX))
     adj = dict(lean=0.0, shift=Vector((0, 0)), sink=0.0); share = KM.KNEE_SUPPORT if single else KM.KNEE_SOFT
+    forced = False
     for it in range(48):
         o = pose_once(rig, P, adj); legs = o['legs']; Rs = o['Rs']
         legl = rig.pose.bones['thigh.L'].bone.length + rig.pose.bones['shin.L'].bone.length
@@ -203,9 +244,12 @@ def apply_pose(rig, P, fid=''):
         if single:  # weight transfer: the hips travel over the standing foot (a thrust drives them past it); then the
                     # trunk leans away from the reaching limb until the centre of gravity is over the foot
             pel = rig.pose.bones['pelvis'].head; ep = Rs.inverted() @ Vector((pel.x - S.x, pel.y - S.y, 0)) + Vector((0, P.get('thrust', 0), 0))
-            adj['shift'] -= Vector((eb.x, ep.y)) * .8  # along the strike line: hips over the foot; across it: the centre of gravity
+            adj['shift'] -= Vector((eb.x, eb.y if forced else ep.y)) * .8  # along the line: hips over the foot (or balance, if the lean is set by the kick)
             if it >= 3:  # the hips arrive first; then the lean (damped so it settles instead of swinging)
-                base = P['pelvisRot'][0]; adj['lean'] = min(max(base + adj['lean'] + eb.y * 30, KM.LEAN_RANGE[0]), KM.LEAN_RANGE[1]) - base  # (approximate: base pitch is hip-local)
+                base = P['pelvisRot'][0]; want = base + adj['lean'] + eb.y * 30
+                new = min(max(want, KM.LEAN_RANGE[0]), KM.LEAN_RANGE[1])
+                if P.get('leanMin') is not None: new = min(new, P['leanMin'])  # karate: the trunk drops away as far as the kick's height asks
+                forced = abs(new - want) > 1e-6; adj['lean'] = new - base
         else:       # on two legs the hips travel (weight transfer) and the trunk stays upright
             adj['shift'] -= Vector((eb.x, eb.y)) * .8
     # measure the result against the rules
@@ -216,7 +260,7 @@ def apply_pose(rig, P, fid=''):
         if g['toe'] is not None:
             line = (g['ankle'] - g['hip']).normalized(); kd = (g['knee'] - g['hip']); kd = kd - line * kd.dot(line)
             tz = g['toe'] - line * g['toe'].dot(line); kt = math.degrees(kd.angle(tz)) if kd.length > 1e-4 and tz.length > 1e-4 else 0
-        rep['legs'][L] = dict(planted=g['planted'], ankle=tuple(g['ankle']), bend=bend, knee_toe=kt, drive=P.get('drive') == L)
+        rep['legs'][L] = dict(planted=g['planted'], ankle=tuple(g['contact']), bend=bend, knee_toe=kt, drive=P.get('drive') == L)
     if single and not isinstance(P['foot' + w + 'Rot'], str): rep['hip_foot'] = P['pelvisRot'][2] - P['foot' + w + 'Rot'][2]
     bad = KM.check_frame(rep)
     st = o['strike']
@@ -225,7 +269,9 @@ def apply_pose(rig, P, fid=''):
         if st['facing'] is not None and st['facing'] > 25: bad.append(f"striking surface turned {st['facing']:.0f} deg off the drive")
     W = rotm((0, 0, P['yaw']))
     xz = lambda v: [round((W @ v).x, 3), round((W @ v).z, 3)]
+    lifted = [v for v in rep['legs'].values() if not v['planted']]
     GOV[fid] = dict(hip_yaw=P['pelvisRot'][2], chest_yaw=P['spine'][2] + P['chest'][2], weight=1.0 if single else w,
+                    kick_bend=lifted[0]['bend'] if lifted else 0, heel=legs['L']['heel'], strike_z=(st['goal'].z if st else None),
                     support_yaw=(P['footLRot'][2] if not isinstance(P['footLRot'], str) else 0), lean=P['pelvisRot'][0] + adj['lean'])
     print('KB-GOV', json.dumps(dict(id=fid, com=xz(c), sup=xz(S), lean=round(P['pelvisRot'][0] + adj['lean'], 1), sink=round(adj['sink'], 3),
           shift=[round(adj['shift'][0], 3), round(adj['shift'][1], 3)], iters=it + 1,

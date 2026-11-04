@@ -44,6 +44,7 @@ def bone_table():
         T[f'shin.{L}'] = ((s * .32, -.07, .53), (s * .34, 0, .15), f'thigh.{L}', True, True)
         T[f'foot_ik.{L}'] = ((s * .34, 0, .15), (s * .34, -.4, .15), 'root', False, False)
         T[f'foot.{L}'] = ((s * .34, 0, .15), (s * .34, -.4, .15), f'foot_ik.{L}', True, False)
+        T[f'toe.{L}'] = ((s * .34, -.32, .03), (s * .34, -.55, .03), f'foot.{L}', True, False)  # ball of the foot -> toe tip
     knot = (-.6, .55, 2.62)
     T['tie1_a'] = (knot, (-1.0, .65, 2.66), 'head', True, False); T['tie1_b'] = ((-1.0, .65, 2.66), (-1.45, .75, 2.5), 'tie1_a', True, True)
     T['tie2_a'] = (knot, (-.95, .72, 2.38), 'head', True, False); T['tie2_b'] = ((-.95, .72, 2.38), (-1.25, .85, 2.0), 'tie2_a', True, True)
@@ -158,7 +159,8 @@ def build_body(rig, decals):
         legw = along(f'thigh.{L}', f'shin.{L}', knee, ank - knee, .1)
         P.add(f'thigh.{L}', capsule(hip, knee, .27, stretch=.45), GI, legw, 'legs')
         P.add(f'shin.{L}', capsule(knee, ank + Vector((0, 0, .1)), .26, stretch=.3), GI, legw, 'legs')
-        P.add(f'foot.{L}', ellipsoid(ank + Vector((0, -.15, -.05)), (.29, .44, .16)), FUR, rigid(f'foot.{L}'))
+        P.add(f'foot.{L}', ellipsoid(ank + Vector((0, -.15, -.05)), (.29, .44, .16)), FUR,
+              along(f'foot.{L}', f'toe.{L}', ank + Vector((0, -.3, -.12)), (0, -1, 0), .07))  # toes bend at the ball of the foot
         # arms: sleeves blended at the elbow, fist on the hand bone
         sh, el, wr = V(f'upper_arm.{L}', 0), V(f'forearm.{L}', 0), V(f'forearm.{L}', 1)
         armw = along(f'upper_arm.{L}', f'forearm.{L}', el, wr - el, .09)

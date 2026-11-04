@@ -80,17 +80,32 @@ def check_frame(f):
     return bad
 
 def check_move(kind, frames):
-    """Energy transfer between a move's load frame (0) and impact frame (2). frames: dicts with hip_yaw, chest_yaw,
-    weight (share on the lead foot, or 1 for one-legged), support_yaw."""
-    a, b = frames[0], frames[2]; bad = []
+    """Energy transfer and kick structure between a move's frames. frames: dicts with hip_yaw, chest_yaw, weight (share on
+    the lead foot, or 1 for one-legged), support_yaw, lean, kick_bend (knee bend of the lifted leg), heel (standing heel
+    lift, degrees), strike_z (target height)."""
+    a, b = frames[0], frames[2 if kind == 'punch' else 1]; bad = []
     if kind == 'punch':
         turn = abs((b['hip_yaw'] + b['chest_yaw']) - (a['hip_yaw'] + a['chest_yaw']))
         if turn < 12: bad.append(f'punch has no torso rotation ({turn:.0f} deg)')
         if b['weight'] - a['weight'] < .08: bad.append('punch has no weight transfer onto the front foot')
-    elif kind in ('roundhouse', 'low', 'spin'):
-        turn = abs(b['hip_yaw'] - a['hip_yaw'])
-        if turn < 30 and kind != 'spin': bad.append(f'kick has no pelvis rotation ({turn:.0f} deg)')
-        if abs(b['support_yaw'] - a['support_yaw']) < 25 and kind != 'spin': bad.append('standing foot does not pivot')
+        return bad
+    # every kick: fold -> snap -> re-chamber -> land
+    if a['kick_bend'] < 110: bad.append(f"chamber is not folded (knee {a['kick_bend']:.0f} deg, needs 110+)")
+    if frames[2]['kick_bend'] < 100: bad.append(f"no re-chamber: the leg drops instead of whipping back ({frames[2]['kick_bend']:.0f} deg)")
+    if b['kick_bend'] > 60: bad.append(f"impact leg not extended ({b['kick_bend']:.0f} deg bend)")
+    z = b.get('strike_z')
+    if z is not None:
+        if z >= 2.3 and b['lean'] > -22: bad.append(f"head-height kick without the trunk dropping away ({b['lean']:.0f} deg)")
+        if z < 1.0 and b['lean'] < -18: bad.append(f"low kick leans too far ({b['lean']:.0f} deg)")
+    if kind in ('roundhouse', 'low'):
+        if b['heel'] <= 0: bad.append('standing foot does not rise onto the ball to pivot')
+        if abs(b['support_yaw'] - a['support_yaw']) < 25: bad.append('standing foot does not pivot')
+    if kind == 'roundhouse':
+        if b['hip_yaw'] < 75: bad.append(f"hips stop short: the belly must face past the target ({b['hip_yaw']:.0f} deg)")
+        if b['support_yaw'] < 120: bad.append(f"standing heel does not face the target ({b['support_yaw']:.0f} deg)")
+        if frames[2]['hip_yaw'] >= b['hip_yaw']: bad.append('hips do not come back in before landing')
+    elif kind == 'low':
+        if b['hip_yaw'] - a['hip_yaw'] < 30: bad.append('low kick has no pelvis rotation')
     elif kind == 'front':
         if b['lean'] > -4: bad.append('front kick: trunk does not counter-lean behind the hip thrust')
     return bad
