@@ -86,7 +86,7 @@ SIDE_FOLD = dict(dir=(-.1, -.92, .38), fold=140, toward=(-.45, .85, .1), foot='p
 # head; whip back to a horizontal chamber, turn the standing foot and hips back in, then land.
 MOVES['combo_kick'] = kick4(dict(dir=(-.1, -.6, .8), fold=150, toward=(0, 0, -1), foot='point'), (-.05, -2.05, 2.45), 'instep',
                             hips=85, pivot=135, heel=25, rechamber=SIDE_FOLD, re_hips=55, re_pivot=105, chest=-45, fold_hips=10, fold_pivot=60,
-                            arms=dict(handR=(-.32, .38, -.18), handL=(.1, -.42, .34)))
+                            arms=dict(handR=(-.5, .5, .05), handL=(.18, -.45, .55)))  # kicking-side arm swings back clear of the body, the other guards the face
 # Combo 4 / back - spinning back kick (ushiro-geri): turn on the lead foot, look over the shoulder and tuck the heel
 # under the body with the knees together; drive the heel straight back from underneath with the hips behind it;
 # re-tuck, land with the back still to the target, turn back. Frame 1 (the tuck, back view) is the one the game shows.
@@ -182,7 +182,10 @@ def pose_once(rig, P, adj):
     # Readability: the face never turns fully away from the camera outside a spin (at least one eye shows).
     body = P['pelvisRot'][2] + P['spine'][2] + P['chest'][2]
     turn = (max(30, min(75, body)) if P.get('mirror') else max(-75, min(-30, body))) + P['spin']  # a mirrored (southpaw) fighter turns the other way
-    Rh = rotm((0, 0, turn)) @ rotm(P['head']); set_bone(rig, 'head', Rh)
+    # On a big-headed character the head is most of the silhouette: if it stayed perfectly level a 40 degree trunk lean
+    # would be invisible. In kicks the head goes back with the trunk (70%), eyes still on the target; punches stay level.
+    tilt = .7 * (pr[0] + adj['lean']) if P.get('weight') in ('L', 'R') else 0
+    Rh = Rs @ rotm((tilt, 0, 0)) @ rotm((0, 0, turn - P['spin'])) @ rotm(P['head']); set_bone(rig, 'head', Rh)
     out = dict(Rs=Rs, legs={}, strike=None)
     for s, L in ((1, 'L'), (-1, 'R')):
         Re = Rh @ rotm((-P['ears'], 0, 0)); set_bone(rig, f'ear_a.{L}', Re); set_bone(rig, f'ear_b.{L}', Re @ rotm((-P['ears'] * .6, 0, 0)))
@@ -446,7 +449,7 @@ def tween(P0, P1, t):
 # segments: (from key, to key, frames, easing); keys = [guard, k0, k1, k2, k3, guard]
 TIMING = {
     'punch': [(0, 1, 4, 'io'), (1, 2, 2, 'in'), (2, 3, 2, 'in'), (3, 3, 2, 'hold'), (3, 4, 5, 'out'), (4, 5, 4, 'io')],
-    'kick': [(0, 1, 5, 'io'), (1, 2, 3, 'in'), (2, 2, 2, 'hold'), (2, 3, 3, 'out'), (3, 4, 4, 'io'), (4, 5, 3, 'io')],
+    'kick': [(0, 1, 5, 'io'), (1, 2, 3, 'in'), (2, 2, 3, 'hold'), (2, 3, 3, 'out'), (3, 4, 5, 'io'), (4, 5, 3, 'io')],
     'spin': [(0, 1, 6, 'io'), (1, 2, 4, 'in'), (2, 2, 2, 'hold'), (2, 3, 3, 'out'), (3, 4, 5, 'io'), (4, 5, 3, 'io')]}
 def sequence(name):
     keys = [stance(weight=.5)] + [dict(P) for P in MOVES[name]] + [stance(weight=.5)]
