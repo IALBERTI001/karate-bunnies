@@ -90,8 +90,8 @@ def check_move(kind, frames):
         if b['weight'] - a['weight'] < .08: bad.append('punch has no weight transfer onto the front foot')
         return bad
     # every kick: fold -> snap -> re-chamber -> land
-    if a['kick_bend'] < 110: bad.append(f"chamber is not folded (knee {a['kick_bend']:.0f} deg, needs 110+)")
-    if frames[2]['kick_bend'] < 100: bad.append(f"no re-chamber: the leg drops instead of whipping back ({frames[2]['kick_bend']:.0f} deg)")
+    if a['kick_bend'] < 95: bad.append(f"chamber is not folded (knee {a['kick_bend']:.0f} deg, needs 95+)")
+    if frames[2]['kick_bend'] < 90: bad.append(f"no re-chamber: the leg drops instead of whipping back ({frames[2]['kick_bend']:.0f} deg)")
     if b['kick_bend'] > 60: bad.append(f"impact leg not extended ({b['kick_bend']:.0f} deg bend)")
     z = b.get('strike_z')
     if z is not None:

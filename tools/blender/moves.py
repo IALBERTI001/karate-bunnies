@@ -79,7 +79,7 @@ def kick4(fold, target, surface, hips, pivot, heel, rechamber=None, re_hips=None
                 pelvisRot=(0, 0, hips if re_hips is None else re_hips), chest=(0, 0, chest * .6), head=(0, 0, 12), mouth='open', ties=-10, **GUARD)
     return [f0, f1, f2, stance(root=(0, -step * .5, 0), weight=.5)]
 FRONT_FOLD = lambda up: dict(dir=(-.05, -.6 + up * .2, .8 + up * .1), fold=150, toward=(0, 0, -1), foot='flex')
-SIDE_FOLD = dict(dir=(-.1, -.92, .38), fold=140, toward=(-1, .35, 0), foot='point')  # roundhouse re-chamber: knee horizontal
+SIDE_FOLD = dict(dir=(-.1, -.92, .38), fold=140, toward=(-.45, .85, .1), foot='point')  # shin folds back across the screen, not at the camera  # roundhouse re-chamber: knee horizontal
 # Combo 3 - roundhouse to the head (mawashi-geri, rear leg): fold the knee straight up in front; the standing foot
 # rises onto its ball and pivots until its heel faces the target, which turns the knee from vertical to horizontal;
 # the hips turn over until the belly faces past the target, the trunk drops away ~30 deg and the instep snaps into the
@@ -90,7 +90,7 @@ MOVES['combo_kick'] = kick4(dict(dir=(-.1, -.6, .8), fold=150, toward=(0, 0, -1)
 # Combo 4 / back - spinning back kick (ushiro-geri): turn on the lead foot, look over the shoulder and tuck the heel
 # under the body with the knees together; drive the heel straight back from underneath with the hips behind it;
 # re-tuck, land with the back still to the target, turn back. Frame 1 (the tuck, back view) is the one the game shows.
-TUCK = dict(dir=(0, -.3, -.95), fold=140, toward=(0, 1, 0), foot='flex')
+TUCK = dict(dir=(0, -.3, -.95), fold=140, toward=(.35, .8, .5), foot='flex')  # heel up behind, angled off the camera line
 MOVES['spin_kick'] = [stance(**FOCUS, spin=110, pelvis=(0, 0, -.06), pelvisRot=(12, 0, 0), spine=(8, 0, 0), chest=(0, 0, 0), head=(0, 0, -50),
                              footL=(.0, -.25, GROUND), footLRot=(0, 0, 0), heelL=10, footR=(0, 0, 1), chamberR=TUCK, weight='L',
                              handL=(.15, -.35, .2), handR=(-.15, -.35, .2), ties=-14),
@@ -107,7 +107,7 @@ MOVES['high_kick'] = kick4(FRONT_FOLD(1), (-.05, -1.5, 2.8), 'ball', hips=-12, p
 # S - low roundhouse (gedan mawashi-geri, rear leg): sink on the bent standing leg, fold the knee up, pivot on the
 # ball of the standing foot and turn the hips over as the instep and shin whip flat into the thigh; trunk upright.
 MOVES['low_kick'] = kick4(dict(dir=(-.1, -.75, .6), fold=135, toward=(0, 0, -1), foot='point'), (-.05, -2.15, .8), 'instep',
-                          hips=60, pivot=105, heel=20, rechamber=dict(dir=(-.15, -.97, .15), fold=130, toward=(-1, .35, 0), foot='point'),
+                          hips=60, pivot=105, heel=20, rechamber=dict(dir=(-.15, -.97, .15), fold=130, toward=(-.45, .85, .1), foot='point'),
                           re_hips=40, re_pivot=85, chest=-30, bend=.14, fold_hips=5, fold_pivot=50)
 # Forward - front kick (chudan mae-geri, rear leg): fold, then the hips drive forward behind the ball of the foot at
 # stomach height (toes pulled back), a short impact, whip back to the fold, land.
@@ -154,6 +154,16 @@ def foot_axes(toe_dir, top_hint):  # foot frame with its toes (-Y) along toe_dir
     ay = -toe_dir.normalized(); az = (top_hint - ay * top_hint.dot(ay)).normalized(); ax = ay.cross(az)
     return Matrix((ax, ay, az)).transposed()
 
+FOOT_PTS = [Vector(v) for v in ((0, -.15, -.05), (0, -.5, -.1), (0, .22, -.1))]  # foot centre, toes, heel (ankle offsets)
+BODY_R = .74  # the round trunk (jacket and skirt) plus a foot's thickness, measured from the spine line
+def buried(rig, ankle, Rf):
+    """True if the foot would be inside the trunk: any foot point closer than BODY_R to the pelvis-to-chest line."""
+    a = rig.pose.bones['pelvis'].head; b = rig.pose.bones['chest'].tail; ab = b - a
+    for o in FOOT_PTS:
+        p = ankle + Rf @ o; t = max(0.0, min(1.0, (p - a).dot(ab) / ab.length_squared))
+        if (p - (a + ab * t)).length < BODY_R: return True
+    return False
+
 def pose_once(rig, P, adj):
     for pb in rig.pose.bones: pb.matrix_basis = Matrix.Identity(4)
     upd()
@@ -184,10 +194,15 @@ def pose_once(rig, P, adj):
         ankle = goal.copy(); Rch = None; heel = 0; toe = None; Rflat = None
         if ch:  # folded chamber: thigh along `dir`, shin folded back by `fold` degrees toward `toward` (heel to the buttock)
             d = (Rs @ Vector(ch['dir'])).normalized(); tw = Rs @ Vector(ch.get('toward', (0, 0, -1)))
-            pp = (tw - d * tw.dot(d)).normalized(); f = math.radians(ch['fold'])
-            sh = d * math.cos(f) + pp * math.sin(f); kn = hip + d * a_; ankle = kn + sh * b_; hint = kn - hip
-            if ch.get('foot', 'point') == 'point': Rch = foot_axes(sh, -d)              # toes continue the shin (instep leads)
-            else: Rch = foot_axes((Rs @ Vector((0, -1, 0)) - sh * (Rs @ Vector((0, -1, 0))).dot(sh)), -sh)  # toes pulled back, foot square to the shin
+            pp = (tw - d * tw.dot(d)).normalized(); kn = hip + d * a_; hint = kn - hip
+            # fold as tight as the technique asks, but never so tight the foot sinks into the body: a short-thighed, round
+            # character cannot put its heel on its buttock the way a person does, so open the fold until the foot is outside
+            for fold in range(int(ch['fold']), 59, -5):
+                f = math.radians(fold); sh = d * math.cos(f) + pp * math.sin(f); ankle = kn + sh * b_
+                if ch.get('foot', 'point') == 'point': Rch = foot_axes(sh, -d)              # toes continue the shin (instep leads)
+                else: Rch = foot_axes((Rs @ Vector((0, -1, 0)) - sh * (Rs @ Vector((0, -1, 0))).dot(sh)), -sh)  # toes pulled back
+                if not buried(rig, ankle, Rch): break
+            out['fold' + L] = fold
         elif surface:  # work the ankle back from the striking surface so the impact is centred on the target
             for _ in range(4): ankle = goal - foot_frame(aim, hip, ankle) @ Vector(SURFACE[surface])
         if planted:
@@ -297,6 +312,15 @@ def apply_pose(rig, P, fid=''):
         rep['legs'][L] = dict(planted=g['planted'], ankle=tuple(g['contact']), bend=bend, knee_toe=kt, drive=P.get('drive') == L)
     if single and not isinstance(P['foot' + w + 'Rot'], str): rep['hip_foot'] = P['pelvisRot'][2] - P['foot' + w + 'Rot'][2]
     bad = KM.check_frame(rep)
+    for L, g in legs.items():
+        if not g['planted'] and buried(rig, g['ankle'], rig.pose.bones[f'foot_ik.{L}'].matrix.to_3x3() @ rig.pose.bones[f'foot_ik.{L}'].bone.matrix_local.to_3x3().inverted()):
+            bad.append(f'{L} foot is hidden inside the body')
+    view = rotm((0, 0, P['yaw'])).inverted() @ Vector((0, 1, 0))  # the game camera's line of sight, in the rig's space
+    for L, g in legs.items():  # readability: a limb pointing at the camera is seen end-on and reads as a stump
+        if g['planted']: continue
+        for nm, a_, b_ in (('thigh', g['hip'], g['knee']), ('shin', g['knee'], g['ankle'])):
+            if abs((b_ - a_).normalized().dot(view)) > .87: bad.append(f'{L} {nm} points at the camera (seen end-on)')
+    if o.get('foldR') is not None and o['foldR'] < 100: bad.append(f"chamber had to open to {o['foldR']} deg to keep the foot outside the body")
     st = o['strike']
     if st:
         if st['miss'] > .04: bad.append(f"kick lands {st['miss']:.2f} short of the target")
