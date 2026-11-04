@@ -305,6 +305,25 @@ def secondary(rig, reset=False):
             ax = cur.cross(d); ax = ax.normalized() if ax.length > 1e-6 else Vector((1, 0, 0))
             d = Matrix.Rotation(math.radians(MAX_SWING[n]), 3, ax) @ cur
         aim_bone(rig, n, d); dirs[n] = (PB[n].tail - PB[n].head).normalized()
+    # The ribbons are flat strips. Hanging straight down after a lean, their flat side ended up facing sideways, and the
+    # camera saw them edge-on as a thin dark line from the head down the back (user, Nov 4 2026: "the arm is tied to the
+    # tail"). Roll each ribbon segment about its own length so its flat side faces the camera.
+    cam = bpy.context.scene.camera
+    if cam:
+        view = (rig.matrix_world.to_3x3().inverted() @ (cam.matrix_world.to_3x3() @ Vector((0, 0, -1)))).normalized()
+        want = {}
+        for n in ('tie1_a', 'tie1_b', 'tie2_a', 'tie2_b'):
+            pb = PB[n]; M = pb.matrix.to_3x3(); axis = (pb.tail - pb.head).normalized()
+            w = M @ (pb.bone.matrix_local.to_3x3().inverted() @ Vector((0, 0, 1)))  # the strip's width axis (rest: world up)
+            w = (w - axis * w.dot(axis)); wt = axis.cross(view)
+            if w.length < 1e-6 or wt.length < 1e-3: continue
+            w.normalize(); wt.normalize()
+            if w.dot(wt) < 0: wt = -wt
+            ang = w.angle(wt); sgn = 1 if axis.dot(w.cross(wt)) >= 0 else -1
+            want[n] = Matrix.Translation(pb.head.copy()) @ (Matrix.Rotation(sgn * ang, 3, axis) @ M).to_4x4()
+        for n in ('tie1_a', 'tie1_b', 'tie2_a', 'tie2_b'):
+            if n in want: PB[n].matrix = want[n]; upd()
+        for n in ('tie1_a', 'tie1_b', 'tie2_a', 'tie2_b'): dirs[n] = (PB[n].tail - PB[n].head).normalized()
     S_['pts'] = pts; S_['dirs'] = dirs
 
 GOV = {}  # fid -> measured frame, for the move checks and the report
