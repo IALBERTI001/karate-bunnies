@@ -79,13 +79,13 @@ MOVES['spin_kick'] = [stance(**FOCUS, spin=110, pelvis=(0, 0, -.04), pelvisRot=(
                       stance(root=(0, -.1, 0))]
 # W - high front kick (jodan mae-geri, rear leg): knee to the chest with the foot hanging under it; then the leg rises
 # nearly vertical with the sole above head height, the trunk leans back ~20 degrees, the supporting leg stays straight.
-MOVES['high_kick'] = kick((-.12, -.42, .85), 'point', (-.08, -.9, 2.85), 'sole', lean=-20, pivot=40, hips=-40, chest=-8, arm_back=False)
+MOVES['high_kick'] = kick((-.12, -.5, .9), 'point', (-.08, -1.45, 2.65), 'sole', lean=-30, pivot=40, hips=-40, chest=-8, arm_back=False)
 # S - low roundhouse (gedan mawashi-geri, rear leg): the knee lifts low and comes across, the supporting knee bends,
 # the hip turns over and the shin swings flat at knee height; trunk upright.
 MOVES['low_kick'] = kick((-.08, -.3, .62), 'point', (-.05, -1.5, .72), 'point', lean=-6, pivot=110, hips=0, chest=-30, support_bend=.16, arm_back=False)
 # Forward - front push kick (chudan mae-geri, rear leg): same tall chamber, then the hips thrust forward behind the
 # sole at stomach height with the upper body nearly upright.
-MOVES['front_kick'] = kick((-.12, -.42, .85), 'point', (-.08, -1.55, 1.5), 'sole', lean=-10, pivot=30, hips=-40, chest=-8, arm_back=False, step=.18)
+MOVES['front_kick'] = kick((-.12, -.42, .85), 'point', (-.08, -1.8, 1.55), 'sole', lean=-14, pivot=60, hips=-55, chest=-8, arm_back=False, step=.18)
 MOVES['idle'] = [stance()]
 
 # ---------- posing ----------
@@ -173,7 +173,7 @@ def kuwahara(scene, size=4):
 
 # ---------- build, key, render ----------
 bpy.ops.wm.read_factory_settings(use_empty=True)
-scene, root_empty, decals = kbpuppet.setup_scene(RES, 7.4, (0, 2.5), 2.0 * RES / 512)
+scene, root_empty, decals = kbpuppet.setup_scene(RES, 8.0, (0, 2.7), 2.0 * RES / 512)
 bpy.data.objects.remove(root_empty)
 rig = kbrig.build_armature(scene); parts = kbrig.build_body(rig, decals)
 names = [n for n in MOVES if not ONLY or n in ONLY]

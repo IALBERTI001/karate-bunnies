@@ -6,7 +6,7 @@ import bpy, bmesh, math
 from mathutils import Vector, Matrix, Quaternion
 import kbpuppet  # materials and colour helpers
 
-LEG = .25  # extra leg length: real kicks need legs that reach past the round body
+LEG = .62  # extra leg length: real kicks need legs that reach past the round body
 def warp(v):
     v = Vector(v); t = min(max((v.z - .15) / (.92 - .15), 0.0), 1.0); return Vector((v.x, v.y, v.z + LEG * t))
 
