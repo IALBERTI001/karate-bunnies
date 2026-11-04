@@ -8,7 +8,7 @@ import bpy, sys, os, math, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import importlib, kbpuppet, kbrig, kbmove as KM
 importlib.reload(kbpuppet); importlib.reload(kbrig); importlib.reload(KM)
-from mathutils import Vector, Matrix
+from mathutils import Vector, Matrix, Quaternion
 from kbrig import rotm
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
@@ -90,8 +90,8 @@ MOVES['combo_kick'] = kick4(dict(dir=(-.1, -.6, .8), fold=150, toward=(0, 0, -1)
 # Combo 4 / back - spinning back kick (ushiro-geri): turn on the lead foot, look over the shoulder and tuck the heel
 # under the body with the knees together; drive the heel straight back from underneath with the hips behind it;
 # re-tuck, land with the back still to the target, turn back. Frame 1 (the tuck, back view) is the one the game shows.
-TUCK = dict(dir=(0, -.3, -.95), fold=140, toward=(.35, .8, .5), foot='flex')  # heel up behind, angled off the camera line
-MOVES['spin_kick'] = [stance(**FOCUS, spin=110, pelvis=(0, 0, -.06), pelvisRot=(12, 0, 0), spine=(8, 0, 0), chest=(0, 0, 0), head=(0, 0, -50),
+TUCK = dict(dir=(0, -.3, -.95), fold=140, toward=(0, 1, .3), foot='flex')  # heel up behind the body, shin rising (not along the camera line)
+MOVES['spin_kick'] = [stance(**FOCUS, spin=140, pelvis=(0, 0, -.06), pelvisRot=(12, 0, 0), spine=(8, 0, 0), chest=(0, 0, 0), head=(0, 0, -50),
                              footL=(.0, -.25, GROUND), footLRot=(0, 0, 0), heelL=10, footR=(0, 0, 1), chamberR=TUCK, weight='L',
                              handL=(.15, -.35, .2), handR=(-.15, -.35, .2), ties=-14),
                       stance(**FOCUS, spin=180, root=(0, -.2, 0), pelvis=(0, 0, -.06), pelvisRot=(20, 0, -70), spine=(10, 0, -10), chest=(0, 0, -10),
@@ -103,7 +103,7 @@ MOVES['spin_kick'] = [stance(**FOCUS, spin=110, pelvis=(0, 0, -.06), pelvisRot=(
                       stance(root=(0, -.1, 0), weight=.5)]
 # W - high front kick (jodan mae-geri, rear leg): fold the knee high to the chest with the toes pulled back; the hips
 # thrust forward and the trunk drops back ~30 deg as the ball of the foot rises under the chin; whip back, land.
-MOVES['high_kick'] = kick4(FRONT_FOLD(1), (-.05, -1.5, 2.8), 'ball', hips=-12, pivot=30, heel=15, chest=-6, thrust=.1)
+MOVES['high_kick'] = kick4(FRONT_FOLD(1), (-.05, -1.8, 2.7), 'ball', hips=-12, pivot=30, heel=15, chest=-6, thrust=.1)
 # S - low roundhouse (gedan mawashi-geri, rear leg): sink on the bent standing leg, fold the knee up, pivot on the
 # ball of the standing foot and turn the hips over as the instep and shin whip flat into the thigh; trunk upright.
 MOVES['low_kick'] = kick4(dict(dir=(-.1, -.75, .6), fold=135, toward=(0, 0, -1), foot='point'), (-.05, -2.15, .8), 'instep',
@@ -160,7 +160,11 @@ def buried(rig, ankle, Rf):
     """True if the foot would be inside the trunk: any foot point closer than BODY_R to the pelvis-to-chest line."""
     a = rig.pose.bones['pelvis'].head; b = rig.pose.bones['chest'].tail; ab = b - a
     for o in FOOT_PTS:
-        p = ankle + Rf @ o; t = max(0.0, min(1.0, (p - a).dot(ab) / ab.length_squared))
+        p = ankle + Rf @ o; t = (p - a).dot(ab) / ab.length_squared
+        if t < 0:  # below the hips there is no belly, only the hip joint itself
+            if (p - a).length < .5: return True
+            continue
+        t = min(1.0, t)
         if (p - (a + ab * t)).length < BODY_R: return True
     return False
 
@@ -176,7 +180,8 @@ def pose_once(rig, P, adj):
     Rc = Rsp @ rotm(P['chest']); set_bone(rig, 'chest', Rc)
     # The head stays level and the eyes stay on the opponent: it takes the body's turn (within a neck's range), not its lean.
     # Readability: the face never turns fully away from the camera outside a spin (at least one eye shows).
-    turn = max(-75, min(-30, P['pelvisRot'][2] + P['spine'][2] + P['chest'][2])) + P['spin']
+    body = P['pelvisRot'][2] + P['spine'][2] + P['chest'][2]
+    turn = (max(30, min(75, body)) if P.get('mirror') else max(-75, min(-30, body))) + P['spin']  # a mirrored (southpaw) fighter turns the other way
     Rh = rotm((0, 0, turn)) @ rotm(P['head']); set_bone(rig, 'head', Rh)
     out = dict(Rs=Rs, legs={}, strike=None)
     for s, L in ((1, 'L'), (-1, 'R')):
@@ -192,7 +197,14 @@ def pose_once(rig, P, adj):
         hip = rig.pose.bones[f'thigh.{L}'].head.copy(); a_ = rig.pose.bones[f'thigh.{L}'].bone.length; b_ = rig.pose.bones[f'shin.{L}'].bone.length
         aim = SURF_AIM[surface] if surface else (fr if isinstance(fr, str) else None)
         ankle = goal.copy(); Rch = None; heel = 0; toe = None; Rflat = None
-        if ch:  # folded chamber: thigh along `dir`, shin folded back by `fold` degrees toward `toward` (heel to the buttock)
+        ov = P.get('ov' + L)
+        if ov:  # an in-between: the thigh and shin turn from one key's direction to the next (the foot sweeps on an arc,
+                # knee first, never straight through the body); foot and toe turn between the keys too
+            td = (Rs @ ov['td']).normalized(); sd = (Rs @ ov['sd']).normalized(); kn = hip + td * a_; ankle = kn + sd * b_
+            ln = (ankle - hip).normalized(); hint = (kn - hip) - ln * (kn - hip).dot(ln)
+            if hint.length < 1e-4: hint = td
+            ch = None; surface = None; planted = False
+        elif ch:  # folded chamber: thigh along `dir`, shin folded back by `fold` degrees toward `toward` (heel to the buttock)
             d = (Rs @ Vector(ch['dir'])).normalized(); tw = Rs @ Vector(ch.get('toward', (0, 0, -1)))
             pp = (tw - d * tw.dot(d)).normalized(); kn = hip + d * a_; hint = kn - hip
             # fold as tight as the technique asks, but never so tight the foot sinks into the body: a short-thighed, round
@@ -209,22 +221,28 @@ def pose_once(rig, P, adj):
             Rflat = Rs @ rotm(fr); toe = Rflat @ Vector((0, -1, 0)); hint = toe  # knee tracks the toes
             heel = P.get('heel' + L, 0)  # up on the ball of the foot: the ball stays on the floor, the heel lifts
             if heel: ankle = goal + Rflat @ BALL - (Rflat @ rotm((heel, 0, 0))) @ BALL
-        elif not ch:
+        elif not ch and not ov:
             k = P.get('knee' + L, 'lead')
             hint = {'lead': Rs @ Vector((0, -1, 0)) + Vector((0, 0, .7)), 'up': Vector((0, 0, 1)) + Rs @ Vector((0, -.3, 0)),
                     'down': Vector((0, 0, -1)) + Rs @ Vector((0, .3, 0))}[k]
         H, knee, t = solve_limb(rig, f'thigh.{L}', f'shin.{L}', ankle, hint, True)
         if planted: Rf = Rflat @ rotm((heel, 0, 0))
+        elif ov: Rf = Rs @ ov['Rf']
         elif Rch is not None: Rf = Rch
         else: Rf = foot_frame(aim, H, t) if aim else Rs @ rotm(fr)
         set_bone(rig, f'foot_ik.{L}', Rf, t)
         # toes: flat on the floor when standing (also on the ball), pulled back for the ball of the foot, pointed for the instep
         if planted: Rt = Rflat
+        elif ov: Rt = Rf @ ov['Rt']
         elif surface == 'ball' or (ch and ch.get('foot') == 'flex'): Rt = Rf @ rotm((-45, 0, 0))
         elif surface in ('instep',) or aim == 'point' or (ch and ch.get('foot', 'point') == 'point'): Rt = Rf @ rotm((10, 0, 0))
         else: Rt = Rf
         set_bone(rig, f'toe.{L}', Rt)
         contact = t + Rf @ BALL - (Rflat @ BALL if planted else Rf @ BALL) if planted else t
+        Rs_i = Rs.inverted(); nb = knee - H; ln = (t - H).normalized(); nb = nb - ln * nb.dot(ln)
+        out.setdefault('solved', {})[L] = dict(planted=planted, ankle=Rs_i @ (t - R0), hint=Rs_i @ (nb if nb.length > 1e-5 else hint),
+                                               td=Rs_i @ (knee - H).normalized(), sd=Rs_i @ (t - knee).normalized(),
+                                               Rf=(Rs_i @ Rf).to_quaternion(), Rt=(Rf.inverted() @ Rt).to_quaternion())
         out['legs'][L] = dict(planted=planted, hip=H, knee=knee, ankle=t, contact=contact, heel=heel, toe=toe,
                               mid=(goal + toe * (.3 if heel else .12)) if toe is not None else t)  # on the ball of the foot the support moves to the ball
         if surface:
@@ -249,18 +267,21 @@ LOOSE = [  # (bone, parent segment or None, stiff, gravity, drag, lag, keep-out:
     ('tie2_a', None, 1.4, .3, 2.6, .35, ('behind', 'head')), ('tie2_b', 'tie2_a', .8, .55, 3.6, .55, ('behind', 'head')),
     ('beltend_a.L', None, .35, 1.0, 1.3, .3, ('front', 'pelvis')), ('beltend_b.L', 'beltend_a.L', .2, 1.0, 1.8, .5, ('front', 'pelvis')),
     ('beltend_a.R', None, .35, 1.0, 1.3, .3, ('front', 'pelvis')), ('beltend_b.R', 'beltend_a.R', .2, 1.0, 1.8, .5, ('front', 'pelvis')),
-    ('ear_b.L', None, 3.0, .15, .7, .2, None), ('ear_b.R', None, 3.0, .15, .7, .2, None)]
+    ('ear_b.L', None, 4.0, .1, .3, .2, None), ('ear_b.R', None, 4.0, .1, .3, .2, None)]
+MAX_SWING = {'ear_b.L': 18, 'ear_b.R': 18}  # ear tips sway, they never flop sideways
 
 def aim_bone(rig, name, d):
     pb = rig.pose.bones[name]; cur = (pb.tail - pb.head).normalized(); q = cur.rotation_difference(d.normalized())
     head = pb.head.copy(); pb.matrix = Matrix.Translation(head) @ (q.to_matrix() @ pb.matrix.to_3x3()).to_4x4(); upd()
 
+VSCALE = 1.0  # velocity scale for cloth: the drag values were tuned at the game's 9 fps; at 24 fps each frame moves less
 def secondary(rig, reset=False):
-    if reset: SEC.clear()
-    PB = rig.pose.bones; down = Vector((0, 0, -1)); prev_pts = SEC.get('pts', {}); prev_dir = SEC.get('dirs', {})
+    S_ = SEC.setdefault(rig.name, {})
+    if reset: S_.clear()
+    PB = rig.pose.bones; down = Vector((0, 0, -1)); prev_pts = S_.get('pts', {}); prev_dir = S_.get('dirs', {})
     pts = {n: PB[n].head.copy() for n, *_ in LOOSE}; dirs = {}
     for n, par, stiff, grav, drag, lag, keep in LOOSE:
-        v = pts[n] - prev_pts.get(n, pts[n])
+        v = (pts[n] - prev_pts.get(n, pts[n])) * VSCALE
         cur = (PB[n].tail - PB[n].head).normalized()
         d = cur * stiff + down * grav - v * drag + prev_dir.get(n, cur) * lag
         if keep:
@@ -268,8 +289,11 @@ def secondary(rig, reset=False):
             fwd.normalize(); c = d.normalized().dot(fwd)
             if keep[0] == 'front' and c < .05: d = d + fwd * (.05 - c) * d.length
             if keep[0] == 'behind' and c > -.1: d = d - fwd * (c + .1) * d.length
+        if n in MAX_SWING and cur.angle(d) > math.radians(MAX_SWING[n]):  # cap the swing away from the posed direction
+            ax = cur.cross(d); ax = ax.normalized() if ax.length > 1e-6 else Vector((1, 0, 0))
+            d = Matrix.Rotation(math.radians(MAX_SWING[n]), 3, ax) @ cur
         aim_bone(rig, n, d); dirs[n] = (PB[n].tail - PB[n].head).normalized()
-    SEC['pts'] = pts; SEC['dirs'] = dirs
+    S_['pts'] = pts; S_['dirs'] = dirs
 
 GOV = {}  # fid -> measured frame, for the move checks and the report
 def apply_pose(rig, P, fid=''):
@@ -277,7 +301,8 @@ def apply_pose(rig, P, fid=''):
     if single and not isinstance(P['foot' + w + 'Rot'], str):  # rule 4: the standing foot pivots with the hips
         fx, fy, fz = P['foot' + w + 'Rot']; hy = P['pelvisRot'][2]
         P['foot' + w + 'Rot'] = (fx, fy, min(max(fz, hy - KM.HIP_FOOT_MAX), hy + KM.HIP_FOOT_MAX))
-    adj = dict(lean=0.0, shift=Vector((0, 0)), sink=0.0); share = KM.KNEE_SUPPORT if single else KM.KNEE_SOFT
+    adj = dict(lean=0.0, shift=Vector(P.get('shift0', (0, 0))), sink=P.get('sink0', 0.0)); share = KM.KNEE_SUPPORT if single else KM.KNEE_SOFT
+    if P.get('leanFix') is not None: adj['lean'] = P['leanFix'] - P['pelvisRot'][0]
     forced = False
     for it in range(48):
         o = pose_once(rig, P, adj); legs = o['legs']; Rs = o['Rs']
@@ -293,13 +318,16 @@ def apply_pose(rig, P, fid=''):
                     # trunk leans away from the reaching limb until the centre of gravity is over the foot
             pel = rig.pose.bones['pelvis'].head; ep = Rs.inverted() @ Vector((pel.x - S.x, pel.y - S.y, 0)) + Vector((0, P.get('thrust', 0), 0))
             adj['shift'] -= Vector((eb.x, eb.y if forced else ep.y)) * .8  # along the line: hips over the foot (or balance, if the lean is set by the kick)
-            if it >= 3:  # the hips arrive first; then the lean (damped so it settles instead of swinging)
+            if P.get('leanFix') is not None:  # an in-between keeps the lean blended from its two keys (smooth); the hips balance it
+                adj['lean'] = P['leanFix'] - P['pelvisRot'][0]; forced = True
+            elif it >= 3:  # the hips arrive first; then the lean (damped so it settles instead of swinging)
                 base = P['pelvisRot'][0]; want = base + adj['lean'] + eb.y * 30
                 new = min(max(want, KM.LEAN_RANGE[0]), KM.LEAN_RANGE[1])
                 if P.get('leanMin') is not None: new = min(new, P['leanMin'])  # karate: the trunk drops away as far as the kick's height asks
                 forced = abs(new - want) > 1e-6; adj['lean'] = new - base
         else:       # on two legs the hips travel (weight transfer) and the trunk stays upright
             adj['shift'] -= Vector((eb.x, eb.y)) * .8
+            if P.get('leanFix') is not None: adj['lean'] = P['leanFix'] - P['pelvisRot'][0]
     secondary(rig, reset=P.get('_first', False))
     # measure the result against the rules
     legs = o['legs']; rep = dict(com_err=e.length, com_tol=tol, ground=GROUND, single=single, legs={})
@@ -336,6 +364,7 @@ def apply_pose(rig, P, fid=''):
           knees={L: round(v['bend']) for L, v in rep['legs'].items()},
           target=xz(st['goal']) if st else None, hit=xz(st['hit']) if st else None, miss=round(st['miss'], 3) if st else None,
           facing=round(st['facing']) if st and st['facing'] is not None else None, bad=bad)), flush=True)
+    P['_solved'] = dict(legs=o['solved'], lean=P['pelvisRot'][0] + adj['lean'], sink=adj['sink'], shift=tuple(adj['shift']), bad=bad)
     return P
 
 def key_frame(rig, f, P):
@@ -359,7 +388,7 @@ def constant_keys(ids):
                         for kp in fc.keyframe_points: kp.interpolation = 'CONSTANT'
 
 # ---------- painterly finish: anisotropic Kuwahara over the colour pass (alpha kept) ----------
-def kuwahara(scene, size=4):
+def kuwahara(scene, size=2):  # small: a painted feel without smearing the joints and outlines
     try:
         tree = bpy.data.node_groups.new('Paint', 'CompositorNodeTree'); scene.compositing_node_group = tree
         tree.interface.new_socket('Image', in_out='OUTPUT', socket_type='NodeSocketColor')
@@ -377,33 +406,105 @@ def kuwahara(scene, size=4):
     except Exception as e:
         print('KB-KUWAHARA off:', e, flush=True); return None
 
-# ---------- build, key, render ----------
-bpy.ops.wm.read_factory_settings(use_empty=True)
-scene, root_empty, decals = kbpuppet.setup_scene(RES, 8.0, (0, 2.7), 2.0 * RES / 512)
-bpy.data.objects.remove(root_empty)
-rig = kbrig.build_armature(scene); parts = kbrig.build_body(rig, decals)
-for _pb in rig.pose.bones:  # limbs are solved by the movement rules (moves.py solve_limb), so the IK solver stays off
-    for _c in _pb.constraints:
-        if _c.type == 'IK': _c.mute = True
-names = [n for n in MOVES if not ONLY or n in ONLY]
-frames = []
-for k, name in enumerate(names):
-    m = scene.timeline_markers.new(name, frame=k * 10 + 1)
-    for i, P in enumerate(MOVES[name]):
-        P = dict(P, _first=(i == 0 and k == 0))
-        f = k * 10 + 1 + i; apply_pose(rig, P, f'{name}-{i}'); key_frame(rig, f, P); frames.append((f, f'{name}-{i}'))
-    if name in KIND:
-        print('KB-MOVE', json.dumps(dict(id=name, bad=KM.check_move(KIND[name], [GOV[f'{name}-{i}'] for i in range(len(MOVES[name]))]))), flush=True)
-constant_keys([rig] + [o for objs in kbrig.EXPRESSIONS.values() for o in objs])
-scene.frame_start, scene.frame_end = 1, frames[-1][0]
-os.makedirs(os.path.join(OUT, 'color'), exist_ok=True); os.makedirs(os.path.join(OUT, 'mask'), exist_ok=True)
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, 'bunny-rig.blend'))
-paint = kuwahara(scene)
-for f, fid in frames:
-    scene.frame_set(f); scene.render.filepath = os.path.join(OUT, 'color', fid + '.png'); bpy.ops.render.render(write_still=True)
-    print('KB-FRAME', fid, flush=True)
-if paint is not None: scene.compositing_node_group = None
-scene.render.use_freestyle = False; kbpuppet.to_mask(parts.objs)
-for f, fid in frames:
-    scene.frame_set(f); scene.render.filepath = os.path.join(OUT, 'mask', fid + '.png'); bpy.ops.render.render(write_still=True)
-print('KB-DONE', len(frames), flush=True)
+# ---------- in-betweens: every frame between two key poses is governed too ----------
+# A key pose says where the body must be; the frames between are not a blend of pictures but bodies in their own
+# right. Each in-between blends the two keys' body settings (stance, hips, trunk, hands, lean) and the solved kicking
+# leg (ankle path, knee direction, foot and toe turn), then runs the same rules: planted feet stay down, the hips keep
+# the centre of gravity over the support, knees and elbows are solved, cloth follows through.
+NOBLEND = {'chamberL', 'chamberR', 'strikeL', 'strikeR', 'leanMin', 'kneeL', 'kneeR', 'ovL', 'ovR', 'weight', 'leanFix', 'shift0', 'sink0', 'drive'}
+DEFAULTS = dict(thrust=0, heelL=0, heelR=0)
+def ease(kind, t):
+    return {'in': t * t, 'out': 1 - (1 - t) ** 2, 'io': t * t * (3 - 2 * t), 'lin': t}[kind]
+def tween(P0, P1, t):
+    S0, S1 = P0['_solved'], P1['_solved']; P = {}
+    for k in set(P0) | set(P1):
+        if k.startswith('_') or k in NOBLEND: continue
+        a, b = P0.get(k, DEFAULTS.get(k)), P1.get(k, DEFAULTS.get(k))
+        if a is None: a = b
+        if b is None: b = a
+        if isinstance(a, (int, float)) and isinstance(b, (int, float)) and not isinstance(a, bool): P[k] = a + (b - a) * t
+        elif isinstance(a, tuple) and isinstance(b, tuple) and len(a) == len(b): P[k] = tuple(x + (y - x) * t for x, y in zip(a, b))
+        else: P[k] = a if t < .5 else b
+    lifted = None
+    for L in 'LR':
+        s0, s1 = S0['legs'][L], S1['legs'][L]
+        if s0['planted'] and s1['planted']: continue
+        turn = lambda a, b, u: (Quaternion().slerp(a.rotation_difference(b), u)) @ a  # direction a turned toward b by u
+        tk = math.sqrt(t) if s0['planted'] else t  # leaving the floor, the knee leads: the thigh turns first, the shin follows
+        P['ov' + L] = dict(ankle=s0['ankle'].lerp(s1['ankle'], t), td=turn(s0['td'], s1['td'], tk), sd=turn(s0['sd'], s1['sd'], t),
+                           Rf=s0['Rf'].slerp(s1['Rf'], t).to_matrix(), Rt=s0['Rt'].slerp(s1['Rt'], t).to_matrix())
+        P['foot' + L] = tuple(P['ov' + L]['ankle']); lifted = L
+    if lifted: P['weight'] = 'R' if lifted == 'L' else 'L'
+    else:
+        w0 = 1.0 if isinstance(P0.get('weight', .5), str) else P0.get('weight', .5); w1 = 1.0 if isinstance(P1.get('weight', .5), str) else P1.get('weight', .5)
+        P['weight'] = min(w0 + (w1 - w0) * t, .9)
+    P['leanFix'] = S0['lean'] + (S1['lean'] - S0['lean']) * t; P['sink0'] = S0['sink'] + (S1['sink'] - S0['sink']) * t
+    P['shift0'] = tuple(a + (b - a) * t for a, b in zip(S0['shift'], S1['shift'])); P['drive'] = (P0 if t < .5 else P1).get('drive')
+    return P
+
+# timing at 24 frames a second, from the reference footage (a kick is ~0.3 s per beat; games run it a little faster)
+# segments: (from key, to key, frames, easing); keys = [guard, k0, k1, k2, k3, guard]
+TIMING = {
+    'punch': [(0, 1, 4, 'io'), (1, 2, 2, 'in'), (2, 3, 2, 'in'), (3, 3, 2, 'hold'), (3, 4, 5, 'out'), (4, 5, 4, 'io')],
+    'kick': [(0, 1, 5, 'io'), (1, 2, 3, 'in'), (2, 2, 2, 'hold'), (2, 3, 3, 'out'), (3, 4, 4, 'io'), (4, 5, 3, 'io')],
+    'spin': [(0, 1, 6, 'io'), (1, 2, 4, 'in'), (2, 2, 2, 'hold'), (2, 3, 3, 'out'), (3, 4, 5, 'io'), (4, 5, 3, 'io')]}
+def sequence(name):
+    keys = [stance(weight=.5)] + [dict(P) for P in MOVES[name]] + [stance(weight=.5)]
+    if name == 'spin_kick': keys[4]['spin'] = 360; keys[5]['spin'] = 360  # keep turning the same way back to the front
+    sched = TIMING['punch' if name.startswith('punch') else 'spin' if name == 'spin_kick' else 'kick']
+    return keys, sched
+
+if __name__ == '__main__':
+    SMOOTH = 'smooth' in argv[3:] if len(argv) > 3 else False
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    scene, root_empty, decals = kbpuppet.setup_scene(RES, 8.0, (0, 2.7), 2.0 * RES / 512)
+    bpy.data.objects.remove(root_empty)
+    rig = kbrig.build_armature(scene); parts = kbrig.build_body(rig, decals)
+    for _pb in rig.pose.bones:  # limbs are solved by the movement rules (moves.py solve_limb), so the IK solver stays off
+        for _c in _pb.constraints:
+            if _c.type == 'IK': _c.mute = True
+    names = [n for n in MOVES if (not ONLY or n in ONLY) and (not SMOOTH or n != 'idle')]
+    frames = []; seqmeta = {}
+    if SMOOTH:
+        VSCALE = 24 / 9; f = 1
+        for k, name in enumerate(names):
+            keys, sched = sequence(name)
+            for i, P in enumerate(keys): keys[i] = apply_pose(rig, P, f'{name}-{i - 1}' if 0 < i < 5 else f'{name}-guard')  # solve the keys first
+            print('KB-MOVE', json.dumps(dict(id=name, bad=KM.check_move(KIND[name], [GOV[f'{name}-{i}'] for i in range(4)]))), flush=True)
+            scene.timeline_markers.new(name, frame=f); n = 0; keyat = {}
+            seq = [(keys[0], 'key', 0)]
+            for a_, b_, cnt, kind in sched:
+                for j in range(1, cnt + 1):
+                    if kind == 'hold': seq.append((keys[a_], 'hold', a_))
+                    elif j == cnt: seq.append((keys[b_], 'key', b_))
+                    else: seq.append((tween(keys[a_], keys[b_], ease(kind, j / cnt)), 'tween', None))
+            for P, what, ki in seq:
+                fid = f'{name}-s{n:02d}'; P = dict(P, _first=(n == 0))
+                apply_pose(rig, P, fid); key_frame(rig, f, P); frames.append((f, fid))
+                if what == 'key' and 0 < ki < 5 and ki - 1 not in keyat: keyat[ki - 1] = n
+                f += 1; n += 1
+            seqmeta[name] = dict(frames=n, keys=[keyat.get(i) for i in range(4)])
+        json.dump(seqmeta, open(os.path.join(OUT, 'sequences.json'), 'w'))
+    else:
+        for k, name in enumerate(names):
+            m = scene.timeline_markers.new(name, frame=k * 10 + 1)
+            for i, P in enumerate(MOVES[name]):
+                P = dict(P, _first=(i == 0 and k == 0))
+                f = k * 10 + 1 + i; apply_pose(rig, P, f'{name}-{i}'); key_frame(rig, f, P); frames.append((f, f'{name}-{i}'))
+            if name in KIND:
+                print('KB-MOVE', json.dumps(dict(id=name, bad=KM.check_move(KIND[name], [GOV[f'{name}-{i}'] for i in range(len(MOVES[name]))]))), flush=True)
+    constant_keys([rig] + [o for objs in kbrig.EXPRESSIONS.values() for o in objs])
+    scene.frame_start, scene.frame_end = 1, frames[-1][0]
+    sub = 'smooth' if SMOOTH else 'color'
+    os.makedirs(os.path.join(OUT, sub), exist_ok=True); os.makedirs(os.path.join(OUT, 'mask'), exist_ok=True)
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, 'bunny-rig-smooth.blend' if SMOOTH else 'bunny-rig.blend'))
+    paint = kuwahara(scene)
+    for f, fid in frames:
+        scene.frame_set(f); scene.render.filepath = os.path.join(OUT, sub, fid + '.png'); bpy.ops.render.render(write_still=True)
+        print('KB-FRAME', fid, flush=True)
+    if not SMOOTH:
+        if paint is not None: scene.compositing_node_group = None
+        scene.render.use_freestyle = False; kbpuppet.to_mask(parts.objs)
+        for f, fid in frames:
+            scene.frame_set(f); scene.render.filepath = os.path.join(OUT, 'mask', fid + '.png'); bpy.ops.render.render(write_still=True)
+    print('KB-DONE', len(frames), flush=True)
