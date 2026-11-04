@@ -20,7 +20,7 @@ OUT = argv[0] if argv else os.path.join(os.path.dirname(os.path.abspath(__file__
 RX = int(argv[1]) if len(argv) > 1 else 1280
 FPS = 24
 MV.VSCALE = 24 / 9
-MV.TIMING['kick'] = [(0, 1, 5, 'io'), (1, 2, 3, 'in'), (2, 2, 4, 'hold'), (2, 3, 3, 'out'), (3, 4, 5, 'io'), (4, 5, 3, 'io')]  # hold the scoring kick
+MV.TIMING['kick'] = [(0, 1, 5, 'io'), (1, 2, 4, 'in'), (2, 2, 3, 'hold'), (2, 3, 5, 'out'), (3, 4, 6, 'io'), (4, 5, 3, 'io')]  # the final's timing, with a short hold on the hit
 
 # ---------- mirroring: AO fights southpaw so both fighters show their chest to the broadcast camera ----------
 SIDE = {'L': 'R', 'R': 'L'}
@@ -51,7 +51,7 @@ bpy.data.objects.remove(root_empty)
 scene.render.resolution_x, scene.render.resolution_y = RX, RX * 9 // 16
 scene.render.film_transparent = False; scene.render.fps = FPS
 cam = scene.camera; cam.data.type = 'PERSP'; cam.data.lens = 42
-cam.location = (-2.6, -15, 3.5); look = Vector((.2, 0, 2.4)) - cam.location; cam.rotation_euler = look.to_track_quat('-Z', 'Y').to_euler()  # 10 deg round toward Aka's back: the kicking hip and pivot show, and both faces still read
+cam.location = (-1.2, -15, 3.4); look = Vector((.2, 0, 2.4)) - cam.location; cam.rotation_euler = look.to_track_quat('-Z', 'Y').to_euler()  # 10 deg round toward Aka's back: the kicking hip and pivot show, and both faces still read
 scene.world.node_tree.nodes['Background'].inputs[0].default_value = kbpuppet.hexc('#1b2130')
 scene.world.node_tree.nodes['Background'].inputs[1].default_value = .6
 m = kbpuppet.materials()
@@ -122,25 +122,25 @@ def move(rig, name, mv, dy, tweak=None, dys=None):  # dys: a step per key (a kic
 
 rigA, rigB = AKA[0], AO[0]
 G = lambda dy, **kw: MV.stance(**MV.FOCUS, root=(0, dy, 0), weight=.5, **kw)
-def head_kick(keys):  # the scoring kick: the trunk drops far back (about 40 degrees on the bunny, more on a person)
-    keys[2]['leanMin'] = -40
+def head_kick(keys):  # the measured kick already carries the final's lean; nothing to add
+    pass
 A = [prep('AKA', P) for P in bounce(28, 0, 0, .0)]
-A += [prep('AKA', P) for P in bounce(6, 0, .45, .0, 6)]                          # slide back out of AO's punch
-A += move(rigA, 'AKA', 'combo_kick', .45, head_kick, dys=[.45, .2, -.4, -.05, .1, .1])  # jodan mawashi-geri counter: slide back, then plant and drive in (impact at frame 54)
+A += [prep('AKA', P) for P in bounce(7, 0, .7, .0, 7)]                            # a clear slide back out of range                          # slide back out of AO's punch
+A += move(rigA, 'AKA', 'combo_kick', .7, head_kick, dys=[.7, -.1, -.6, -.45, -.1, .1])  # slide out, then plant and drive in with the kick  # jodan mawashi-geri counter: slide back, then plant and drive in (impact at frame 54)
 A += [prep('AKA', P) for P in bounce(12, .1, 0, .25)]
 B = [prep('AO', P) for P in bounce(24, 0, -.6, .5)]                              # AO creeps in
-B += move(rigB, 'AO', 'punch2', -.6, dys=[-.6, -.75, -.95, -1.0, -1.0, -1.0])                                            # gyaku-zuki entry (impact frame 44), falls short as AKA slides back
+B += move(rigB, 'AO', 'punch2', -.6, dys=[-.6, -.7, -.85, -.9, -.9, -.9])                                            # gyaku-zuki entry (impact frame 44), falls short as AKA slides back
 flinch = MV.stance(eyes='hurt', mouth='open', root=(0, 0, 0), pelvisRot=(0, 0, -45), head=(-12, 14, 4), chest=(0, 0, -12), weight=.4,
                    handL=(.2, -.5, .35), handR=(-.05, -.25, .4), ties=12)
-B += tweens(rigB, 'AO', prep('AO', G(-1.0)), prep('AO', at(flinch, -.6)), 5, 'out', 'ao-flinch')
+B += tweens(rigB, 'AO', prep('AO', G(-.9)), prep('AO', at(flinch, -.6)), 5, 'out', 'ao-flinch')
 B += tweens(rigB, 'AO', prep('AO', at(flinch, -.6)), prep('AO', G(-.5)), 12, 'io', 'ao-recover')
 n = max(len(A), len(B))
 B += [prep('AO', P) for P in bounce(n - len(B), -.5, 0, .1)]
 A = A[:n]
 # rei: both stand in musubi-dachi (heels together), hands at the sides, and bow
-READY = MV.stance(root=(0, 0, 0), footL=(.12, -.08, MV.GROUND), footR=(-.12, .08, MV.GROUND), footLRot=(0, 0, 25), footRRot=(0, 0, -25),
+READY = MV.stance(root=(0, 0, 0), footL=(.14, -.03, MV.GROUND), footR=(-.14, .03, MV.GROUND), footLRot=(0, 0, 12), footRRot=(0, 0, -12), straight=True, look='opponent',
                   pelvis=(0, 0, -.06), pelvisRot=(0, 0, 0), chest=(0, 0, 0), handL=(.6, -.48, -.78), handR=(-.6, -.48, -.78), weight=.5)  # open hands at the front of the thighs
-BOW = dict(READY, pelvisRot=(26, 0, 0), spine=(8, 0, 0), head=(6, 0, 0), eyes='happy')
+BOW = dict(READY, pelvisRot=(24, 0, 0), spine=(8, 0, 0), head=(14, 0, 0), eyes='happy', bow=True)  # the head bows with the trunk
 for nm, rig, L in (('AKA', rigA, A), ('AO', rigB, B)):
     L += tweens(rig, nm, prep(nm, G(0)), prep(nm, READY), 12, 'io', f'{nm}-ready')
     L += tweens(rig, nm, prep(nm, READY), prep(nm, BOW), 9, 'io', f'{nm}-bow')
@@ -165,7 +165,7 @@ for f in range(N):
         bad += bool(P['_solved']['bad'])
         key_fighter(fig, f + 1, P)
 MV.constant_keys([rigA, rigB] + [o for fig in (AKA, AO) for objs in fig[2].values() for o in objs])
-KICK = 28 + 6 + 8 + 1  # frame of Aka's impact (bounce, slide, then the kick's fold and snap)
+KICK = 28 + 7 + 9 + 1  # frame of Aka's impact (bounce, slide, then the kick's fold and snap)
 for f_, lens in ((1, 42), (KICK - 10, 42), (KICK, 52), (KICK + 12, 52), (KICK + 30, 42)):  # a slow push-in on the kick, then back out
     cam.data.lens = lens; cam.data.keyframe_insert('lens', frame=f_)
 scene.frame_start, scene.frame_end = 1, N

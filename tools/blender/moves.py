@@ -53,9 +53,9 @@ MOVES['punch1'] = [stance(**FOCUS, pelvis=(0, 0, -.3), weight=.5),
 # drives, the weight moves onto the bending front knee, the hips turn from side-on to nearly square and the chest
 # keeps turning after them, so the rear fist travels out along the centre line; the lead fist pulls back to the hip.
 MOVES['punch2'] = [stance(**FOCUS, handR=(-.2, -.05, -.3), handL=(.12, -.78, .18), weight=.45),
-                   stance(**FOCUS, root=(0, -.1, 0), pelvis=(0, 0, -.36), pelvisRot=(0, 0, -34), chest=(0, 0, 2), footL=(.1, -.94, GROUND),
+                   stance(**FOCUS, root=(0, -.1, 0), pelvis=(0, 0, -.3), pelvisRot=(0, 0, -34), chest=(0, 0, 2), footL=(.1, -.86, GROUND),
                           footR=(-.15, .8, GROUND), footRRot=(0, 0, -38), drive='R', handR=(-.05, -.85, .2), handL=(.24, -.1, -.22), weight=.6, ties=-6),
-                   stance(**FOCUS, root=(0, -.14, 0), pelvis=(0, 0, -.4), pelvisRot=(0, 0, -16), chest=(0, 0, 10), footL=(.1, -.98, GROUND),
+                   stance(**FOCUS, root=(0, -.14, 0), pelvis=(0, 0, -.3), pelvisRot=(0, 0, -16), chest=(0, 0, 10), footL=(.1, -.86, GROUND),
                           footR=(-.15, .8, GROUND), footRRot=(0, 0, -25), drive='R', handR=(-.02, -1.65, .3), handL=(.26, .05, -.28), mouth='shout',
                           weight=.65, ties=-12),
                    stance(root=(0, -.05, 0), weight=.5)]
@@ -69,14 +69,16 @@ def sup(pivot, heel=0, bend=0, thrust=0):
 def lean_for(z):  # how far the trunk must drop away for a kick at height z (from the reference footage)
     return -30 if z >= 2.3 else (-10 if z >= 1.4 else None)
 def kick4(fold, target, surface, hips, pivot, heel, rechamber=None, re_hips=None, re_pivot=None, chest=-30, bend=0, thrust=0, step=.1,
-          arms=None, fold_hips=-20, fold_pivot=30, knee='up'):
+          arms=None, fold_hips=-20, fold_pivot=30, knee='up', fold_lean=None, re_lean=None, fold_arms=None, re_arms=None, lean=None):
     arms = arms or GUARD
     f0 = stance(**FOCUS, **sup(fold_pivot, heel * .5, bend), pelvisRot=(0, 0, fold_hips), spine=(-2, 0, 0), chest=(0, 0, -12),
-                footR=(0, 0, 1), chamberR=fold, **GUARD)
+                footR=(0, 0, 1), chamberR=fold, leanMin=fold_lean, **(fold_arms or GUARD))
     f1 = stance(**FOCUS, **sup(pivot, heel, bend, thrust), root=(0, -step, 0), footR=target, strikeR=surface, kneeR=knee, leanMin=lean_for(target[2]),
                 pelvisRot=(0, 0, hips), chest=(0, 0, chest), head=(0, 0, 12), mouth='shout', ties=-16, **arms)
+    if lean is not None: f1['leanMin'] = lean
     f2 = stance(**FOCUS, **sup(pivot if re_pivot is None else re_pivot, heel, bend), root=(0, -step, 0), footR=(0, 0, 1), chamberR=rechamber or fold,
-                pelvisRot=(0, 0, hips if re_hips is None else re_hips), chest=(0, 0, chest * .6), head=(0, 0, 12), mouth='open', ties=-10, **GUARD)
+                pelvisRot=(0, 0, hips if re_hips is None else re_hips), chest=(0, 0, chest * .6), head=(0, 0, 12), mouth='open', ties=-10,
+                leanMin=re_lean, **(re_arms or GUARD))
     return [f0, f1, f2, stance(root=(0, -step * .5, 0), weight=.5)]
 FRONT_FOLD = lambda up: dict(dir=(-.05, -.6 + up * .2, .8 + up * .1), fold=150, toward=(0, 0, -1), foot='flex')
 SIDE_FOLD = dict(dir=(-.1, -.92, .38), fold=140, toward=(-.45, .85, .1), foot='point')  # shin folds back across the screen, not at the camera  # roundhouse re-chamber: knee horizontal
@@ -84,9 +86,17 @@ SIDE_FOLD = dict(dir=(-.1, -.92, .38), fold=140, toward=(-.45, .85, .1), foot='p
 # rises onto its ball and pivots until its heel faces the target, which turns the knee from vertical to horizontal;
 # the hips turn over until the belly faces past the target, the trunk drops away ~30 deg and the instep snaps into the
 # head; whip back to a horizontal chamber, turn the standing foot and hips back in, then land.
-MOVES['combo_kick'] = kick4(dict(dir=(-.1, -.6, .8), fold=150, toward=(0, 0, -1), foot='point'), (-.05, -2.05, 2.45), 'instep',
-                            hips=85, pivot=135, heel=25, rechamber=SIDE_FOLD, re_hips=55, re_pivot=105, chest=-45, fold_hips=10, fold_pivot=60,
-                            arms=dict(handR=(-.5, .5, .05), handL=(.18, -.45, .55)))  # kicking-side arm swings back clear of the body, the other guards the face
+# Measured frame by frame from the scoring head kick of the WKF Cairo 2024 -84 kg final (Badawy, 4:29.1 / 4:29.3 / 4:29.55):
+#  chamber: knee up in front at hip height, shin hanging, trunk already ~30 deg back, standing leg straight and vertical;
+#  impact: leg straight at ~45 deg up from the hip, foot above the kicker's own head, trunk ~47 deg back, head tilted back
+#          with the eyes on the target, the rear arm flung straight back as a counterweight, hip right over the standing foot;
+#  re-chamber: the foot folds back to the hip with the trunk still ~40 deg back; then the leg comes down and the trunk rises.
+MOVES['combo_kick'] = kick4(dict(dir=(-.1, -.95, .2), fold=115, toward=(0, 0, -1), foot='point'), (-.05, -1.75, 2.55), 'instep',
+                            hips=85, pivot=135, heel=25, rechamber=dict(dir=(-.1, -.85, -.1), fold=120, toward=(0, .5, 1), foot='point'),
+                            re_hips=60, re_pivot=110, chest=-30, fold_hips=25, fold_pivot=70, fold_lean=-28, re_lean=-36, lean=-44,
+                            fold_arms=dict(handL=(.18, -.6, .55), handR=(-.45, .55, -.1)),
+                            arms=dict(handL=(.25, -.55, .7), handR=(-.35, 1.1, -.05)),  # rear arm flung straight back as the counterweight
+                            re_arms=dict(handL=(.2, -.6, .6), handR=(-.4, .7, -.35)))
 # Combo 4 / back - spinning back kick (ushiro-geri): turn on the lead foot, look over the shoulder and tuck the heel
 # under the body with the knees together; drive the heel straight back from underneath with the hips behind it;
 # re-tuck, land with the back still to the target, turn back. Frame 1 (the tuck, back view) is the one the game shows.
@@ -181,10 +191,12 @@ def pose_once(rig, P, adj):
     # The head stays level and the eyes stay on the opponent: it takes the body's turn (within a neck's range), not its lean.
     # Readability: the face never turns fully away from the camera outside a spin (at least one eye shows).
     body = P['pelvisRot'][2] + P['spine'][2] + P['chest'][2]
-    turn = (max(30, min(75, body)) if P.get('mirror') else max(-75, min(-30, body))) + P['spin']  # a mirrored (southpaw) fighter turns the other way
+    look = P.get('look', 'opponent' if P.get('weight') in ('L', 'R') else 'camera')  # kicking or bowing: eyes on the opponent, even in profile
+    lim = 0 if look == 'opponent' else 30
+    turn = (max(lim, min(75, body)) if P.get('mirror') else max(-75, min(-lim, body))) + P['spin']  # a mirrored (southpaw) fighter turns the other way
     # On a big-headed character the head is most of the silhouette: if it stayed perfectly level a 40 degree trunk lean
     # would be invisible. In kicks the head goes back with the trunk (70%), eyes still on the target; punches stay level.
-    tilt = .7 * (pr[0] + adj['lean']) if P.get('weight') in ('L', 'R') else 0
+    tilt = .7 * (pr[0] + adj['lean']) if P.get('weight') in ('L', 'R') or P.get('bow') else 0
     Rh = Rs @ rotm((tilt, 0, 0)) @ rotm((0, 0, turn - P['spin'])) @ rotm(P['head']); set_bone(rig, 'head', Rh)
     out = dict(Rs=Rs, legs={}, strike=None)
     for s, L in ((1, 'L'), (-1, 'R')):
@@ -304,7 +316,7 @@ def apply_pose(rig, P, fid=''):
     if single and not isinstance(P['foot' + w + 'Rot'], str):  # rule 4: the standing foot pivots with the hips
         fx, fy, fz = P['foot' + w + 'Rot']; hy = P['pelvisRot'][2]
         P['foot' + w + 'Rot'] = (fx, fy, min(max(fz, hy - KM.HIP_FOOT_MAX), hy + KM.HIP_FOOT_MAX))
-    adj = dict(lean=0.0, shift=Vector(P.get('shift0', (0, 0))), sink=P.get('sink0', 0.0)); share = KM.KNEE_SUPPORT if single else KM.KNEE_SOFT
+    adj = dict(lean=0.0, shift=Vector(P.get('shift0', (0, 0))), sink=P.get('sink0', 0.0)); share = KM.KNEE_SUPPORT if single else (KM.KNEE_DRIVE if P.get('straight') else KM.KNEE_SOFT)
     if P.get('leanFix') is not None: adj['lean'] = P['leanFix'] - P['pelvisRot'][0]
     forced = False
     for it in range(48):
@@ -449,7 +461,7 @@ def tween(P0, P1, t):
 # segments: (from key, to key, frames, easing); keys = [guard, k0, k1, k2, k3, guard]
 TIMING = {
     'punch': [(0, 1, 4, 'io'), (1, 2, 2, 'in'), (2, 3, 2, 'in'), (3, 3, 2, 'hold'), (3, 4, 5, 'out'), (4, 5, 4, 'io')],
-    'kick': [(0, 1, 5, 'io'), (1, 2, 3, 'in'), (2, 2, 3, 'hold'), (2, 3, 3, 'out'), (3, 4, 5, 'io'), (4, 5, 3, 'io')],
+    'kick': [(0, 1, 5, 'io'), (1, 2, 4, 'in'), (2, 2, 3, 'hold'), (2, 3, 5, 'out'), (3, 4, 6, 'io'), (4, 5, 3, 'io')],  # measured: fold 0.2 s, snap 0.2 s, re-chamber 0.25 s, land 0.3 s
     'spin': [(0, 1, 6, 'io'), (1, 2, 4, 'in'), (2, 2, 2, 'hold'), (2, 3, 3, 'out'), (3, 4, 5, 'io'), (4, 5, 3, 'io')]}
 def sequence(name):
     keys = [stance(weight=.5)] + [dict(P) for P in MOVES[name]] + [stance(weight=.5)]
