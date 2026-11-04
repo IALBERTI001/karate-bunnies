@@ -43,3 +43,12 @@ Lessons learned:
 - Aim strikes in screen space. From a three-quarter view, a strike aimed "forward" mostly travels toward the camera.
 - Don't use Blender's IK stretch: it scales bones in every direction, so stretched limbs get fat. `moves.py` lengthens limbs along their bones only.
 - Turn Preserve Volume off on stretched limbs.
+
+## Movement rules (Nov 3): `kbmove.py`
+Every pose goes through a governor (see the `natural-movement-rules` skill): the centre of gravity is kept over the
+declared support (hips travel on two feet, the trunk leans away from the reaching limb on one), planted feet stay down
+(the body sinks instead), knees and elbows are placed by rule (standing knees track the toes, lifted knees lead) with an
+exact two-bone solve (Blender's IK constraints are muted), the standing foot pivots with the hips, and kicks name the
+striking surface and target so the impact is centred on it. Each frame prints a `KB-GOV` line and each move a `KB-MOVE`
+line with any broken rule; `python3 govsheet.py <out> <log> sheet.png` draws the rules on the frames.
+`python3 tools/blender/kbmove_test.py` unit-tests the rule math.
