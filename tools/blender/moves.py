@@ -223,6 +223,39 @@ def pose_once(rig, P, adj):
 def cog(rig):
     return Vector(KM.centre_of_gravity([(tuple((pb.head + pb.tail) / 2), MASS[pb.name]) for pb in rig.pose.bones if pb.name in MASS]))
 
+# ---------- secondary motion: loose cloth and ears (natural-movement-rules) ----------
+# Belt ends, headband ribbons and ear tips are not rigid. Each segment keeps a little of its posed shape (stiff), hangs
+# with gravity, trails opposite to how fast its root just moved (drag) and keeps some of last frame's direction (lag,
+# follow-through). Gravity is what shows a lean (the ends hang straight down while the body tilts); drag and lag show
+# speed. Cloth never passes into the body: belt ends stay in front of the belly, ribbons behind the face.
+SEC = {}
+LOOSE = [  # (bone, parent segment or None, stiff, gravity, drag, lag, keep-out: ('front', bone) = stay in front of, ('behind', bone))
+    ('tie1_a', None, 1.4, .22, 3.0, .35, ('behind', 'head')), ('tie1_b', 'tie1_a', .8, .45, 4.0, .55, ('behind', 'head')),
+    ('tie2_a', None, 1.4, .3, 2.6, .35, ('behind', 'head')), ('tie2_b', 'tie2_a', .8, .55, 3.6, .55, ('behind', 'head')),
+    ('beltend_a.L', None, .35, 1.0, 1.3, .3, ('front', 'pelvis')), ('beltend_b.L', 'beltend_a.L', .2, 1.0, 1.8, .5, ('front', 'pelvis')),
+    ('beltend_a.R', None, .35, 1.0, 1.3, .3, ('front', 'pelvis')), ('beltend_b.R', 'beltend_a.R', .2, 1.0, 1.8, .5, ('front', 'pelvis')),
+    ('ear_b.L', None, 3.0, .15, .7, .2, None), ('ear_b.R', None, 3.0, .15, .7, .2, None)]
+
+def aim_bone(rig, name, d):
+    pb = rig.pose.bones[name]; cur = (pb.tail - pb.head).normalized(); q = cur.rotation_difference(d.normalized())
+    head = pb.head.copy(); pb.matrix = Matrix.Translation(head) @ (q.to_matrix() @ pb.matrix.to_3x3()).to_4x4(); upd()
+
+def secondary(rig, reset=False):
+    if reset: SEC.clear()
+    PB = rig.pose.bones; down = Vector((0, 0, -1)); prev_pts = SEC.get('pts', {}); prev_dir = SEC.get('dirs', {})
+    pts = {n: PB[n].head.copy() for n, *_ in LOOSE}; dirs = {}
+    for n, par, stiff, grav, drag, lag, keep in LOOSE:
+        v = pts[n] - prev_pts.get(n, pts[n])
+        cur = (PB[n].tail - PB[n].head).normalized()
+        d = cur * stiff + down * grav - v * drag + prev_dir.get(n, cur) * lag
+        if keep:
+            fwd = PB[keep[1]].matrix.to_3x3() @ Vector((0, 0, 1))  # the bone's local Z is the body's forward (align_roll -Y)
+            fwd.normalize(); c = d.normalized().dot(fwd)
+            if keep[0] == 'front' and c < .05: d = d + fwd * (.05 - c) * d.length
+            if keep[0] == 'behind' and c > -.1: d = d - fwd * (c + .1) * d.length
+        aim_bone(rig, n, d); dirs[n] = (PB[n].tail - PB[n].head).normalized()
+    SEC['pts'] = pts; SEC['dirs'] = dirs
+
 GOV = {}  # fid -> measured frame, for the move checks and the report
 def apply_pose(rig, P, fid=''):
     P = dict(P); w = P.get('weight', .5); single = isinstance(w, str)
@@ -252,6 +285,7 @@ def apply_pose(rig, P, fid=''):
                 forced = abs(new - want) > 1e-6; adj['lean'] = new - base
         else:       # on two legs the hips travel (weight transfer) and the trunk stays upright
             adj['shift'] -= Vector((eb.x, eb.y)) * .8
+    secondary(rig, reset=P.get('_first', False))
     # measure the result against the rules
     legs = o['legs']; rep = dict(com_err=e.length, com_tol=tol, ground=GROUND, single=single, legs={})
     for L, g in legs.items():
@@ -332,6 +366,7 @@ frames = []
 for k, name in enumerate(names):
     m = scene.timeline_markers.new(name, frame=k * 10 + 1)
     for i, P in enumerate(MOVES[name]):
+        P = dict(P, _first=(i == 0 and k == 0))
         f = k * 10 + 1 + i; apply_pose(rig, P, f'{name}-{i}'); key_frame(rig, f, P); frames.append((f, f'{name}-{i}'))
     if name in KIND:
         print('KB-MOVE', json.dumps(dict(id=name, bad=KM.check_move(KIND[name], [GOV[f'{name}-{i}'] for i in range(len(MOVES[name]))]))), flush=True)

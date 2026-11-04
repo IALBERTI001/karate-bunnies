@@ -45,6 +45,9 @@ def bone_table():
         T[f'foot_ik.{L}'] = ((s * .34, 0, .15), (s * .34, -.4, .15), 'root', False, False)
         T[f'foot.{L}'] = ((s * .34, 0, .15), (s * .34, -.4, .15), f'foot_ik.{L}', True, False)
         T[f'toe.{L}'] = ((s * .34, -.32, .03), (s * .34, -.55, .03), f'foot.{L}', True, False)  # ball of the foot -> toe tip
+    for s, L in ((1, 'L'), (-1, 'R')):  # hanging belt ends: two loose segments each, so they can swing and hang with gravity
+        T[f'beltend_a.{L}'] = ((s * .06, -.56, 1.0), (s * .1, -.575, .86), 'pelvis', True, False)
+        T[f'beltend_b.{L}'] = ((s * .1, -.575, .86), (s * .14, -.59, .72), f'beltend_a.{L}', True, True)
     knot = (-.6, .55, 2.62)
     T['tie1_a'] = (knot, (-1.0, .65, 2.66), 'head', True, False); T['tie1_b'] = ((-1.0, .65, 2.66), (-1.45, .75, 2.5), 'tie1_a', True, True)
     T['tie2_a'] = (knot, (-.95, .72, 2.38), 'head', True, False); T['tie2_b'] = ((-.95, .72, 2.38), (-1.25, .85, 2.0), 'tie2_a', True, True)
@@ -186,8 +189,10 @@ def build_body(rig, decals):
     # belt, knot and hanging ends
     P.add('belt', ring((0, 0, 1.06), .66, .52, 1.3, .085), m['BELT'], rigid('pelvis'), 'belt')
     P.add('knot', ellipsoid((0, -.53, 1.06), (.12, .08, .1)), m['BELT'], rigid('pelvis'), 'belt')
-    for s in (1, -1):
-        P.add(f'beltend{s}', box((s * .04, -.55, 1.01), (s * .14, -.59, .72), .11, .045), m['BELT'], rigid('pelvis'), 'belt', smooth=False, bevel=.015)
+    for s, L in ((1, 'L'), (-1, 'R')):
+        j0, j1 = warp((s * .1, -.575, .86)), warp((s * .14, -.59, .72))
+        P.add(f'beltend{s}', box((s * .04, -.55, 1.01), (s * .14, -.59, .72), .11, .045), m['BELT'],
+              along(f'beltend_a.{L}', f'beltend_b.{L}', j0, j1 - j0, .05), 'belt', smooth=False, bevel=.015)
     P.add('tail', ellipsoid((0, .58, 1.0), (.28, .25, .28)), FUR, rigid('tail'))
     # head
     P.add('head', ellipsoid(HEAD_C, HEAD_S, segs=48), FUR, rigid('head'))
