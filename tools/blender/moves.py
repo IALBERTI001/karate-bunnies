@@ -32,7 +32,7 @@ GROUND = .15
 def stance(**kw):
     p = dict(root=(0, 0, 0), spin=0, pelvis=(0, 0, -.28), pelvisRot=(0, 0, -55), spine=(2, 0, 0), chest=(0, 0, -5), head=(0, 0, 10),
              footL=(.1, -.82, GROUND), footR=(-.15, .78, GROUND), footLRot=(0, 0, -5), footRRot=(0, 0, -60),
-             handL=(.14, -.72, .18), handR=(-.08, -.28, .28), eyes='open', mouth='smile', ears=0, ties=0, yaw=90)
+             handL=(.16, -.82, .3), handR=(-.04, -.7, -.22), eyes='open', mouth='smile', ears=0, ties=0, yaw=90)
     p.update(kw); return p
 FOCUS = dict(eyes='focus')
 MOVES = {}
@@ -63,7 +63,7 @@ MOVES['punch2'] = [stance(**FOCUS, handR=(-.2, -.05, -.3), handL=(.12, -.78, .18
 # the buttock), SNAP out to the target, WHIP back to the same chamber with the knee still up, then set the foot down
 # in stance. The standing leg carries the weight from the fold on and turns on the BALL of its foot (heel lifted); the
 # trunk drops away from the kick as far as the kick's height asks (leanMin) and the balance rule does the rest.
-GUARD = dict(handL=(.14, -.55, .26), handR=(-.1, -.3, .3))
+GUARD = dict(handL=(.16, -.8, .3), handR=(-.04, -.7, -.22))  # both fists up in front of the chest, like the painted bunny (the rear fist used to hide behind the body)
 def sup(pivot, heel=0, bend=0, thrust=0):
     return dict(footL=(.06, -.62, GROUND), footLRot=(0, 0, pivot), heelL=heel, pelvis=(0, 0, -.06 - bend), weight='L', thrust=thrust)
 def lean_for(z):  # how far the trunk must drop away for a kick at height z (from the reference footage)

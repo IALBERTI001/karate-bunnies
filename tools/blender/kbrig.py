@@ -121,6 +121,23 @@ def tube_curve(points, depth):  # a thin inked line (eyes, brows, mouth) as a me
     bpy.data.objects.remove(ob); bpy.data.curves.remove(cd)
     bm = bmesh.new(); bm.from_mesh(me); bpy.data.meshes.remove(me); return bm
 
+# Outlines: an inverted hull on every body part (a slightly bigger copy, normals flipped, back faces hidden, drawn in ink),
+# instead of Freestyle. Freestyle traced the edges where sleeves cut into the jacket and drew them as jagged broken
+# strokes across the chest (user, Nov 4 2026: "why are the arms so weird looking"). A hull gives every part one clean,
+# even outline of the same weight, so an arm in front of the body is always outlined as one arm.
+INK_T = .05  # world units: ~3 px at the 512 px / 8 unit game framing (the Kuwahara pass softens it to about the old Freestyle weight)
+NO_HULL = ('beltend', 'tie', 'lapel', 'nose', 'knot', 'bandknot', 'blush', 'inner')  # flat strips and small details: a hull on a strip shoots out as spikes
+def ink_material():
+    mt = bpy.data.materials.get('KB_INK')
+    if mt: return mt
+    mt = bpy.data.materials.new('KB_INK'); nt = mt.node_tree; nt.nodes.clear()
+    em = nt.nodes.new('ShaderNodeEmission'); em.inputs[0].default_value = (.102, .043, .022, 1)  # #5a3a28 in linear
+    out = nt.nodes.new('ShaderNodeOutputMaterial'); nt.links.new(em.outputs[0], out.inputs[0])
+    mt.use_backface_culling = True
+    try: mt.use_backface_culling_shadow = True
+    except AttributeError: pass
+    return mt
+
 class Parts:
     def __init__(self, rig, decals):
         self.rig, self.decals, self.objs, self.groups = rig, decals, [], {}
@@ -141,6 +158,10 @@ class Parts:
         am = ob.modifiers.new('Armature', 'ARMATURE'); am.object = self.rig; am.use_vertex_groups = True; am.use_deform_preserve_volume = False  # volume preservation balloons limbs that IK stretches
         if subsurf:
             sb = ob.modifiers.new('soft', 'SUBSURF'); sb.levels = sb.render_levels = subsurf
+        if not decal and not name.startswith(NO_HULL):
+            me.materials.append(ink_material())
+            hull = ob.modifiers.new('ink', 'SOLIDIFY'); hull.thickness = INK_T; hull.offset = 1; hull.use_even_offset = False
+            hull.use_flip_normals = True; hull.use_rim = False; hull.material_offset = 1
         self.objs.append(ob); return ob
 
 def rigid(bone): return lambda p: {bone: 1.0}
@@ -167,10 +188,10 @@ def build_body(rig, decals):
         # arms: sleeves blended at the elbow, fist on the hand bone
         sh, el, wr = V(f'upper_arm.{L}', 0), V(f'forearm.{L}', 0), V(f'forearm.{L}', 1)
         armw = along(f'upper_arm.{L}', f'forearm.{L}', el, wr - el, .09)
-        P.add(f'sleeve_u.{L}', capsule(sh, el, .21, stretch=.5), GI, armw)
-        P.add(f'sleeve_f.{L}', capsule(el, wr + (wr - el).normalized() * -.05, .19, stretch=.5), GI, armw)
+        P.add(f'sleeve_u.{L}', capsule(sh, el, .25, stretch=.5), GI, armw)
+        P.add(f'sleeve_f.{L}', capsule(el, wr + (wr - el).normalized() * -.05, .25, stretch=.5), GI, armw)
         hd = V(f'hand.{L}', 1) - V(f'hand.{L}', 0)
-        P.add(f'fist.{L}', ellipsoid(wr + hd * .45, (.2, .18, .19)), FUR, rigid(f'hand.{L}'))
+        P.add(f'fist.{L}', ellipsoid(wr + hd * .45, (.22, .2, .21)), FUR, rigid(f'hand.{L}'))
         # ears: base and tip blended mid-ear, pink inside
         e0, e1, e2 = V(f'ear_a.{L}', 0), V(f'ear_b.{L}', 0), V(f'ear_b.{L}', 1)
         earw = along(f'ear_a.{L}', f'ear_b.{L}', e1, e2 - e1, .18); R = (e2 - e0).to_track_quat('Z', 'Y').to_matrix()
@@ -206,6 +227,7 @@ def build_body(rig, decals):
         a0, a1, b1 = V(f'{t}_a', 0), V(f'{t}_a', 1), V(f'{t}_b', 1)
         P.add(t, strip([a0, a1, b1], w * 2), GI, along(f'{t}_a', f'{t}_b', a1, b1 - a1, .15), 'band', smooth=False)
     build_faces(P, m)
+    bpy.context.scene.render.use_freestyle = False  # outlines come from the ink hulls
     return P
 
 EXPRESSIONS = {}
