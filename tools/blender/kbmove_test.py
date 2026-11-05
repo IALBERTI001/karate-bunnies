@@ -21,8 +21,8 @@ assert not KM.check_move('punch', [dict(hip_yaw=-55, chest_yaw=0, weight=.45), {
 print('kbmove ok')
 # kick structure: fold -> snap -> re-chamber, roundhouse finishes past the target on the ball of the foot
 f = lambda **k: dict(dict(hip_yaw=0, chest_yaw=0, weight=1, support_yaw=0, lean=0, kick_bend=0, heel=0, strike_z=None), **k)
-good = [f(kick_bend=150, support_yaw=30), f(kick_bend=10, hip_yaw=85, support_yaw=135, heel=25, lean=-30, strike_z=2.45), f(kick_bend=140, hip_yaw=55), f()]
+good = [f(kick_bend=150, support_yaw=30), f(kick_bend=10, hip_yaw=85, support_yaw=135, heel=25, lean=-30, strike_z=2.45), f(kick_bend=140, hip_yaw=85), f()]
 assert KM.check_move('roundhouse', good) == []
-bad = [f(kick_bend=60), f(kick_bend=10, hip_yaw=40, lean=-5, strike_z=2.4), f(kick_bend=20, hip_yaw=50), f()]
-assert len(KM.check_move('roundhouse', bad)) == 8
+bad = [f(kick_bend=60), f(kick_bend=10, hip_yaw=40, lean=-5, strike_z=2.4), f(kick_bend=20, hip_yaw=20), f(hip_yaw=50)]
+assert len(KM.check_move('roundhouse', bad)) == 9, KM.check_move('roundhouse', bad)
 print('kick rules ok')

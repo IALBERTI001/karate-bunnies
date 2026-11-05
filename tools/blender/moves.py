@@ -76,8 +76,12 @@ def kick4(fold, target, surface, hips, pivot, heel, rechamber=None, re_hips=None
     f1 = stance(**FOCUS, **sup(pivot, heel, bend, thrust), root=(0, -step, 0), footR=target, strikeR=surface, kneeR=knee, leanMin=lean_for(target[2]),
                 pelvisRot=(0, 0, hips), chest=(0, 0, chest), head=(0, 0, 12), mouth='shout', ties=-16, **arms)
     if lean is not None: f1['leanMin'] = lean
-    f2 = stance(**FOCUS, **sup(pivot if re_pivot is None else re_pivot, heel, bend), root=(0, -step, 0), footR=(0, 0, 1), chamberR=rechamber or fold,
-                pelvisRot=(0, 0, hips if re_hips is None else re_hips), chest=(0, 0, chest * .6), head=(0, 0, 12), mouth='open', ties=-10,
+    # re-chamber = slingshot (user, Nov 4 2026: "the knee doesn't act like a slingshot"): the knee stays exactly where it
+    # was at impact and the shin whips back around it, along the path it came out on; the hips and standing foot hold
+    # their turn. Only after that do the hips turn back in and the leg come down (the landing beat).
+    f2 = stance(**FOCUS, **sup(pivot, heel, bend), root=(0, -step, 0), footR=(0, 0, 1),
+                chamberR=dict(dir='impact', fold=(rechamber or fold)['fold'], toward='chamber', foot=(rechamber or fold).get('foot', 'point')),
+                pelvisRot=(0, 0, hips), chest=(0, 0, chest * .6), head=(0, 0, 12), mouth='open', ties=-10,
                 leanMin=re_lean, **(re_arms or GUARD))
     return [f0, f1, f2, stance(root=(0, -step * .5, 0), weight=.5)]
 FRONT_FOLD = lambda up: dict(dir=(-.05, -.6 + up * .2, .8 + up * .1), fold=150, toward=(0, 0, -1), foot='flex')
@@ -327,8 +331,33 @@ def secondary(rig, reset=False):
     S_['pts'] = pts; S_['dirs'] = dirs
 
 GOV = {}  # fid -> measured frame, for the move checks and the report
+SLING = {}  # rig -> leg -> {'chamber': (td, sd), 'impact': td}: the last solved chamber and impact keys, for the slingshot
+def slingshot(rig, P):
+    """A re-chamber key (chamber dir 'impact'): the thigh keeps the impact direction (the knee does not move) and the shin
+    folds back in the plane it came out in (the chamber's bend, turned with the thigh)."""
+    for L in 'LR':
+        ch = P.get('chamber' + L)
+        if ch and ch.get('dir') == 'impact':
+            m = SLING.get(rig.name, {}).get(L, {})
+            if 'impact' not in m or 'chamber' not in m: P['chamber' + L] = dict(ch, dir=SIDE_FOLD['dir'], toward=SIDE_FOLD['toward']); continue
+            td0, sd0 = m['chamber']; td1 = m['impact']; bend = sd0 - td0 * sd0.dot(td0)
+            P['chamber' + L] = dict(ch, dir=tuple(td1), toward=tuple(td0.rotation_difference(td1) @ bend))
+            # the trunk holds its impact lean through the whip (measured: it rises only after the leg has folded); if the
+            # balance rule let it straighten here, the thigh would tilt down with it and the knee would drop
+            if 'lean' in m: P['leanFix'] = m['lean']
+def remember_sling(rig, P):
+    for L in 'LR':
+        sv = P['_solved']['legs'].get(L)
+        if not sv: continue
+        m = SLING.setdefault(rig.name, {}).setdefault(L, {})
+        if P.get('strike' + L): m['impact'] = sv['td'].copy(); m['lean'] = P['_solved']['lean']
+        elif P.get('chamber' + L) and not P.get('_sling' + L): m['chamber'] = (sv['td'].copy(), sv['sd'].copy())
 def apply_pose(rig, P, fid=''):
-    P = dict(P); w = P.get('weight', .5); single = isinstance(w, str)
+    P = dict(P)
+    for L in 'LR':
+        if (P.get('chamber' + L) or {}).get('dir') == 'impact': P['_sling' + L] = True
+    slingshot(rig, P)
+    w = P.get('weight', .5); single = isinstance(w, str)
     if single and not isinstance(P['foot' + w + 'Rot'], str):  # rule 4: the standing foot pivots with the hips
         fx, fy, fz = P['foot' + w + 'Rot']; hy = P['pelvisRot'][2]
         P['foot' + w + 'Rot'] = (fx, fy, min(max(fz, hy - KM.HIP_FOOT_MAX), hy + KM.HIP_FOOT_MAX))
@@ -392,10 +421,11 @@ def apply_pose(rig, P, fid=''):
                     support_yaw=(P['footLRot'][2] if not isinstance(P['footLRot'], str) else 0), lean=P['pelvisRot'][0] + adj['lean'])
     print('KB-GOV', json.dumps(dict(id=fid, com=xz(c), sup=xz(S), lean=round(P['pelvisRot'][0] + adj['lean'], 1), sink=round(adj['sink'], 3),
           shift=[round(adj['shift'][0], 3), round(adj['shift'][1], 3)], iters=it + 1,
-          knees={L: round(v['bend']) for L, v in rep['legs'].items()},
+          knees={L: round(v['bend']) for L, v in rep['legs'].items()}, kneeR=[round(x, 2) for x in o['legs']['R']['knee']],
           target=xz(st['goal']) if st else None, hit=xz(st['hit']) if st else None, miss=round(st['miss'], 3) if st else None,
           facing=round(st['facing']) if st and st['facing'] is not None else None, bad=bad)), flush=True)
     P['_solved'] = dict(legs=o['solved'], lean=P['pelvisRot'][0] + adj['lean'], sink=adj['sink'], shift=tuple(adj['shift']), bad=bad)
+    if not P.get('ovL') and not P.get('ovR'): remember_sling(rig, P)
     return P
 
 def key_frame(rig, f, P):
@@ -477,7 +507,7 @@ def tween(P0, P1, t):
 # segments: (from key, to key, frames, easing); keys = [guard, k0, k1, k2, k3, guard]
 TIMING = {
     'punch': [(0, 1, 4, 'io'), (1, 2, 2, 'in'), (2, 3, 2, 'in'), (3, 3, 2, 'hold'), (3, 4, 5, 'out'), (4, 5, 4, 'io')],
-    'kick': [(0, 1, 5, 'io'), (1, 2, 4, 'in'), (2, 2, 3, 'hold'), (2, 3, 5, 'out'), (3, 4, 6, 'io'), (4, 5, 3, 'io')],  # measured: fold 0.2 s, snap 0.2 s, re-chamber 0.25 s, land 0.3 s
+    'kick': [(0, 1, 5, 'io'), (1, 2, 4, 'in'), (2, 2, 3, 'hold'), (2, 3, 3, 'out'), (3, 3, 2, 'hold'), (3, 4, 6, 'io'), (4, 5, 3, 'io')],  # measured: fold 0.2 s, snap 0.2 s, re-chamber 0.25 s, land 0.3 s
     'spin': [(0, 1, 6, 'io'), (1, 2, 4, 'in'), (2, 2, 2, 'hold'), (2, 3, 3, 'out'), (3, 4, 5, 'io'), (4, 5, 3, 'io')]}
 def sequence(name):
     keys = [stance(weight=.5)] + [dict(P) for P in MOVES[name]] + [stance(weight=.5)]

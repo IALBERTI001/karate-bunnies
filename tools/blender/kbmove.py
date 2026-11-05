@@ -103,7 +103,8 @@ def check_move(kind, frames):
     if kind == 'roundhouse':
         if b['hip_yaw'] < 75: bad.append(f"hips stop short: the belly must face past the target ({b['hip_yaw']:.0f} deg)")
         if b['support_yaw'] < 120: bad.append(f"standing heel does not face the target ({b['support_yaw']:.0f} deg)")
-        if frames[2]['hip_yaw'] >= b['hip_yaw']: bad.append('hips do not come back in before landing')
+        if frames[3]['hip_yaw'] >= b['hip_yaw']: bad.append('hips do not come back in before landing')
+        if abs(frames[2]['hip_yaw'] - b['hip_yaw']) > 10: bad.append('hips turn during the re-chamber: the knee must stay put while the shin whips back')
     elif kind == 'low':
         if b['hip_yaw'] - a['hip_yaw'] < 30: bad.append('low kick has no pelvis rotation')
     elif kind == 'front':
