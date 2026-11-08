@@ -35,30 +35,30 @@ def B(**kw): return dict(GUARD, **kw)
 # the standing leg locks straight on the snap, the rear fist pulls back as the lead hand reaches; a 2-frame dip over the
 # support foot, the foot leaves on the dip and the knee POPS; tight coil (heel under the seat); retract along the same
 # line; travel a full foot length on the landing.
-SNAP1 = dict(planted=0, turn=0, hL=(.13, -.42, .26), hR=(-.26, .14, .2))             # lead glove stays at the chin line (it cluttered the impact)
-SNAP2 = dict(planted=0, turn=0, hL=(.14, -.42, .24), hR=(-.27, .16, .18), out=.5)     # high kick outside its own head line, AWAY from the front camera (toward it, the foot covered the face)
+SNAP1 = dict(planted=0, turn=-6, hL=(.13, -.27, .3), hR=(-.26, .14, .2))             # lead glove stays at the chin line (it cluttered the impact)
+SNAP2 = dict(planted=0, turn=-6, hL=(.13, -.26, .3), hR=(-.27, .16, .18), out=.28)     # high kick outside its own head line, AWAY from the front camera (toward it, the foot covered the face)
 BEATS = [
     (0, 'lin', B()),
     (5, 'lin', B()),
     (7, 'io', B(sink=.14, wx=.15, lean=7, foot=30, turn=-6)),                                        # dip: hips over the support foot
     (9, 'in', B(sink=.1, wx=.16, lean=3, th=24, fold=70, foot=10, planted=0, turn=-3)),               # the foot LEAVES on the dip
-    (11, 'out', B(sink=.04, wx=.16, away=3, th=104, fold=130, planted=0, turn=0)),                    # knee pops up: tight coil
-    (14, 'out', B(sink=.03, wx=.16, away=6, th=110, fold=134, planted=0, turn=0)),                    # heel tucked under the knee, still rising
-    (16, 'lin', B(sink=.03, wx=.16, away=9, th=114, fold=136, planted=0, turn=0, hR=(-.24, .04, .26))),  # wind-up: trunk eases back
-    (17, 'snap', B(pos=.12, sink=.055, wx=.17, away=24, hipf=.22, th=100, fold=-6, **SNAP1)),          # SNAP 1 (overshoots)
-    (19, 'out', B(pos=.12, sink=.04, wx=.17, away=21, hipf=.17, th=96, fold=12, **SNAP1)),           # recoils ~10% before the whip back
-    (20, 'out', B(pos=.1, sink=.02, wx=.16, away=12, hipf=.06, th=112, fold=120, planted=0, turn=0)),  # whips back on the same line
-    (21, 'out', B(pos=.1, sink=.02, wx=.16, away=8, th=110, fold=134, planted=0, turn=0)),
-    (24, 'lin', B(pos=.1, sink=.02, wx=.16, away=12, th=118, fold=138, planted=0, turn=0, hR=(-.24, .04, .26))),
-    (25, 'snap', B(pos=.13, sink=.035, wx=.17, away=34, hipf=.16, th=132, fold=-6, **SNAP2)),         # SNAP 2: head height
-    (27, 'out', B(pos=.13, sink=.04, wx=.17, away=30, hipf=.15, th=128, fold=12, **SNAP2)),
-    (28, 'out', B(pos=.13, sink=.02, wx=.16, away=22, hipf=.08, th=126, fold=105, planted=0, turn=0, out=.05)),   # knee stays high, shin folds
-    (29, 'out', B(pos=.14, sink=.03, wx=.16, away=12, hipf=.03, th=112, fold=134, planted=0, turn=0)),            # tight chamber
-    (32, 'io', B(pos=.45, sink=.12, wx=.06, away=0, lean=8, th=40, fold=40, planted=0, fy=.85, turn=-6)),            # falls forward onto it
-    (34, 'out', B(pos=.72, sink=.36, wx=-.04, lean=14, th=0, fold=0, planted=1, fy=.85, turn=-4, ly=.22)),          # lands deep: pelvis leads, head drops; the back foot starts to slide up
-    (37, 'io', B(pos=.76, sink=.2, wx=-.04, lean=7, fy=.85, turn=-3, ly=.42)),
-    (40, 'io', B(pos=.77, sink=.13, wx=-.04, lean=4, fy=.85, turn=-2, ly=.5)),                                              # recovers, a touch high
-    (44, 'io', B(pos=.77, sink=.16, wx=-.04, lean=5, fy=.85, turn=-2, ly=.5)),
+    (11, 'out', B(sink=.04, wx=.16, away=3, th=104, fold=132, planted=0, turn=-6)),                    # knee pops up: tight coil
+    (14, 'out', B(sink=.03, wx=.16, away=6, th=114, fold=142, planted=0, turn=-6)),                    # heel tucked under the knee, still rising
+    (16, 'lin', B(sink=.03, wx=.16, away=9, th=122, fold=148, planted=0, turn=-6, hR=(-.24, .04, .26))),  # wind-up: trunk eases back
+    (17, 'snap', B(pos=.12, sink=.075, wx=.17, away=24, hipf=.22, th=100, fold=-6, **SNAP1)),          # SNAP 1 (overshoots)
+    (19, 'out', B(pos=.12, sink=.065, wx=.17, away=21, hipf=.17, th=96, fold=12, **SNAP1)),           # recoils ~10% before the whip back
+    (20, 'out', B(pos=.1, sink=.02, wx=.16, away=12, hipf=.06, th=112, fold=120, planted=0, turn=-6)),  # whips back on the same line
+    (21, 'out', B(pos=.1, sink=.02, wx=.16, away=8, th=114, fold=142, planted=0, turn=-6)),
+    (24, 'lin', B(pos=.1, sink=.02, wx=.16, away=12, th=124, fold=148, planted=0, turn=-6, hR=(-.24, .04, .26))),
+    (25, 'snap', B(pos=.13, sink=.08, wx=.17, away=34, hipf=.16, th=132, fold=-6, **SNAP2)),         # SNAP 2: head height
+    (27, 'out', B(pos=.13, sink=.075, wx=.17, away=30, hipf=.15, th=128, fold=12, **SNAP2)),
+    (28, 'out', B(pos=.13, sink=.06, wx=.16, away=22, hipf=.08, th=126, fold=105, planted=0, turn=-6, out=.05)),  # knee stays high, shin folds
+    (29, 'out', B(pos=.14, sink=.03, wx=.16, away=12, hipf=.03, th=114, fold=140, planted=0, turn=-6)),            # tight chamber
+    (32, 'io', B(pos=.45, sink=.12, wx=.06, away=0, lean=8, th=40, fold=40, planted=0, fy=.85, turn=-8)),            # falls forward onto it
+    (34, 'out', B(pos=.72, sink=.36, wx=-.04, lean=14, th=0, fold=0, planted=1, fy=.85, turn=-9, ly=.22)),          # lands deep: pelvis leads, head drops; the back foot starts to slide up
+    (37, 'io', B(pos=.76, sink=.2, wx=-.04, lean=7, fy=.85, turn=-10, ly=.42)),
+    (40, 'io', B(pos=.77, sink=.13, wx=-.04, lean=4, fy=.85, turn=-10, ly=.5)),                                             # recovers, a touch high
+    (44, 'io', B(pos=.77, sink=.16, wx=-.04, lean=5, fy=.85, turn=-10, ly=.5)),
 ]
 END = BEATS[-1][0]
 NUM = ('pos', 'sink', 'wx', 'away', 'lean', 'hipf', 'th', 'fold', 'foot', 'planted', 'fy', 'turn', 'out', 'ly')
@@ -186,8 +186,8 @@ def effects(F, G, hips):
         if not ink:
             import kbpuppet; ink = kbpuppet._flat('KB_SPEED', '#3a2a24'); ink.name = 'KB_SPEED'; ink.use_backface_culling = False
         for part, (j0, frames) in enumerate(((3, {f1}), (int(n * .5), {f1 + 1}))):
-            for k, off in enumerate((-.2, -.05, .1)):
-                side = M.to_3x3() @ Vector((-.28, 0, 0))                          # out on the kicking leg's outer side, so they draw over the body
+            for k, off in enumerate((.1, .2, .3)):                                # OUTSIDE the foot's arc: never across the leg
+                side = M.to_3x3() @ Vector((-.12, 0, 0))                          # out on the kicking leg's outer side, so they draw over the body
                 path = [p + o * off + side for p, o in zip(pts[j0:], outs[j0:])]
                 path = path[:max(3, int(len(path) * .7))]                      # stop well short of the foot: the leg covers the end of its own path
                 m_ = len(path); rad = [.05 * math.sin(math.pi * (jj + .5) / m_) ** .7 for jj in range(m_)]
@@ -202,7 +202,7 @@ def effects(F, G, hips):
             bm.faces.new((p0, p1, p2))
         star = fx_obj(f'fx_star{i}', bm, coll); star.modifiers.clear()
         star.data.materials[0].use_backface_culling = False
-        show(star, {f1, f1 + 1})
+        show(star, {f1})                                                    # the flash is one drawing (a lingering star read as a stray dot)
     # dust: pale wisps (not foot-coloured blobs), stretched along their direction, from the foot that pushes / lands
     dm = bpy.data.materials.get('KB_DUST')
     if not dm:
