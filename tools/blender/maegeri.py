@@ -35,8 +35,8 @@ def B(**kw): return dict(GUARD, **kw)
 # the standing leg locks straight on the snap, the rear fist pulls back as the lead hand reaches; a 2-frame dip over the
 # support foot, the foot leaves on the dip and the knee POPS; tight coil (heel under the seat); retract along the same
 # line; travel a full foot length on the landing.
-SNAP1 = dict(planted=0, turn=-6, hL=(.25, -.44, .22), hR=(-.42, .12, .06))    # rear fist pulls back to the ribs (hikite)             # lead glove stays at the chin line (it cluttered the impact)
-SNAP2 = dict(planted=0, turn=-6, hL=(.26, -.42, .22), hR=(-.44, .14, .06), out=.28)     # high kick outside its own head line, AWAY from the front camera (toward it, the foot covered the face)
+SNAP1 = dict(planted=0, turn=-6, hL=(.25, -.44, .22), hR=(-.56, .1, .08))    # rear fist pulls back to the ribs (hikite), outside the jacket (at .42 the sleeve sank half into it, Nov 8)           # lead glove stays at the chin line (it cluttered the impact)
+SNAP2 = dict(planted=0, turn=-6, hL=(.26, -.42, .22), hR=(-.57, .11, .08), out=.28)     # high kick outside its own head line, AWAY from the front camera (toward it, the foot covered the face)
 BEATS = [
     (0, 'lin', B()),
     (5, 'lin', B()),

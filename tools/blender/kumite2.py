@@ -105,8 +105,23 @@ def apply_pose(F, P):
     ch = pb['chest'].head.copy()
     for L in 'LR':
         h = P['h' + L]; put(f'hand_ik.{L}', Rc, ch + Vector(h))  # fists aim at the opponent whichever way the chest is turned
+    # v4 rig: paws grip (1 fist, 0 open), shoulders shrug/roll (shL/shR = (raise, roll) deg), toes stay flat while the heel lifts
+    grip = P.get('grip', 1.0)
+    for L in 'LR':
+        for b, k in ((f'fingers_a.{L}', .95), (f'fingers_b.{L}', .95), (f'thumb_a.{L}', .55), (f'thumb_b.{L}', .7)):
+            if b not in pb: continue
+            bone = pb[b].bone; ax = [0, 0, 0]; ax[bone['curl_axis']] = 1
+            pb[b].rotation_quaternion = Quaternion(Vector(ax), math.radians(bone['curl_sign'] * k * 100 * P.get('grip' + L, grip)))
+        sh = P.get('sh' + L)
+        if sh and f'shoulder.{L}' in pb:
+            pb[f'shoulder.{L}'].rotation_quaternion = Quaternion((1, 0, 0), math.radians(sh[0])) @ Quaternion((0, 0, 1), math.radians(sh[1]))
+        f = P['f' + L]
+        if f is not None and len(f) == 4 and f[3] and f'toe.{L}' in pb:
+            pb[f'toe.{L}'].rotation_quaternion = Quaternion((1, 0, 0), math.radians(f[3]))   # +X lifts the toes: they stay on the floor
+    vl.update()
 
-KEYED = ('root', 'torso', 'hips', 'spine', 'chest', 'neck', 'head', 'foot_ik.L', 'foot_ik.R', 'knee_pole.L', 'knee_pole.R', 'hand_ik.L', 'hand_ik.R')
+KEYED = ('root', 'torso', 'hips', 'spine', 'chest', 'neck', 'head', 'foot_ik.L', 'foot_ik.R', 'knee_pole.L', 'knee_pole.R', 'hand_ik.L', 'hand_ik.R',
+         'shoulder.L', 'shoulder.R', 'toe.L', 'toe.R', 'fingers_a.L', 'fingers_b.L', 'thumb_a.L', 'thumb_b.L', 'fingers_a.R', 'fingers_b.R', 'thumb_a.R', 'thumb_b.R')
 def key(F, f, P, interp=None):
     apply_pose(F, P); pb = F['rig'].pose.bones
     for n in KEYED:
