@@ -63,7 +63,7 @@ GUARD_L, GUARD_R = (.1, -.62, .12), (-.06, -.42, -.08)  # fists from the chest h
 DEFAULT = dict(pos=0.0, sink=0.0, shift=(0, 0), turn=0.0, lean=0.0, tilt=0.0, away=0.0, hips=(0, 0, 0), spine=(0, 0, 0), chest=(0, 0, 0), head=(0, 0, 0),
                fL=None, fR=None, hL=GUARD_L, hR=GUARD_R, poleR=None, poleL=None)
 
-def stance(lead='L', width=.34, length=.8, side=35, sink=.07, **kw):
+def stance(lead='L', width=.34, length=.8, side=35, sink=.0, **kw):
     """Kumite kamae: feet on the line toward the opponent, front foot pointing at him, rear foot turned out, knees bent,
     hips and shoulders side-on. Orthodox = left foot leads. Feet: (x, y, yaw, heel lift)."""
     s = 1 if lead == 'L' else -1
@@ -94,7 +94,7 @@ def apply_pose(F, P):
         f = P['f' + L]
         if f is None: continue
         if len(f) == 4:  # planted: (x, y, yaw, heel lift) - the ball stays on the floor
-            x, y, yaw, heel = f; Rf = R(-heel, 0, yaw)
+            x, y, yaw, heel = f; Rf = R(heel, 0, yaw)  # + pitch tips the toes down: the heel rises, the ankle lifts (was inverted: ankles below the floor, legs locked straight)
             ball = root + Vector((x, -y, 0)) + R(0, 0, yaw) @ Vector((0, -.3, .04))
             ankle = ball - Rf @ BALL
         else:  # free foot: (ankle xyz in rig space, (pitch, roll, yaw))
@@ -155,13 +155,18 @@ def kick_foot(target, sweep, hip):
 def bounce_keys(F, lead, frames, pos=0.0, phase=0, **kw):
     for i, f in enumerate(frames):  # on the balls of the feet: heels and hips rise and fall
         up = (i + phase) % 2 == 0
-        P = stance(lead, sink=.04 if up else .11, pos=pos, **kw)
+        P = stance(lead, sink=-.02 if up else .05, pos=pos, **kw)
         for L in 'LR':
             x, y, yaw, heel = P['f' + L]; P['f' + L] = (x, y, yaw, heel + (14 if up else 0))
         key(F, f, P)
 
 def animate(interp='CONSTANT'):
     sc = bpy.context.scene; A, B = FIGHTERS['AKA'], FIGHTERS['AO']
+    for F in (A, B):  # live rigs built before the Nov 7 knee fix
+        for L in 'LR':
+            p = F['rig'].pose.bones[f'shin.{L}']; p.ik_min_x, p.ik_max_x = math.radians(-150), 0
+            for c in p.constraints:
+                if c.type == 'IK': c.pole_angle = math.radians(90)
     for F in (A, B):
         F['rig'].animation_data_clear(); F['rig'].location.y = 0
     A['rig'].location.x, B['rig'].location.x = -1.45, 1.45
@@ -173,7 +178,7 @@ def animate(interp='CONSTANT'):
     # ---- AO (southpaw, blue): bounce, lunge reverse punch, press in low, gets hit, recoils ----
     bounce_keys(B, 'R', [1, 6, 11, 16], phase=1)
     key(B, 21, stance('R', sink=.14, pos=-.05, lean=4))                                       # anticipation: sink and draw back
-    lunge = stance('R', sink=.2, pos=.75, turn=-12, lean=22, length=1.1, hL=(.03, -.95, .38), hR=(-.04, -.4, .02), head=(-12, 0, 0))
+    lunge = stance('R', sink=.27, pos=.75, turn=-12, lean=22, length=1.1, hL=(.03, -.95, .38), hR=(-.04, -.4, .02), head=(-12, 0, 0))
     lunge['fL'] = (.17, -.75 + .2, -40, 30)                                                     # rear foot drags, heel up, leg straight
     key(B, 26, lunge); key(B, 29, lunge)                                                        # reverse punch lands at head height, held
     press = stance('R', sink=.34, pos=1.3, turn=20, lean=44, length=.8, head=(-28, 0, 0), hR=(-.1, -.55, .3), hL=(.08, -.35, .1))
@@ -204,16 +209,28 @@ def animate(interp='CONSTANT'):
     ank, Rf = kick_foot(tgt, (1, 0, .15), hip)
     root = Vector((0, -pos_k, 0))
     imp['fR'] = (tuple(ank - root), Rf); imp['poleR'] = tuple(Vector(tgt) - root + Vector((-.6, 0, .6)))
-    knee_up = (hip + (Vector(tgt) - hip) * .45 + Vector((-.15, .1, .25)))                       # chamber: knee high toward the target
-    cham = stance('L', pos=pos_k - .45, sink=0, turn=55, away=12, hL=(.15, -.55, .35), hR=(-.25, -.3, .2))
-    cham['fL'] = (.17, .31 - .1, 75, 22)
-    cham['fR'] = (tuple(knee_up - root + Vector((-.05, .3, -.28))), R(60, 0, 40)); cham['poleR'] = tuple(knee_up - root + Vector((-.3, -1.0, .3)))
+    # chamber: the knee points AT THE OPPONENT (rig -Y) and up, the shin folds back under it. (Nov 7: the knee was aimed
+    # toward the camera side, so the thigh pointed at the lens and read as a stump with no knee.)
+    cham = stance('L', pos=pos_k - .45, sink=0, turn=15, away=8, hL=(.15, -.55, .35), hR=(-.2, -.4, .25))  # measured: the chamber is nearly square, the hips turn over during the snap
+    cham['fL'] = (.17, .31 - .1, 35, 18)
+    apply_pose(A, dict(cham, fR=((-.3, -.3, .5), (0, 0, 0))))
+    hip_c = A['rig'].pose.bones['thigh.R'].head.copy(); root_c = Vector((0, -(pos_k - .45), 0))
+    knee_c = hip_c + Vector((0, -.31, .16))                                                     # thigh .35 long, aimed at Ao, 27 degrees up
+    ankle_c = knee_c + Vector((0, .12, -.31))                                                   # shin hangs down and back: knee folded about 120 degrees
+    cham['fR'] = (tuple(ankle_c - root_c), R(55, 0, 0)); cham['poleR'] = tuple(knee_c - root_c + Vector((0, -1.0, .2)))
     shift = stance('L', pos=(pos_k - .45 - .4) / 2, sink=.08, turn=10); shift['fL'] = (.17, .31 - .1, 20, 15)  # step in, weight onto the front foot, it starts to turn
     key(A, 33, shift); key(A, 37, cham)
     key(A, 41, imp); key(A, 44, imp)                                                            # snap out, held a beat (kime)
-    sling = dict(imp, fR=(tuple(knee_up - root + Vector((-.1, .35, -.25))), R(70, 0, 60)), poleR=imp['poleR'])
+    apply_pose(A, imp); knee_i = A['rig'].pose.bones['shin.R'].head.copy()                     # slingshot: the knee stays exactly here
+    back = (hip - knee_i).normalized()
+    ankle_s = knee_i + back * .2 + Vector((0, 0, -.26))                                        # only the shin whips back around the knee
+    sling = dict(imp, fR=(tuple(ankle_s - root), R(60, 0, 70)), poleR=imp['poleR'])
     key(A, 47, sling); key(A, 48, sling)                                                       # slingshot: knee stays, shin whips back
-    land = stance('L', pos=pos_k - .35, sink=.12, lean=4); key(A, 55, land)                  # sets the foot down a step back
+    land = stance('L', pos=pos_k - .35, sink=.12, lean=4)
+    drop = dict(land, sink=.17, turn=40)                                                       # the knee stays aimed at Ao while the foot comes down
+    apply_pose(A, dict(drop, fR=((-.3, -.3, .5), (0, 0, 0)))); hip_d = A['rig'].pose.bones['thigh.R'].head.copy(); root_d = Vector((0, -(pos_k - .35), 0))
+    knee_d = hip_d + Vector((-.04, -.3, -.12)); drop['fR'] = (tuple(knee_d + Vector((0, .06, -.32)) - root_d), R(35, 0, 0)); drop['poleR'] = tuple(knee_d - root_d + Vector((0, -1, 0)))
+    key(A, 51, drop); key(A, 55, land)                                                         # sets the foot down a step back
     key(A, 62, stance('L', pos=0)); key(A, 74, stance('L', pos=0))
     # ---- both: stand, bow, rise ----
     for F, lead in ((A, 'L'), (B, 'R')):
@@ -266,3 +283,18 @@ def render_job(out_dir, res=1280):
     log = open(os.path.join(out_dir, 'render.log'), 'w')
     subprocess.Popen([bpy.app.binary_path, '-b', blend, '-a'], stdout=log, stderr=subprocess.STDOUT, creationflags=0x08000000)
     return blend
+
+
+def end_on(frames, limit=25):
+    """Frames where a thigh or shin points at the camera (seen end-on it reads as a stump with no knee)."""
+    sc = bpy.context.scene; cam = sc.camera; bad = []
+    for f in frames:
+        sc.frame_set(f)
+        for name, F in FIGHTERS.items():
+            rig = F['rig']
+            for b in ('thigh.L', 'thigh.R', 'shin.L', 'shin.R'):
+                pb = rig.pose.bones[b]; h = rig.matrix_world @ pb.head; t = rig.matrix_world @ pb.tail
+                view = (h - cam.matrix_world.translation).normalized(); d = (t - h).normalized()
+                ang = math.degrees(math.acos(min(1, abs(d.dot(view)))))
+                if ang < limit: bad.append((f, name, b, round(ang)))
+    return bad

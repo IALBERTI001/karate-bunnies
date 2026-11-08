@@ -94,13 +94,13 @@ def build_rig(name, coll):
     pb = rig.pose.bones
     for L in 'LR':
         ik = pb[f'shin.{L}'].constraints.new('IK'); ik.target = rig; ik.subtarget = f'foot_ik.{L}'
-        ik.pole_target = rig; ik.pole_subtarget = f'knee_pole.{L}'; ik.pole_angle = math.radians(-90); ik.chain_count = 2
+        ik.pole_target = rig; ik.pole_subtarget = f'knee_pole.{L}'; ik.pole_angle = math.radians(90); ik.chain_count = 2  # +90: measured Nov 7, -90 bent knees backward
         cr = pb[f'foot.{L}'].constraints.new('COPY_ROTATION'); cr.target = rig; cr.subtarget = f'foot_ik.{L}'
         ik = pb[f'forearm.{L}'].constraints.new('IK'); ik.target = rig; ik.subtarget = f'hand_ik.{L}'
         ik.pole_target = rig; ik.pole_subtarget = f'elbow_pole.{L}'; ik.pole_angle = math.radians(-90); ik.chain_count = 2
         for b in (f'shin.{L}', f'forearm.{L}'):  # hinge joints: bend about local X only, never backwards
             p = pb[b]; p.lock_ik_y = p.lock_ik_z = True; p.use_ik_limit_x = True
-            p.ik_min_x = math.radians(0 if b.startswith('shin') else -150); p.ik_max_x = math.radians(150 if b.startswith('shin') else 0)
+            p.ik_min_x = math.radians(-150); p.ik_max_x = math.radians(0)  # forward knee fold is negative local X with this roll (measured)
     for p in pb: p.rotation_mode = 'QUATERNION'
     bpy.ops.object.mode_set(mode='OBJECT')
     return rig
