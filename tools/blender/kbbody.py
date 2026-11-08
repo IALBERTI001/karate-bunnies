@@ -450,7 +450,7 @@ def build_bunny(name, belt, gear, band=None):
         part(f'thumb_a.{L}', E((s * .885, -.15, .565), (.065, .075, .07)), M['GEAR'], f'thumb_a.{L}')
         part(f'thumb_b.{L}', E((s * .895, -.235, .495), (.055, .06, .06)), M['GEAR'], f'thumb_b.{L}')
         part(f'foot.{L}', E((s * .3, -.1, .1), (.21, .3, .12)), M['FUR'], f'foot.{L}')     # heel to ball
-        part(f'toe.{L}', E((s * .3, -.42, .09), (.2, .14, .1)), M['FUR'], f'toe.{L}')     # toes
+        part(f'toe.{L}', E((s * .3, -.4, .085), (.16, .1, .075)), M['FUR'], f'toe.{L}')     # toes (smaller, user Nov 8: 'the toes seem a little big')
         part(f'pad.{L}', E((s * .3, -.16, .13), (.2, .24, .1)), M['GEAR'], f'foot.{L}')  # WKF foot protector over the instep
     part('tail', E((0, .44, .8), (.17, .15, .16)), M['FUR'], 'tail')
     # face (decals ride the head bone, no outline hull)
