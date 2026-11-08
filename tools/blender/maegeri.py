@@ -28,37 +28,41 @@ def ease(kind, t):
 # wx = weight shift over the standing (left) foot, away = trunk counter-lean back, hipf = hip thrust forward,
 # planted = kicking foot on the floor (1) or flying (0), fy = where it is planted (+ = in front), foot = extra toe pitch,
 # hL/hR = fists from the chest head
-GUARD = dict(pos=0, sink=.07, wx=0, away=0, lean=4, hipf=0, th=-12, fold=6, foot=0, planted=1, fy=-.32, turn=-10,
+GUARD = dict(pos=0, sink=.07, wx=0, away=0, lean=4, hipf=0, th=-12, fold=6, foot=0, planted=1, fy=-.32, turn=-10, out=0,
              hL=(.12, -.36, .3), hR=(-.22, -.04, .28))  # tight guard: lead fist at the chin, rear fist back by the cheek, elbow tucked back (it hid the knee)
 def B(**kw): return dict(GUARD, **kw)
+# v5 (fresh-eyes review, Nov 8): the whole body throws each kick - trunk leans back 22/32 deg with the hips pushed through,
+# the standing leg locks straight on the snap, the rear fist pulls back as the lead hand reaches; a 2-frame dip over the
+# support foot, the foot leaves on the dip and the knee POPS; tight coil (heel under the seat); retract along the same
+# line; travel a full foot length on the landing.
+SNAP1 = dict(planted=0, turn=0, hL=(.15, -.5, .12), hR=(-.26, .14, .2))
+SNAP2 = dict(planted=0, turn=0, hL=(.16, -.5, .06), hR=(-.27, .16, .18), out=-.13)   # high kick a little outside the head line
 BEATS = [
     (0, 'lin', B()),
-    (6, 'lin', B()),
-    (8, 'io', B(sink=.11, wx=.1, lean=6, foot=28, turn=-6)),                                          # load: weight onto the front foot, heel peels
-    (11, 'in', B(sink=.07, wx=.14, lean=2, away=2, th=62, fold=110, planted=0, turn=-2)),              # knee DRIVES (accelerating)
-    (13, 'out', B(sink=.05, wx=.15, away=4, th=104, fold=114, planted=0, turn=0)),                     # chamber: knee to the chest, foot tucked
-    (15, 'out', B(sink=.05, wx=.15, away=5, th=110, fold=118, planted=0, turn=0)),      # knee up and OUT in front (a round body hides a chest-high knee)
-    (16, 'lin', B(sink=.05, wx=.15, away=5, th=111, fold=119, planted=0, turn=0)),     # chamber HELD (reference: 2-3f), then
-    (17, 'snap', B(pos=.05, sink=.05, wx=.15, away=13, hipf=.1, th=92, fold=-3, planted=0, turn=0,     # SNAP 1: middle
-                   hL=(.14, -.42, .26))),
-    (19, 'out', B(pos=.05, sink=.05, wx=.15, away=12, hipf=.09, th=90, fold=2, planted=0, turn=0, hL=(.14, -.42, .26))),
-    (21, 'out', B(pos=.06, sink=.05, wx=.15, away=6, hipf=.02, th=108, fold=116, planted=0, turn=0)),  # re-chamber
-    (23, 'io', B(pos=.06, sink=.04, wx=.15, away=8, th=116, fold=124, planted=0, turn=0)),
-    (24, 'lin', B(pos=.06, sink=.04, wx=.15, away=9, th=117, fold=125, planted=0, turn=0)),  # held
-    (25, 'snap', B(pos=.09, sink=.04, wx=.16, away=22, hipf=.1, th=124, fold=-3, planted=0, turn=0,     # SNAP 2: the opponent's head height, out in FRONT of
-                   hL=(.16, -.42, .2), hR=(-.24, .02, .26))),                         # its own big head (th 150 went up past its face)
-    (27, 'out', B(pos=.09, sink=.04, wx=.16, away=23, hipf=.1, th=127, fold=0, planted=0, turn=0,
-                  hL=(.16, -.42, .2), hR=(-.24, .02, .26))),
-    (28, 'in', B(pos=.1, sink=.05, wx=.15, away=16, hipf=.05, th=124, fold=75, planted=0, turn=0)),    # snaps back
-    (30, 'out', B(pos=.11, sink=.06, wx=.15, away=8, th=106, fold=114, planted=0, turn=0)),
-    (33, 'io', B(pos=.2, sink=.08, wx=.07, away=0, lean=4, th=35, fold=30, planted=0, fy=.42, turn=-4)),  # falls forward onto it
-    (35, 'out', B(pos=.26, sink=.19, wx=0, lean=11, th=0, fold=0, planted=1, fy=.42, turn=-6)),           # lands, absorbs
-    (39, 'io', B(pos=.27, sink=.08, lean=5, fy=.42, turn=-8)),                                            # settles in the new stance
-    (48, 'lin', B(pos=.27, sink=.08, lean=5, fy=.42, turn=-8)),
+    (5, 'lin', B()),
+    (7, 'io', B(sink=.14, wx=.15, lean=7, foot=30, turn=-6)),                                        # dip: hips over the support foot
+    (9, 'in', B(sink=.1, wx=.16, lean=3, th=24, fold=70, foot=10, planted=0, turn=-3)),               # the foot LEAVES on the dip
+    (11, 'out', B(sink=.04, wx=.16, away=4, th=112, fold=146, planted=0, turn=0)),                    # knee pops up: tight coil
+    (14, 'out', B(sink=.03, wx=.16, away=6, th=118, fold=148, planted=0, turn=0)),                    # heel under the seat, held
+    (16, 'lin', B(sink=.03, wx=.16, away=7, th=119, fold=148, planted=0, turn=0, hR=(-.24, .04, .26))),
+    (17, 'snap', B(pos=.08, sink=.035, wx=.17, away=24, hipf=.16, th=98, fold=-6, **SNAP1)),          # SNAP 1 (overshoots)
+    (19, 'out', B(pos=.08, sink=.04, wx=.17, away=21, hipf=.14, th=94, fold=1, **SNAP1)),            # settles back 3-5%
+    (20, 'out', B(pos=.08, sink=.02, wx=.16, away=12, hipf=.06, th=112, fold=120, planted=0, turn=0)),  # whips back on the same line
+    (21, 'out', B(pos=.08, sink=.02, wx=.16, away=8, th=120, fold=146, planted=0, turn=0)),
+    (24, 'lin', B(pos=.08, sink=.02, wx=.16, away=10, th=124, fold=148, planted=0, turn=0, hR=(-.24, .04, .26))),
+    (25, 'snap', B(pos=.13, sink=.035, wx=.17, away=34, hipf=.16, th=132, fold=-6, **SNAP2)),         # SNAP 2: head height
+    (27, 'out', B(pos=.13, sink=.04, wx=.17, away=31, hipf=.14, th=128, fold=0, **SNAP2)),
+    (28, 'out', B(pos=.13, sink=.02, wx=.16, away=22, hipf=.08, th=126, fold=105, planted=0, turn=0, out=-.06)),  # knee stays high, shin folds
+    (29, 'out', B(pos=.14, sink=.03, wx=.16, away=12, hipf=.03, th=118, fold=140, planted=0, turn=0)),            # tight chamber
+    (32, 'io', B(pos=.32, sink=.08, wx=.06, away=0, lean=6, th=40, fold=40, planted=0, fy=.5, turn=-4)),           # falls forward onto it
+    (34, 'out', B(pos=.44, sink=.24, wx=0, lean=12, th=0, fold=0, planted=1, fy=.5, turn=-6)),                     # lands: pelvis leads, head drops
+    (37, 'io', B(pos=.46, sink=.12, lean=6, fy=.5, turn=-8)),
+    (40, 'io', B(pos=.46, sink=.065, lean=3, fy=.5, turn=-8)),                                                       # recovers, a touch high
+    (44, 'io', B(pos=.46, sink=.08, lean=5, fy=.5, turn=-8)),
 ]
 END = BEATS[-1][0]
-NUM = ('pos', 'sink', 'wx', 'away', 'lean', 'hipf', 'th', 'fold', 'foot', 'planted', 'fy', 'turn')
-ONES = set(range(15, 20)) | set(range(23, 30))           # the kick itself is ONE drawing (16->17, 24->25), the streak shows the path           # the snaps change every frame; the rest is on twos
+NUM = ('pos', 'sink', 'wx', 'away', 'lean', 'hipf', 'th', 'fold', 'foot', 'planted', 'fy', 'turn', 'out')
+ONES = set(range(6, 12)) | set(range(16, 22)) | set(range(24, 31)) | set(range(32, 36))  # fast parts on ones; the kick itself is ONE drawing (16->17, 24->25)
 DRAWINGS = sorted({f for f in range(0, END + 1) if f % 2 == 0 or f in ONES})
 SNAPS = [(16, 17), (24, 25)]                             # chamber -> full extension, for the streaks
 
@@ -72,8 +76,9 @@ def state(f):
 
 def leg_points(hip, S, L, Ls):
     a = math.radians(S['th']); b = math.radians(S['th'] - S['fold'])
-    knee = hip + Vector((0, -math.sin(a), -math.cos(a))) * L
-    ankle = knee + Vector((0, -math.sin(b), -math.cos(b))) * Ls * .995
+    o = S.get('out', 0)
+    knee = hip + Vector((o * .5, -math.sin(a), -math.cos(a))).normalized() * L
+    ankle = knee + Vector((o * .5, -math.sin(b), -math.cos(b))).normalized() * Ls * .995
     bend = Vector((0, -math.cos(a), math.sin(a)))                  # the way the knee points (in the leg's plane)
     return knee, ankle, bend, b
 
@@ -81,7 +86,7 @@ def body_pose(F, G, S):
     rig = F['rig']; pb = rig.pose.bones; R = G['R']; L = pb['thigh.R'].bone.length; Ls = pb['shin.R'].bone.length
     root = Vector((0, -S['pos'], 0))
     P = dict(G['DEFAULT'], pos=S['pos'], sink=S['sink'], shift=(S['wx'], S['hipf']), away=S['away'], lean=S['lean'], turn=S['turn'],
-             head=(S['away'] * .45 - S['lean'] * .4, 0, -S['turn'] * .6), hL=S['hL'], hR=S['hR'],
+             head=(-S['away'] * .25 + S['lean'] * .2, 0, -S['turn'] * .6), hL=S['hL'], hR=S['hR'],
              fL=(.2, .1 - S['pos'], 25, 0))                                   # standing foot: planted, turned out, heel down
     P['fR'] = (-.2, S['fy'] - S['pos'], 6, S['foot'])
     G['apply_pose'](F, P)
@@ -113,13 +118,20 @@ def follow_through(F, keep):
                 h = p.head.copy(); r = p.tail.copy(); ln = (r - h).length
                 if n not in st: st[n] = [r.copy(), Vector()]
                 x, v = st[n]
+                root_tie = n.startswith('tie') and n.endswith('_a')               # the ribbon's first segment stands off the head
+                kk, cc, gg, cp = (k * 4, c * 2, g * .3, 35) if root_tie else (k, c, g, cap)
                 for _ in range(sub):
-                    acc = (r - x) * k - v * c + Vector((0, 0, -g)); v = v + acc * (dt / sub); x = x + v * (dt / sub)
+                    acc = (r - x) * kk - v * cc + Vector((0, 0, -gg)); v = v + acc * (dt / sub); x = x + v * (dt / sub)
                     x = h + (x - h).normalized() * ln
                 d0, d1 = (r - h).normalized(), (x - h).normalized()
                 ang = d0.angle(d1, 0)
-                if ang > math.radians(cap):                                   # cap the swing (an uncapped ear flops)
-                    d1 = d0.slerp(d1, math.radians(cap) / ang); x = h + d1 * ln
+                if ang > math.radians(cp):                                   # cap the swing (an uncapped ear flops)
+                    d1 = d0.slerp(d1, math.radians(cp) / ang); x = h + d1 * ln
+                if n.startswith('tie'):                                            # ribbons never lie on (or in) the skull
+                    hb = pb['head']; Rm = hb.bone.matrix_local @ hb.matrix.inverted(); xr = Rm @ x
+                    import kbbody; c = kbbody.HEAD_C; rr = Vector(kbbody.HEAD_R) + Vector((.08, .08, .08))
+                    q_ = Vector(((xr.x - c.x) / rr.x, (xr.y - c.y) / rr.y, (xr.z - c.z) / rr.z))
+                    if q_.length < 1: q_.normalize(); x = Rm.inverted() @ Vector((c.x + q_.x * rr.x, c.y + q_.y * rr.y, c.z + q_.z * rr.z)); x = h + (x - h).normalized() * ln
                 st[n] = [x, v]
                 q = d0.rotation_difference(d1)
                 p.matrix = Matrix.Translation(h) @ (q.to_matrix() @ p.matrix.to_3x3()).to_4x4(); vl.update()
@@ -169,7 +181,7 @@ def effects(F, G, hips):
             f = f0 + (f1 - f0) * j / n; S = state(f)
             knee, ankle, bend, bb = leg_points(hips[f1], S, L, Ls)
             ball = ball_point(ankle, bb); pts.append(M @ ball)
-            inner.append(M @ (ball + (ankle.lerp(knee, .35) - ball) * (j / n) ** .8))  # thin at the start, as wide as the foot+shin at the end
+            inner.append(M @ ball.lerp(knee, .85 * (j / n) ** .7))             # a wedge: a sliver at the start, knee-to-foot wide at the end
         bm = bmesh.new(); A = [bm.verts.new(p) for p in pts]; Bv = [bm.verts.new(p) for p in inner]
         for j in range(n): bm.faces.new((A[j], A[j + 1], Bv[j + 1], Bv[j]))
         sw = fx_obj(f'fx_streak{i}', bm, coll); sw.modifiers.clear()
@@ -184,16 +196,20 @@ def effects(F, G, hips):
         star = fx_obj(f'fx_star{i}', bm, coll); star.modifiers.clear()
         star.data.materials[0].use_backface_culling = False
         show(star, {f1, f1 + 1})
-    # dust: a burst at toe-off behind the kicking foot, and at the landing foot (on twos, like the drawn effects)
-    for tag, f0, where, back in (('off', 10, Vector((-.2, .2, .03)), 1), ('land', 34, Vector((-.2, -.25, .03)), -1)):
+    # dust: pale wisps (not foot-coloured blobs), stretched along their direction, from the foot that pushes / lands
+    dm = bpy.data.materials.get('KB_DUST')
+    if not dm:
+        import kbpuppet; dm = kbpuppet._flat('KB_DUST', '#d9e4fb'); dm.name = 'KB_DUST'
+    for tag, f0, where, back in (('off', 8, Vector((-.2, .36, .03)), 1), ('land', 34, Vector((-.2, -.4, .03)), -1)):
         for k in range(7):
-            a = (k - 3) * .5 + (.17 if k % 2 else -.11)
-            d = Vector((math.sin(a) * .9, back * math.cos(a) * .6, 0)) * (1.15 if k % 2 else .85)
-            bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=.12)
-            o = fx_obj(f'fx_dust_{tag}{k}', bm, coll); base = M @ where
-            for j, sc_ in enumerate((.7, 1.15, 1.25, 1.0)):                     # puff out, then gone (shrinking to dots read as rings)
+            a = (k - 3) * .42 + (.12 if k % 2 else -.08)
+            d = Vector((math.sin(a) * .8, back * math.cos(a) * .7, .12)).normalized() * (1.15 if k % 2 else .85)
+            bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=.09)
+            o = fx_obj(f'fx_dust_{tag}{k}', bm, coll); o.data.materials[0] = dm; base = M @ where
+            dw = (M.to_3x3() @ d).normalized(); o.rotation_mode = 'QUATERNION'; o.rotation_quaternion = dw.to_track_quat('Y', 'Z')
+            for j, sc_ in enumerate((.7, 1.1, 1.0, .7)):
                 f = f0 + j * 2
-                o.location = base + (M.to_3x3() @ d) * (.1 + .16 * j) + Vector((0, 0, .03 + .05 * j)); o.scale = (sc_, sc_, sc_ * .8)
+                o.location = base + dw * (.12 + .2 * j) + Vector((0, 0, .02 * j)); o.scale = (sc_ * .8, sc_ * (1.4 + .5 * j), sc_ * .6)
                 o.keyframe_insert('location', frame=f); o.keyframe_insert('scale', frame=f)
             show(o, set(range(f0, f0 + 8)))
     for o in coll.objects:
