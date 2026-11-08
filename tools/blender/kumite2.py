@@ -211,12 +211,12 @@ def animate(interp='CONSTANT'):
     imp['fR'] = (tuple(ank - root), Rf); imp['poleR'] = tuple(Vector(tgt) - root + Vector((-.6, 0, .6)))
     # chamber: the knee points AT THE OPPONENT (rig -Y) and up, the shin folds back under it. (Nov 7: the knee was aimed
     # toward the camera side, so the thigh pointed at the lens and read as a stump with no knee.)
-    cham = stance('L', pos=pos_k - .45, sink=0, turn=15, away=8, hL=(.15, -.55, .35), hR=(-.2, -.4, .25))  # measured: the chamber is nearly square, the hips turn over during the snap
+    cham = stance('L', pos=pos_k - .45, sink=0, turn=15, away=8, hL=(.15, -.6, .42), hR=(-.12, -.3, .5))  # measured: the chamber is nearly square, the hips turn over during the snap
     cham['fL'] = (.17, .31 - .1, 35, 18)
     apply_pose(A, dict(cham, fR=((-.3, -.3, .5), (0, 0, 0))))
     hip_c = A['rig'].pose.bones['thigh.R'].head.copy(); root_c = Vector((0, -(pos_k - .45), 0))
-    knee_c = hip_c + Vector((0, -.31, .16))                                                     # thigh .35 long, aimed at Ao, 27 degrees up
-    ankle_c = knee_c + Vector((0, .12, -.31))                                                   # shin hangs down and back: knee folded about 120 degrees
+    knee_c = hip_c + Vector((0, -.25, .25))                                                     # thigh .35 long, aimed at Ao, 45 degrees up (knee at chest height, measured)
+    ankle_c = knee_c + Vector((0, .16, -.29))                                                   # shin hangs down and back: knee folded about 120 degrees
     cham['fR'] = (tuple(ankle_c - root_c), R(55, 0, 0)); cham['poleR'] = tuple(knee_c - root_c + Vector((0, -1.0, .2)))
     shift = stance('L', pos=(pos_k - .45 - .4) / 2, sink=.08, turn=10); shift['fL'] = (.17, .31 - .1, 20, 15)  # step in, weight onto the front foot, it starts to turn
     key(A, 33, shift); key(A, 37, cham)
@@ -298,3 +298,21 @@ def end_on(frames, limit=25):
                 ang = math.degrees(math.acos(min(1, abs(d.dot(view)))))
                 if ang < limit: bad.append((f, name, b, round(ang)))
     return bad
+
+
+def camera_cuts():
+    """Staging: a wide side shot, then a cut to a three-quarter angle facing Aka for the chamber, kick and slingshot (from the
+    side the short thigh hides behind the big head and arms), then back. Cuts are CONSTANT keys: no camera drift."""
+    sc = bpy.context.scene; cam = sc.camera
+    shots = {'wide': ((-0.7, -9.4, 2.25), (-0.1, 0, 1.3), 38), 'kick': ((3.6, -6.0, 2.2), (-1.0, 0, 1.1), 40)}
+    cam.animation_data_clear(); cam.data.animation_data_clear()
+    for f, s in ((1, 'wide'), (32, 'kick'), (57, 'wide')):
+        loc, aim, lens = shots[s]
+        cam.location = loc; cam.rotation_euler = (Vector(aim) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler(); cam.data.lens = lens
+        cam.keyframe_insert('location', frame=f); cam.keyframe_insert('rotation_euler', frame=f); cam.data.keyframe_insert('lens', frame=f)
+    for ad in (cam.animation_data, cam.data.animation_data):
+        for lay in ad.action.layers:
+            for st in lay.strips:
+                for cb in st.channelbags:
+                    for fc in cb.fcurves:
+                        for kp in fc.keyframe_points: kp.interpolation = 'CONSTANT'
