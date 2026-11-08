@@ -67,15 +67,15 @@ def bone_table():
     T['neck'] = ((0, 0, 1.48), (0, 0, 1.62), 'chest', True, True)
     T['head'] = ((0, 0, 1.62), (0, 0, 2.6), 'neck', True, True)
     for s, L in ((1, 'L'), (-1, 'R')):
-        T[f'upper_arm.{L}'] = ((s * .44, 0, 1.38), (s * .68, .05, 1.1), 'chest', False, True)
-        T[f'forearm.{L}'] = ((s * .68, .05, 1.1), (s * .84, 0, .82), f'upper_arm.{L}', True, True)
-        T[f'hand.{L}'] = ((s * .84, 0, .82), (s * .88, -.02, .64), f'forearm.{L}', True, True)
+        T[f'upper_arm.{L}'] = ((s * .44, 0, 1.38), (s * .72, .05, 1.04), 'chest', False, True)   # v3 arms ~15% longer to suit the legs
+        T[f'forearm.{L}'] = ((s * .72, .05, 1.04), (s * .9, 0, .7), f'upper_arm.{L}', True, True)
+        T[f'hand.{L}'] = ((s * .9, 0, .7), (s * .94, -.02, .52), f'forearm.{L}', True, True)
         T[f'thigh.{L}'] = ((s * .29, 0, .84), (s * .3, -.05, .5), 'hips', False, True)
         T[f'shin.{L}'] = ((s * .3, -.05, .5), (s * .3, 0, .16), f'thigh.{L}', True, True)
         T[f'foot.{L}'] = ((s * .3, 0, .16), (s * .3, -.34, .07), f'shin.{L}', True, True)
         T[f'foot_ik.{L}'] = ((s * .3, 0, .16), (s * .3, -.34, .16), 'root', False, False)
         T[f'knee_pole.{L}'] = ((s * .3, -1.3, .5), (s * .3, -1.45, .5), f'foot_ik.{L}', False, False)
-        T[f'hand_ik.{L}'] = ((s * .84, 0, .82), (s * .84, -.18, .82), 'chest', False, False)
+        T[f'hand_ik.{L}'] = ((s * .9, 0, .7), (s * .9, -.18, .7), 'chest', False, False)
         T[f'elbow_pole.{L}'] = ((s * 1.1, 1.0, 1.05), (s * 1.1, 1.15, 1.05), 'chest', False, False)
         T[f'ear_a.{L}'] = ((s * .2, .06, 2.5), (s * .31, .07, 2.95), 'head', False, True)
         T[f'ear_b.{L}'] = ((s * .31, .07, 2.95), (s * .42, .08, 3.38), f'ear_a.{L}', True, True)
@@ -149,8 +149,8 @@ def build_body(name, coll, M):
     i_chest = min(range(len(verts)), key=lambda i: (verts[i] - Vector(up((0, 0, 1.36)))).length)
     i_pelvis = min(range(len(verts)), key=lambda i: (verts[i] - Vector(up((0, 0, .86)))).length)
     for s in (1, -1):
-        arm = chain([(up((s * .3, 0, 1.38)), (.2, .2)), (up((s * .46, 0, 1.38)), (.2, .2)), (up((s * .68, .05, 1.1)), (.17, .17)),
-                     (up((s * .82, .01, .86)), (.19, .19))], 3)
+        arm = chain([(up((s * .3, 0, 1.38)), (.2, .2)), (up((s * .46, 0, 1.38)), (.2, .2)), (up((s * .72, .05, 1.04)), (.17, .17)),
+                     (up((s * .88, .01, .74)), (.19, .19))], 3)
         add_chain(arm, i_chest)
         x = s * HIP_X  # v3: a slim trouser leg that tapers to the knee and flares a little to the hem
         leg = chain([(up((s * .12, 0, .82)), (.22, .22)), ((x, 0, HIP_Z - .02), (.2, .2)), ((x, -.05, KNEE_Z), (.14, .14)),
@@ -185,9 +185,52 @@ def fix_leg_weights(rig, ob):
         p = v.co; L = 'L' if p.x > 0 else 'R'
         if p.z > HIP_Z - .12 or abs(p.x) < .06: continue
         for g in ob.vertex_groups: g.remove([v.index])
-        ws = ss01(KNEE_Z + .06, KNEE_Z - .06, p.z); wh = ss01(HIP_Z - .3, HIP_Z - .12, p.z)
+        ws = ss01(KNEE_Z + .06, KNEE_Z - .06, p.z); wh = ss01(HIP_Z - .2, HIP_Z - .12, p.z)  # the whole thigh follows the thigh (a wide hip blend left it in the jacket)
         groups[f'shin.{L}'].add([v.index], ws, 'REPLACE'); groups[f'thigh.{L}'].add([v.index], (1 - ws) * (1 - wh), 'REPLACE')
         if wh > 0: groups['hips'].add([v.index], (1 - ws) * wh, 'REPLACE')
+
+def fix_skirt_weights(rig, ob):
+    # Action and reaction (user, Nov 8 2026: "leg up, whats in the way gets shifted, not entered"): the jacket skirt below
+    # the belt rides on the thigh in front of it, so a lifted knee pushes the skirt up and out instead of rising inside it.
+    groups = {g.name: g for g in ob.vertex_groups}
+    belt = .93 + DZ
+    for v in ob.data.vertices:
+        p = v.co
+        if not (HIP_Z - .14 < p.z < belt + .02) or p.y > .12: continue
+        L = 'L' if p.x > 0 else 'R'; s = 1 if L == 'L' else -1
+        w = .6 * ss01(.02, .16, s * p.x) * ss01(belt + .02, belt - .14, p.z) * ss01(.12, -.12, p.y)
+        if w < .01: continue
+        for g in ob.vertex_groups:
+            try:
+                old = g.weight(v.index); g.add([v.index], old * (1 - w), 'REPLACE')
+            except RuntimeError: pass
+        groups[f'thigh.{L}'].add([v.index], w + (groups[f'thigh.{L}'].weight(v.index) if any(gg.group == groups[f'thigh.{L}'].index for gg in v.groups) else 0), 'REPLACE')
+
+def fix_arm_weights(rig, ob):
+    # Bone heat left some sleeve vertices with no arm weight: they stayed at the rest pose and stretched into spikes
+    # when the guard came up (Nov 8 2026). Every sleeve vertex now belongs to upper arm / forearm / hand by its place
+    # along the arm, with blend bands at the shoulder (chest), elbow and wrist.
+    from mathutils.geometry import intersect_point_line
+    groups = {g.name: g for g in ob.vertex_groups}
+    for v in ob.data.vertices:
+        p = v.co; L = 'L' if p.x > 0 else 'R'; s = 1 if L == 'L' else -1
+        sh, el, wr = Vector(up((s * .44, 0, 1.38))), Vector(up((s * .72, .05, 1.04))), Vector(up((s * .9, 0, .7)))
+        best = None
+        for k, (a, b) in enumerate(((sh, el), (el, wr))):
+            q, t = intersect_point_line(p, a, b); t = max(0, min(1, t)); q = a.lerp(b, t); d = (p - q).length
+            if best is None or d < best[0]: best = (d, k + t)
+        d, u = best                                    # u: 0 shoulder, 1 elbow, 2 wrist
+        if d > .3 or u < .05 or abs(p.x) < .3: continue
+        for g in ob.vertex_groups: g.remove([v.index])
+        wc = ss01(.35, .05, u)                         # chest near the shoulder
+        we = ss01(.85, 1.15, u)                        # upper arm -> forearm at the elbow
+        wh = ss01(1.85, 2.0, u)
+        w = {'chest': wc, f'upper_arm.{L}': (1 - wc) * (1 - we), f'forearm.{L}': (1 - wc) * we * (1 - wh), f'hand.{L}': (1 - wc) * we * wh}
+        for n, x in w.items():
+            if x > .001: groups[n].add([v.index], x, 'REPLACE')
+
+def unweighted(ob):
+    return sum(1 for v in ob.data.vertices if sum(g.weight for g in v.groups) < .01)
 
 def bind_bone(rig, ob, bone):
     mw = ob.matrix_world.copy(); ob.parent = rig; ob.parent_type = 'BONE'; ob.parent_bone = bone
@@ -206,7 +249,7 @@ def build_bunny(name, belt, gear, band=None):
     M = mats(name, belt, gear); band = band or gear
     BAND = _toon(f'{name}_band', band[0], band[1])
     rig = build_rig(name, coll)
-    body = build_body(name, coll, M); bind_auto(rig, body); fix_leg_weights(rig, body); hull(body)
+    body = build_body(name, coll, M); bind_auto(rig, body); fix_leg_weights(rig, body); fix_skirt_weights(rig, body); fix_arm_weights(rig, body); rig['unweighted_body_verts'] = unweighted(body); hull(body)
     E, C = kbrig.ellipsoid, kbrig.capsule
     def part(nm, bm, mat, bone=None, groups=None, ink=True):
         lift = not nm.startswith(('foot.', 'pad.'))
@@ -226,7 +269,7 @@ def build_bunny(name, belt, gear, band=None):
         w = lambda p, L=L: {f'ear_a.{L}': 1 - ss01(2.85, 3.05, p.z), f'ear_b.{L}': ss01(2.85, 3.05, p.z)}
         part(f'ear.{L}', E((a + t) / 2, (.17, .07, d.length / 2 + .04), R), M['FUR'], groups=w)
         part(f'inner.{L}', E((a + t) / 2 + Vector((0, -.055, .05)), (.1, .03, d.length / 2 - .1), R), M['PINK'], groups=w, ink=False)
-        part(f'fist.{L}', E((s * .88, -.03, .7), (.19, .2, .18)), M['GEAR'], f'hand.{L}')
+        part(f'fist.{L}', E((s * .94, -.03, .58), (.19, .2, .18)), M['GEAR'], f'hand.{L}')
         part(f'foot.{L}', E((s * .3, -.17, .1), (.21, .36, .12)), M['FUR'], f'foot.{L}')
         part(f'pad.{L}', E((s * .3, -.2, .13), (.2, .3, .1)), M['GEAR'], f'foot.{L}')  # WKF foot protector over the instep
     part('tail', E((0, .44, .8), (.17, .15, .16)), M['FUR'], 'tail')
