@@ -1,0 +1,268 @@
+# Kumite exchange v2: two Karate Bunnies built with kbbody (continuous body, IK rig with knee/elbow poles) and animated
+# the professional way: key poses on the rig's CONTROLS, Bezier in-betweens done by Blender, the poses checked from four
+# angles. Choreography from the WKF Cairo 2024 -84 kg final: Ao (blue) presses in with reverse punches, Aka (red) slides
+# back, then counters with a rear-leg roundhouse to the head as Ao comes in; the knee whips back like a slingshot; both
+# reset and bow. Measured beats: karate-body-mechanics skill.
+#   In Blender: exec(open(r'...\kumite2.py').read()); build(); animate()        Headless: blender -b -P kumite2.py -- out res
+import bpy, sys, os, math
+from mathutils import Vector, Matrix, Euler, Quaternion
+D = r'C:\Users\Ultim\Downloads\KarateBunnies3D'
+if D not in sys.path: sys.path.insert(0, D)
+import importlib, kbpuppet, kbrig, kbbody
+FPS = 24
+
+def R(p=0, r=0, y=0):  # character frame: pitch (+ = lean forward), roll (+ = top toward its left), yaw (+ = turn to its left)
+    return (Matrix.Rotation(math.radians(y), 3, 'Z') @ Matrix.Rotation(math.radians(-r), 3, 'Y') @ Matrix.Rotation(math.radians(p), 3, 'X'))
+
+# ---------------- scene ----------------
+def scene_setup(res=960):
+    sc = bpy.context.scene
+    for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)
+    for c in list(bpy.data.collections): bpy.data.collections.remove(c)
+    for eng in ('BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE'):
+        try: sc.render.engine = eng; break
+        except TypeError: pass
+    sc.view_settings.view_transform = 'Standard'; sc.render.use_freestyle = False; sc.render.film_transparent = False
+    sc.render.resolution_x, sc.render.resolution_y = res, res * 9 // 16; sc.render.fps = FPS
+    w = sc.world or bpy.data.worlds.new('w'); sc.world = w
+    bg = w.node_tree.nodes.get('Background')
+    if bg: bg.inputs[0].default_value = kbpuppet.hexc('#1b2130'); bg.inputs[1].default_value = .6
+    env = bpy.data.collections.new('Arena'); sc.collection.children.link(env)
+    def slab(name, x0, y0, x1, y1, z, mat):
+        me = bpy.data.meshes.new(name); me.from_pydata([(x0, y0, z), (x1, y0, z), (x1, y1, z), (x0, y1, z)], [], [(0, 1, 2, 3)])
+        o = bpy.data.objects.new(name, me); env.objects.link(o); me.materials.append(mat); return o
+    T = kbpuppet._toon
+    slab('floor', -40, -40, 40, 40, -.004, T('floor', '#3a4150', '#272c37')); slab('border', -8, -8, 8, 8, -.002, T('mat_red', '#c9343c', '#93222a'))
+    slab('area', -6.4, -6.4, 6.4, 6.4, 0, T('mat_blue', '#2f6fc2', '#22508f'))
+    def wall(name, z0, z1, mat, y):
+        me = bpy.data.meshes.new(name); me.from_pydata([(-30, y, z0), (30, y, z0), (30, y, z1), (-30, y, z1)], [], [(0, 1, 2, 3)])
+        o = bpy.data.objects.new(name, me); env.objects.link(o); me.materials.append(mat)
+    wall('wall', -1, 20, kbpuppet._flat('wall', '#20283a'), 9.0); wall('band_r', 1.1, 1.6, kbpuppet._flat('band_r', '#b7202f'), 8.98)
+    wall('band_b', 1.6, 2.0, kbpuppet._flat('band_b', '#1f4fa0'), 8.98)
+    sun = bpy.data.lights.new('sun', 'SUN'); sun.energy = 3.5; so = bpy.data.objects.new('sun', sun); env.objects.link(so)
+    so.rotation_euler = (math.radians(50), math.radians(-20), math.radians(-35))
+    cam = bpy.data.cameras.new('cam'); cam.lens = 40; co = bpy.data.objects.new('cam', cam); sc.collection.objects.link(co); sc.camera = co
+    co.location = (-1.0, -11.5, 2.6); co.rotation_euler = (Vector((0.1, 0, 1.25)) - co.location).to_track_quat('-Z', 'Y').to_euler()
+    return sc
+
+# ---------------- fighters ----------------
+FIGHTERS = {}
+def build():
+    sc = scene_setup()
+    for name, belt, x, yaw in (('AKA', ('#d02f37', '#9b1f27'), -1.45, 90), ('AO', ('#2d63c8', '#204a96'), 1.45, -90)):
+        rig, coll = kbbody.build_bunny(name, belt, belt)
+        rig.location = (x, 0, 0); rig.rotation_euler = (0, 0, math.radians(yaw))
+        rest = {pb.name: pb.bone.matrix_local.copy() for pb in rig.pose.bones}
+        FIGHTERS[name] = dict(rig=rig, rest=rest)
+    bpy.context.view_layer.update()
+    return sc
+
+# ---------------- pose: body description -> control transforms ----------------
+BALL = Vector((0, -.3, -.12))  # ball of the foot from the ankle, foot frame
+GUARD_L, GUARD_R = (.1, -.62, .12), (-.06, -.42, -.08)  # fists from the chest head, in the OPPONENT's direction (not the turned chest): lead forward at chin height, rear closer and lower
+DEFAULT = dict(pos=0.0, sink=0.0, shift=(0, 0), turn=0.0, lean=0.0, tilt=0.0, away=0.0, hips=(0, 0, 0), spine=(0, 0, 0), chest=(0, 0, 0), head=(0, 0, 0),
+               fL=None, fR=None, hL=GUARD_L, hR=GUARD_R, poleR=None, poleL=None)
+
+def stance(lead='L', width=.34, length=.8, side=35, sink=.07, **kw):
+    """Kumite kamae: feet on the line toward the opponent, front foot pointing at him, rear foot turned out, knees bent,
+    hips and shoulders side-on. Orthodox = left foot leads. Feet: (x, y, yaw, heel lift)."""
+    s = 1 if lead == 'L' else -1
+    P = dict(DEFAULT); P.update(sink=sink, turn=-s * side)  # side-on; a 'turn' in kw is an absolute yaw (+ = turn to its left)
+    front = (s * width / 2, length / 2, -s * 5, 8); back = (-s * width / 2, -length / 2, -s * 55, 18)  # y: + = toward the opponent
+    P['f' + lead] = front; P['f' + ('R' if lead == 'L' else 'L')] = back
+    if lead == 'R': P['hR'], P['hL'] = (-GUARD_L[0],) + GUARD_L[1:], (-GUARD_R[0],) + GUARD_R[1:]
+    P.update(kw); return P
+
+def apply_pose(F, P):
+    rig, rest = F['rig'], F['rest']; pb = rig.pose.bones; vl = bpy.context.view_layer
+    def put(name, M3, loc):
+        pb[name].matrix = Matrix.Translation(loc) @ (M3 @ rest[name].to_3x3()).to_4x4(); vl.update()
+    def reset(name):
+        pb[name].location = (0, 0, 0); pb[name].rotation_quaternion = (1, 0, 0, 0); pb[name].scale = (1, 1, 1)
+    for p in pb: reset(p.name)
+    vl.update()
+    root = Vector((0, -P['pos'], 0)); put('root', Matrix.Identity(3), root)
+    # away: the trunk drops back from the opponent (world frame), e.g. the kick's seesaw
+    Rt = R(-P['away'], 0, 0) @ R(P['lean'], P['tilt'], P['turn']); tor = root + Vector((P['shift'][0], -P['shift'][1], .88 - P['sink']))
+    put('torso', Rt, tor)
+    Rh = Rt @ R(*P['hips']); put('hips', Rh, pb['hips'].head.copy())
+    Rs = Rt @ R(*P['spine']); put('spine', Rs, pb['spine'].head.copy())
+    Rc = Rs @ R(*P['chest']); put('chest', Rc, pb['chest'].head.copy())
+    put('neck', Rc, pb['neck'].head.copy())
+    put('head', Rc @ R(*P['head']), pb['head'].head.copy())
+    for L in 'LR':
+        f = P['f' + L]
+        if f is None: continue
+        if len(f) == 4:  # planted: (x, y, yaw, heel lift) - the ball stays on the floor
+            x, y, yaw, heel = f; Rf = R(-heel, 0, yaw)
+            ball = root + Vector((x, -y, 0)) + R(0, 0, yaw) @ Vector((0, -.3, .04))
+            ankle = ball - Rf @ BALL
+        else:  # free foot: (ankle xyz in rig space, (pitch, roll, yaw))
+            ankle, Rf = root + Vector(f[0]), (f[1] if isinstance(f[1], Matrix) else R(*f[1]))
+        put(f'foot_ik.{L}', Rf, ankle)
+        pole = P.get('pole' + L)
+        if pole is not None: put(f'knee_pole.{L}', Matrix.Identity(3), root + Vector(pole))
+    ch = pb['chest'].head.copy()
+    for L in 'LR':
+        h = P['h' + L]; put(f'hand_ik.{L}', Rc, ch + Vector(h))  # fists aim at the opponent whichever way the chest is turned
+
+KEYED = ('root', 'torso', 'hips', 'spine', 'chest', 'neck', 'head', 'foot_ik.L', 'foot_ik.R', 'knee_pole.L', 'knee_pole.R', 'hand_ik.L', 'hand_ik.R')
+def key(F, f, P, interp=None):
+    apply_pose(F, P); pb = F['rig'].pose.bones
+    for n in KEYED:
+        pb[n].keyframe_insert('location', frame=f); pb[n].keyframe_insert('rotation_quaternion', frame=f)
+
+def set_interp(rig, frames, mode):  # e.g. 'LINEAR' into a strike, 'CONSTANT' for holds
+    act = rig.animation_data.action
+    for lay in act.layers:
+        for st in lay.strips:
+            for cb in st.channelbags:
+                for fc in cb.fcurves:
+                    for kp in fc.keyframe_points:
+                        if int(round(kp.co.x)) in frames: kp.interpolation = mode
+
+# ---------------- quick four-angle preview ----------------
+def preview(path, frame=None, res=360, views=('game', 'front', 'side', 'three'), target=None):
+    sc = bpy.context.scene
+    if frame is not None: sc.frame_set(frame)
+    old = sc.camera; cam = bpy.data.objects.get('prevcam')
+    if not cam:
+        cam = bpy.data.objects.new('prevcam', bpy.data.cameras.new('prevcam')); sc.collection.objects.link(cam)
+    t = Vector(target or (0, 0, 1.3)); outs = []
+    sc.render.resolution_x = sc.render.resolution_y = res
+    for v in views:
+        if v == 'game': cam.matrix_world = old.matrix_world; cam.data.lens = old.data.lens; sc.render.resolution_y = res * 9 // 16
+        else:
+            d = {'front': Vector((0, -1, 0)), 'side': Vector((1, 0, 0)), 'three': Vector((.7, -.7, .25))}[v] if isinstance(v, str) else Vector(v)
+            cam.data.type = 'ORTHO'; cam.data.ortho_scale = 4.2
+            cam.location = t + d.normalized() * 9; cam.rotation_euler = (t - cam.location).to_track_quat('-Z', 'Y').to_euler()
+            sc.render.resolution_y = res
+        sc.camera = cam; p = f'{path}_{v}.png'; sc.render.filepath = p; bpy.ops.render.render(write_still=True); outs.append(p)
+        cam.data.type = 'PERSP'
+    sc.camera = old; return outs
+
+
+# ---------------- choreography ----------------
+INSTEP = Vector((0, -.15, .05))  # top of the foot from the ankle, foot frame
+def kick_foot(target, sweep, hip):
+    """Free kicking foot whose instep lands on `target` (rig space): the foot continues the line hip -> target and its
+    top (instep) faces the direction the kick sweeps. Returns (ankle, delta rotation)."""
+    d = (Vector(target) - Vector(hip)).normalized(); sw = Vector(sweep)
+    z = (sw - d * sw.dot(d)).normalized(); y = -d; x = y.cross(z)
+    Rf = Matrix((x, y, z)).transposed()
+    return Vector(target) - Rf @ INSTEP, Rf
+
+def bounce_keys(F, lead, frames, pos=0.0, phase=0, **kw):
+    for i, f in enumerate(frames):  # on the balls of the feet: heels and hips rise and fall
+        up = (i + phase) % 2 == 0
+        P = stance(lead, sink=.04 if up else .11, pos=pos, **kw)
+        for L in 'LR':
+            x, y, yaw, heel = P['f' + L]; P['f' + L] = (x, y, yaw, heel + (14 if up else 0))
+        key(F, f, P)
+
+def animate(interp='CONSTANT'):
+    sc = bpy.context.scene; A, B = FIGHTERS['AKA'], FIGHTERS['AO']
+    for F in (A, B):
+        F['rig'].animation_data_clear(); F['rig'].location.y = 0
+    A['rig'].location.x, B['rig'].location.x = -1.45, 1.45
+    A['rig'].rotation_euler = (0, 0, math.radians(90)); B['rig'].rotation_euler = (0, 0, math.radians(-90))
+    for c in ('AKA', 'AO'): bpy.data.collections[c].hide_render = False
+    cam = sc.camera; cam.location = (-0.7, -9.4, 2.25); cam.data.lens = 38
+    cam.rotation_euler = (Vector((-0.1, 0, 1.3)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
+    bpy.context.view_layer.update()
+    # ---- AO (southpaw, blue): bounce, lunge reverse punch, press in low, gets hit, recoils ----
+    bounce_keys(B, 'R', [1, 6, 11, 16], phase=1)
+    key(B, 21, stance('R', sink=.14, pos=-.05, lean=4))                                       # anticipation: sink and draw back
+    lunge = stance('R', sink=.2, pos=.75, turn=-12, lean=22, length=1.1, hL=(.03, -.95, .38), hR=(-.04, -.4, .02), head=(-12, 0, 0))
+    lunge['fL'] = (.17, -.75 + .2, -40, 30)                                                     # rear foot drags, heel up, leg straight
+    key(B, 26, lunge); key(B, 29, lunge)                                                        # reverse punch lands at head height, held
+    press = stance('R', sink=.34, pos=1.3, turn=20, lean=44, length=.8, head=(-28, 0, 0), hR=(-.1, -.55, .3), hL=(.08, -.35, .1))
+    key(B, 34, dict(press, pos=.85, lean=18, sink=.18, head=(-10, 0, 0))); key(B, 40, press)                                        # comes in low behind the punch, still closing at the kick
+    hit = dict(press, lean=26, head=(-35, -18, 22), hR=(-.25, -.3, .45), hL=(.2, -.2, .25))
+    key(B, 42, hit)                                                                             # the kick lands: head snaps away
+    snap = dict(hit, pos=1.15, lean=4, head=(-30, -28, 35), hR=(-.35, -.1, .55), hL=(.3, .1, .3)); key(B, 45, snap)   # recoil carries the whole body back
+    rec = stance('R', sink=.15, pos=.6, lean=-10, head=(-8, -12, 15)); key(B, 52, rec)       # staggers back, catches the balance
+    key(B, 62, stance('R', pos=0)); key(B, 74, stance('R', pos=0))
+    # ---- AKA (orthodox, red): bounce, slide back, counter roundhouse, slingshot, land ----
+    bounce_keys(A, 'L', [1, 6, 11, 16, 21])
+    key(A, 25, stance('L', pos=-.05, sink=.08))
+    slide = stance('L', pos=-.4, sink=.1, lean=-6, hL=(.12, -.55, .2)); key(A, 30, slide)
+    # impact pose first (needs AO's head at frame 42), then build chamber and re-chamber around it
+    sc.frame_set(42); bpy.context.view_layer.update()
+    hb = B['rig'].pose.bones['head']; Mh = B['rig'].matrix_world @ hb.matrix
+    head_c = Mh @ Vector((0, .46, 0))                                                          # bone-local: .46 up the head bone = centre
+    tgt_w = head_c + Vector((-.88, -.32, -.38)).normalized() * .62                             # ON the head's surface: the cheek facing Aka and the camera (inside the big head the foot vanishes)
+    tgt = A['rig'].matrix_world.inverted() @ tgt_w
+    REACH = .8  # hip to instep with the knee straight but not locked (thigh .35 + shin .34 + foot to instep .15, x .95)
+    for pos_k in [p / 20 for p in range(-4, 16)]:  # step in until the kick can land: a counter closes the gap, limbs never stretch
+        imp = stance('L', pos=pos_k, sink=-.04, turn=95, away=32, hips=(0, 0, 10), hL=(.25, -.45, .35), hR=(-.55, .25, -.15))
+        imp['fL'] = (.17, .31 - .1 + .05, 135, 28)                                              # standing heel turned to the target, up on the ball
+        apply_pose(A, dict(imp, fR=((-.3, -.5, .9), (0, 0, 0))))
+        hip = A['rig'].pose.bones['thigh.R'].head.copy()
+        if (Vector(tgt) - hip).length <= REACH: break
+    A['kick_pos'] = pos_k; A['kick_reach'] = (Vector(tgt) - hip).length
+    ank, Rf = kick_foot(tgt, (1, 0, .15), hip)
+    root = Vector((0, -pos_k, 0))
+    imp['fR'] = (tuple(ank - root), Rf); imp['poleR'] = tuple(Vector(tgt) - root + Vector((-.6, 0, .6)))
+    knee_up = (hip + (Vector(tgt) - hip) * .45 + Vector((-.15, .1, .25)))                       # chamber: knee high toward the target
+    cham = stance('L', pos=pos_k - .45, sink=0, turn=55, away=12, hL=(.15, -.55, .35), hR=(-.25, -.3, .2))
+    cham['fL'] = (.17, .31 - .1, 75, 22)
+    cham['fR'] = (tuple(knee_up - root + Vector((-.05, .3, -.28))), R(60, 0, 40)); cham['poleR'] = tuple(knee_up - root + Vector((-.3, -1.0, .3)))
+    shift = stance('L', pos=(pos_k - .45 - .4) / 2, sink=.08, turn=10); shift['fL'] = (.17, .31 - .1, 20, 15)  # step in, weight onto the front foot, it starts to turn
+    key(A, 33, shift); key(A, 37, cham)
+    key(A, 41, imp); key(A, 44, imp)                                                            # snap out, held a beat (kime)
+    sling = dict(imp, fR=(tuple(knee_up - root + Vector((-.1, .35, -.25))), R(70, 0, 60)), poleR=imp['poleR'])
+    key(A, 47, sling); key(A, 48, sling)                                                       # slingshot: knee stays, shin whips back
+    land = stance('L', pos=pos_k - .35, sink=.12, lean=4); key(A, 55, land)                  # sets the foot down a step back
+    key(A, 62, stance('L', pos=0)); key(A, 74, stance('L', pos=0))
+    # ---- both: stand, bow, rise ----
+    for F, lead in ((A, 'L'), (B, 'R')):
+        s = 1 if lead == 'L' else -1
+        ready = dict(DEFAULT, pos=-.45, turn=-s * 35, fL=(.15, 0, -s * 35 + 8, 0), fR=(-.15, 0, -s * 35 - 8, 0), hL=(.32, -.05, -.45), hR=(-.32, -.05, -.45), sink=.0)  # step back to the line before rei
+        key(F, 82, ready); key(F, 88, ready)
+        bow = dict(ready, lean=28, head=(10, 0, 0)); key(F, 94, bow); key(F, 99, bow); key(F, 106, ready)
+    sc.frame_start, sc.frame_end = 1, 112
+    for F in (A, B): set_interp(F['rig'], range(0, 200), interp)
+    return tgt_w
+
+
+# ---------------- splining: from stepped blocking to final motion ----------------
+def fcurves(rig):
+    act = rig.animation_data.action
+    for lay in act.layers:
+        for st in lay.strips:
+            for cb in st.channelbags:
+                yield from cb.fcurves
+
+OVERLAP = {'head': 2, 'neck': 1, 'hand_ik.L': 1, 'hand_ik.R': 1, 'chest': 1}  # trailing parts settle a frame or two after the body
+CONTACT = {'AKA': (41, 55), 'AO': (26, 42, 45)}  # frames a strike or a foot arrives: no ease into them
+
+def spline():
+    for name, F in FIGHTERS.items():
+        rig = F['rig']
+        for fc in fcurves(rig):
+            bone = fc.data_path.split('"')[1] if '"' in fc.data_path else ''
+            n = OVERLAP.get(bone, 0)
+            for kp in fc.keyframe_points:
+                if n and kp.co.x > 1.5: kp.co.x += n; kp.handle_left.x += n; kp.handle_right.x += n
+                kp.interpolation = 'BEZIER'; kp.handle_left_type = kp.handle_right_type = 'AUTO_CLAMPED'
+            fc.update()
+            for kp in fc.keyframe_points:
+                if int(round(kp.co.x)) - n in CONTACT[name]: kp.handle_left_type = 'VECTOR'
+            fc.update()
+
+def look(res=1280):
+    sc = bpy.context.scene; sc.render.resolution_x, sc.render.resolution_y = res, res * 9 // 16
+    import moves
+    moves.kuwahara(sc)
+
+def render_job(out_dir, res=1280):
+    """Save the scene and render the frames in a background Blender (no window), so this Blender stays usable."""
+    import subprocess
+    look(res); os.makedirs(os.path.join(out_dir, 'frames'), exist_ok=True)
+    sc = bpy.context.scene; sc.render.filepath = os.path.join(out_dir, 'frames', 'f####')
+    sc.render.image_settings.file_format = 'PNG'
+    blend = os.path.join(out_dir, 'kumite2.blend'); bpy.ops.wm.save_as_mainfile(filepath=blend, copy=True)
+    log = open(os.path.join(out_dir, 'render.log'), 'w')
+    subprocess.Popen([bpy.app.binary_path, '-b', blend, '-a'], stdout=log, stderr=subprocess.STDOUT, creationflags=0x08000000)
+    return blend
