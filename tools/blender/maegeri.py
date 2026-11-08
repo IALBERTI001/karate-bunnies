@@ -29,14 +29,14 @@ def ease(kind, t):
 # planted = kicking foot on the floor (1) or flying (0), fy = where it is planted (+ = in front), foot = extra toe pitch,
 # hL/hR = fists from the chest head
 GUARD = dict(pos=0, sink=.07, wx=0, away=0, lean=4, hipf=0, th=-12, fold=6, foot=0, planted=1, fy=-.32, turn=-10, out=0, ly=0,
-             hL=(.12, -.36, .3), hR=(-.22, -.04, .28))  # tight guard: lead fist at the chin, rear fist back by the cheek, elbow tucked back (it hid the knee)
+             hL=(.24, -.46, .18), hR=(-.32, -.34, .12))   # fists in front of the chest, elbows bent and down  # tight guard: lead fist at the chin, rear fist back by the cheek, elbow tucked back (it hid the knee)
 def B(**kw): return dict(GUARD, **kw)
 # v5 (fresh-eyes review, Nov 8): the whole body throws each kick - trunk leans back 22/32 deg with the hips pushed through,
 # the standing leg locks straight on the snap, the rear fist pulls back as the lead hand reaches; a 2-frame dip over the
 # support foot, the foot leaves on the dip and the knee POPS; tight coil (heel under the seat); retract along the same
 # line; travel a full foot length on the landing.
-SNAP1 = dict(planted=0, turn=-6, hL=(.13, -.27, .3), hR=(-.26, .14, .2))             # lead glove stays at the chin line (it cluttered the impact)
-SNAP2 = dict(planted=0, turn=-6, hL=(.13, -.26, .3), hR=(-.27, .16, .18), out=.28)     # high kick outside its own head line, AWAY from the front camera (toward it, the foot covered the face)
+SNAP1 = dict(planted=0, turn=-6, hL=(.25, -.44, .22), hR=(-.42, .12, .06))    # rear fist pulls back to the ribs (hikite)             # lead glove stays at the chin line (it cluttered the impact)
+SNAP2 = dict(planted=0, turn=-6, hL=(.26, -.42, .22), hR=(-.44, .14, .06), out=.28)     # high kick outside its own head line, AWAY from the front camera (toward it, the foot covered the face)
 BEATS = [
     (0, 'lin', B()),
     (5, 'lin', B()),
@@ -44,12 +44,12 @@ BEATS = [
     (9, 'in', B(sink=.1, wx=.16, lean=3, th=24, fold=70, foot=10, planted=0, turn=-3)),               # the foot LEAVES on the dip
     (11, 'out', B(sink=.04, wx=.16, away=3, th=104, fold=132, planted=0, turn=-6)),                    # knee pops up: tight coil
     (14, 'out', B(sink=.03, wx=.16, away=6, th=114, fold=142, planted=0, turn=-6)),                    # heel tucked under the knee, still rising
-    (16, 'lin', B(sink=.03, wx=.16, away=9, th=122, fold=148, planted=0, turn=-6, hR=(-.24, .04, .26))),  # wind-up: trunk eases back
+    (16, 'lin', B(sink=.03, wx=.16, away=9, th=122, fold=148, planted=0, turn=-6, hR=(-.34, -.3, .12))),  # wind-up: trunk eases back
     (17, 'snap', B(pos=.12, sink=.075, wx=.17, away=24, hipf=.22, th=100, fold=-6, **SNAP1)),          # SNAP 1 (overshoots)
     (19, 'out', B(pos=.12, sink=.065, wx=.17, away=21, hipf=.17, th=96, fold=12, **SNAP1)),           # recoils ~10% before the whip back
     (20, 'out', B(pos=.1, sink=.02, wx=.16, away=12, hipf=.06, th=112, fold=120, planted=0, turn=-6)),  # whips back on the same line
     (21, 'out', B(pos=.1, sink=.02, wx=.16, away=8, th=114, fold=142, planted=0, turn=-6)),
-    (24, 'lin', B(pos=.1, sink=.02, wx=.16, away=12, th=124, fold=148, planted=0, turn=-6, hR=(-.24, .04, .26))),
+    (24, 'lin', B(pos=.1, sink=.02, wx=.16, away=12, th=124, fold=148, planted=0, turn=-6, hR=(-.34, -.3, .12))),
     (25, 'snap', B(pos=.13, sink=.08, wx=.17, away=34, hipf=.16, th=132, fold=-6, **SNAP2)),         # SNAP 2: head height
     (27, 'out', B(pos=.13, sink=.075, wx=.17, away=30, hipf=.15, th=128, fold=12, **SNAP2)),
     (28, 'out', B(pos=.13, sink=.06, wx=.16, away=22, hipf=.08, th=126, fold=105, planted=0, turn=-6, out=.05)),  # knee stays high, shin folds
@@ -105,7 +105,6 @@ def body_pose(F, G, S):
 CHAINS = [  # bones root to tip, stiffness, damping, gravity, max swing from the posed shape (deg)
     (('ear_a.L', 'ear_b.L'), 140, 9, 0, 24), (('ear_a.R', 'ear_b.R'), 140, 9, 0, 24),
     (('tie1_a', 'tie1_b'), 40, 4.5, 7, 110), (('tie2_a', 'tie2_b'), 34, 4, 7, 110),
-    (('bend1_a', 'bend1_b'), 90, 9, 9, 50), (('bend2_a', 'bend2_b'), 90, 9, 9, 50),
 ]
 def follow_through(F, keep):
     rig = F['rig']; pb = rig.pose.bones; vl = bpy.context.view_layer; sc = bpy.context.scene

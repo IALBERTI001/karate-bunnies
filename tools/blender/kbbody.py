@@ -33,6 +33,25 @@ def face_y(x, z, out=0.0):
     q = 1 - (x / HEAD_R.x) ** 2 - ((z + DZ - HEAD_C.z) / HEAD_R.z) ** 2  # z in v2 coordinates (the face is placed before the lift)
     return -(HEAD_R.y + out) * math.sqrt(max(q, 0.0))
 
+BELT = False   # user, Nov 8 2026: "remove the belt" (ring, knot and hanging ends); the bend bones stay so old actions still load
+
+def split_off(body, groups, suffix):
+    # A sleeve that is part of the one continuous body has no outline where it lies against the jacket, so a guarding
+    # arm melts into the chest ("the arms are sucked into the body", Nov 8 2026). Faces that belong to the arm become
+    # their own object (same weights, same armature; the shared seam vertices stay welded in place), so each arm gets
+    # its own ink line wherever it crosses the body.
+    import bmesh
+    gi = {body.vertex_groups[n].index for n in groups if n in body.vertex_groups}
+    w = [sum(g.weight for g in v.groups if g.group in gi) for v in body.data.vertices]
+    keep = {p.index for p in body.data.polygons if min(w[i] for i in p.vertices) > .5}
+    part = body.copy(); part.data = body.data.copy(); part.name = body.name + suffix
+    for c in body.users_collection: c.objects.link(part)
+    for ob, inside in ((part, False), (body, True)):
+        bm = bmesh.new(); bm.from_mesh(ob.data); bm.faces.ensure_lookup_table()
+        bmesh.ops.delete(bm, geom=[f for f in bm.faces if (f.index in keep) == inside], context='FACES')
+        bm.to_mesh(ob.data); bm.free()
+    return part
+
 def mats(tag, belt, gear):
     M = {}
     M['GI'] = _toon(f'{tag}_gi', '#f4f3ee', '#c4c8d2', '#ffffff')
@@ -76,7 +95,7 @@ def bone_table():
         T[f'foot_ik.{L}'] = ((s * .3, 0, .16), (s * .3, -.34, .16), 'root', False, False)
         T[f'knee_pole.{L}'] = ((s * .3, -1.3, .5), (s * .3, -1.45, .5), f'foot_ik.{L}', False, False)
         T[f'hand_ik.{L}'] = ((s * .9, 0, .7), (s * .9, -.18, .7), 'chest', False, False)
-        T[f'elbow_pole.{L}'] = ((s * 1.1, 1.0, 1.05), (s * 1.1, 1.15, 1.05), 'chest', False, False)
+        T[f'elbow_pole.{L}'] = ((s * 1.15, .35, .5), (s * 1.15, .5, .5), 'chest', False, False)   # elbows down and OUT (behind the body they folded the arm into the chest)
         T[f'ear_a.{L}'] = ((s * .2, .06, 2.5), (s * .31, .07, 2.95), 'head', False, True)
         T[f'ear_b.{L}'] = ((s * .31, .07, 2.95), (s * .42, .08, 3.38), f'ear_a.{L}', True, True)
     T['tail'] = ((0, .38, .8), (0, .56, .84), 'hips', False, True)
@@ -121,7 +140,8 @@ def build_rig(name, coll):
         ik.pole_target = rig; ik.pole_subtarget = f'elbow_pole.{L}'; ik.pole_angle = math.radians(-90); ik.chain_count = 2
         for b in (f'shin.{L}', f'forearm.{L}'):  # hinge joints: bend about local X only, never backwards
             p = pb[b]; p.lock_ik_y = p.lock_ik_z = True; p.use_ik_limit_x = True
-            p.ik_min_x = math.radians(-150); p.ik_max_x = math.radians(0)  # forward knee fold is negative local X with this roll (measured)
+            lo, hi = (-150, 0) if b.startswith('shin') else (0, 150)        # knee: negative local X (measured Nov 7); elbow: POSITIVE since the
+            p.ik_min_x = math.radians(lo); p.ik_max_x = math.radians(hi)      # v3 arm lengthening (Nov 8: the wrong sign locked the elbows straight)
     for p in pb: p.rotation_mode = 'QUATERNION'
     bpy.ops.object.mode_set(mode='OBJECT')
     return rig
@@ -149,8 +169,8 @@ def build_body(name, coll, M):
     i_chest = min(range(len(verts)), key=lambda i: (verts[i] - Vector(up((0, 0, 1.36)))).length)
     i_pelvis = min(range(len(verts)), key=lambda i: (verts[i] - Vector(up((0, 0, .86)))).length)
     for s in (1, -1):
-        arm = chain([(up((s * .3, 0, 1.38)), (.2, .2)), (up((s * .46, 0, 1.38)), (.2, .2)), (up((s * .72, .05, 1.04)), (.17, .17)),
-                     (up((s * .88, .01, .74)), (.19, .19))], 3)
+        arm = chain([(up((s * .3, 0, 1.38)), (.18, .18)), (up((s * .46, 0, 1.38)), (.165, .165)), (up((s * .72, .05, 1.04)), (.135, .135)),
+                     (up((s * .88, .01, .74)), (.155, .155))], 3)   # slimmer sleeves: the arm keeps its shape in a guard
         add_chain(arm, i_chest)
         x = s * HIP_X  # v3: a slim trouser leg that tapers to the knee and flares a little to the hem
         leg = chain([(up((s * .12, 0, .82)), (.22, .22)), ((x, 0, HIP_Z - .02), (.2, .2)), ((x, -.05, KNEE_Z), (.14, .14)),
@@ -249,7 +269,10 @@ def build_bunny(name, belt, gear, band=None):
     M = mats(name, belt, gear); band = band or gear
     BAND = _toon(f'{name}_band', band[0], band[1])
     rig = build_rig(name, coll)
-    body = build_body(name, coll, M); bind_auto(rig, body); fix_leg_weights(rig, body); fix_skirt_weights(rig, body); fix_arm_weights(rig, body); rig['unweighted_body_verts'] = unweighted(body); hull(body)
+    body = build_body(name, coll, M); bind_auto(rig, body); fix_leg_weights(rig, body); fix_skirt_weights(rig, body); fix_arm_weights(rig, body); rig['unweighted_body_verts'] = unweighted(body)
+    arms = [split_off(body, (f'upper_arm.{L}', f'forearm.{L}', f'hand.{L}'), f'_arm.{L}') for L in 'LR']
+    hull(body)
+    for a in arms: hull(a)
     E, C = kbrig.ellipsoid, kbrig.capsule
     def part(nm, bm, mat, bone=None, groups=None, ink=True):
         lift = not nm.startswith(('foot.', 'pad.'))
@@ -292,9 +315,10 @@ def build_bunny(name, belt, gear, band=None):
         part(t, kbrig.strip(pts, wd), BAND, groups=lambda p, t=t, a1=a1: {f'{t}_a': 1 - ss01(-.1, .1, (Vector(p) - a1).dot(Vector((-.6, .5, -.4)).normalized())),
                                                                        f'{t}_b': ss01(-.1, .1, (Vector(p) - a1).dot(Vector((-.6, .5, -.4)).normalized()))}, ink=False)
     # belt with a front knot and two hanging ends
-    part('belt', kbrig.ring((0, 0, .93), .45, .385, .7, .09), M['BELT'], 'hips')
-    part('knot', E((0, -.38, .93), (.08, .05, .07)), M['BELT'], 'hips')
-    for i, x in ((1, .07), (2, -.07)):
+    for i, x in (((1, .07), (2, -.07)) if BELT else ()):
+        if i == 1:
+            part('belt', kbrig.ring((0, 0, .93), .45, .385, .7, .09), M['BELT'], 'hips')
+            part('knot', E((0, -.38, .93), (.08, .05, .07)), M['BELT'], 'hips')
         pts = [(x, -.42, .9), (x * 1.6, -.46, .72), (x * 2.2, -.48, .52)]
         part(f'beltend{i}', kbrig.strip(pts, .07, up=(1, 0, 0)), M['BELT'],
              groups=lambda p, i=i: {f'bend{i}_a': 1 - ss01(.66, .78, p.z), f'bend{i}_b': ss01(.66, .78, p.z)}, ink=False)
