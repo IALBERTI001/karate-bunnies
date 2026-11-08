@@ -17,10 +17,20 @@ import importlib, kbpuppet, kbrig
 from kbpuppet import _toon, _flat
 
 INK_T = .028
+# v3 proportions (user, Nov 8 2026: "legs are usually longer anyways"; reference: a 2D karate fighter whose legs are about
+# half her height). Thigh and shin are each LEG long, so every kick shows a thigh, a knee and a shin with air around them.
+# Everything above the hips is the v2 body lifted by DZ; legs are slim and set under the body.
+LEG = .52                      # thigh = shin (v2: .34, shorter than the belly was deep, so a raised knee vanished into it)
+ANKLE_Z = .16
+HIP_Z = ANKLE_Z + 2 * LEG      # 1.2 (v2 .84)
+DZ = HIP_Z - .84               # the v2 upper body sits this much higher
+HIP_X = .21                    # hip joints under the body (v2 .29: legs hung off the belly's sides)
+KNEE_Z = ANKLE_Z + LEG
+def up(v): return (v[0], v[1], v[2] + DZ)
 
-HEAD_C, HEAD_R = Vector((0, 0, 2.08)), Vector((.66, .6, .53))
+HEAD_C, HEAD_R = Vector((0, 0, 2.08 + DZ)), Vector((.66, .6, .53))
 def face_y(x, z, out=0.0):
-    q = 1 - (x / HEAD_R.x) ** 2 - ((z - HEAD_C.z) / HEAD_R.z) ** 2
+    q = 1 - (x / HEAD_R.x) ** 2 - ((z + DZ - HEAD_C.z) / HEAD_R.z) ** 2  # z in v2 coordinates (the face is placed before the lift)
     return -(HEAD_R.y + out) * math.sqrt(max(q, 0.0))
 
 def mats(tag, belt, gear):
@@ -76,6 +86,17 @@ def bone_table():
     for i, x in ((1, .07), (2, -.07)):
         T[f'bend{i}_a'] = ((x, -.42, .9), (x * 1.6, -.46, .72), 'hips', False, True)
         T[f'bend{i}_b'] = ((x * 1.6, -.46, .72), (x * 2.2, -.48, .52), f'bend{i}_a', True, True)
+    LEGB = ('root', 'thigh.', 'shin.', 'foot.', 'foot_ik.', 'knee_pole.')
+    for n, (h, t, p, c, d) in list(T.items()):
+        if not n.startswith(LEGB): T[n] = (up(h), up(t), p, c, d)
+    for s, L in ((1, 'L'), (-1, 'R')):
+        x = s * HIP_X
+        T[f'thigh.{L}'] = ((x, 0, HIP_Z), (x, -.05, KNEE_Z), 'hips', False, True)
+        T[f'shin.{L}'] = ((x, -.05, KNEE_Z), (x, 0, ANKLE_Z), f'thigh.{L}', True, True)
+        T[f'foot.{L}'] = ((x, 0, ANKLE_Z), (x, -.34, .07), f'shin.{L}', True, True)
+        T[f'foot_ik.{L}'] = ((x, 0, ANKLE_Z), (x, -.34, ANKLE_Z), 'root', False, False)
+        T[f'knee_pole.{L}'] = ((x, -1.3, KNEE_Z), (x, -1.45, KNEE_Z), f'foot_ik.{L}', False, False)
+    T['torso'] = ((0, 0, HIP_Z + .04), (0, .5, HIP_Z + .04), 'root', False, False)  # centre of gravity: pivots at the pelvis
     return T
 
 def build_rig(name, coll):
@@ -115,8 +136,8 @@ def chain(pts, n):  # densify a polyline of (point, (rx, ry)) with n sub-steps p
     out.append((Vector(pts[-1][0]), pts[-1][1])); return out
 
 def build_body(name, coll, M):
-    trunk = chain([((0, 0, .7), (.43, .37)), ((0, 0, .86), (.45, .38)), ((0, 0, 1.0), (.41, .34)), ((0, 0, 1.2), (.45, .37)),
-                   ((0, 0, 1.38), (.41, .33)), ((0, 0, 1.55), (.22, .2))], 3)
+    trunk = chain([(up((0, 0, .72)), (.36, .3)), (up((0, 0, .86)), (.38, .31)), (up((0, 0, 1.0)), (.35, .29)), (up((0, 0, 1.2)), (.41, .33)),
+                   (up((0, 0, 1.38)), (.39, .31)), (up((0, 0, 1.55)), (.22, .2))], 3)  # v3: belly depth .3 (v2 .38), thinner than a thigh is long
     verts, rad, edges = [], [], []
     def add_chain(ch, start=None):
         prev = start
@@ -125,14 +146,15 @@ def build_body(name, coll, M):
             if prev is not None: edges.append((prev, i))
             prev = i
     add_chain(trunk)
-    i_chest = min(range(len(verts)), key=lambda i: (verts[i] - Vector((0, 0, 1.36))).length)
-    i_pelvis = min(range(len(verts)), key=lambda i: (verts[i] - Vector((0, 0, .86))).length)
+    i_chest = min(range(len(verts)), key=lambda i: (verts[i] - Vector(up((0, 0, 1.36)))).length)
+    i_pelvis = min(range(len(verts)), key=lambda i: (verts[i] - Vector(up((0, 0, .86)))).length)
     for s in (1, -1):
-        arm = chain([((s * .3, 0, 1.38), (.22, .22)), ((s * .46, 0, 1.38), (.23, .23)), ((s * .68, .05, 1.1), (.2, .2)),
-                     ((s * .82, .01, .86), (.22, .22))], 3)
+        arm = chain([(up((s * .3, 0, 1.38)), (.2, .2)), (up((s * .46, 0, 1.38)), (.2, .2)), (up((s * .68, .05, 1.1)), (.17, .17)),
+                     (up((s * .82, .01, .86)), (.19, .19))], 3)
         add_chain(arm, i_chest)
-        leg = chain([((s * .2, 0, .82), (.27, .27)), ((s * .3, 0, .8), (.27, .27)), ((s * .3, -.05, .5), (.235, .235)),
-                     ((s * .3, 0, .24), (.255, .255)), ((s * .3, 0, .2), (.25, .25))], 3)
+        x = s * HIP_X  # v3: a slim trouser leg that tapers to the knee and flares a little to the hem
+        leg = chain([(up((s * .12, 0, .82)), (.22, .22)), ((x, 0, HIP_Z - .02), (.2, .2)), ((x, -.05, KNEE_Z), (.14, .14)),
+                     ((x, 0, ANKLE_Z + .1), (.17, .17)), ((x, 0, ANKLE_Z + .05), (.165, .165))], 4)
         add_chain(leg, i_pelvis)
     me = bpy.data.meshes.new(name + '_body_src'); me.from_pydata([tuple(v) for v in verts], edges, [])
     ob = bpy.data.objects.new(name + '_body', me); coll.objects.link(ob)
@@ -155,6 +177,18 @@ def bind_auto(rig, ob):  # bone heat from the body's own skeleton only (not ears
     bpy.ops.object.parent_set(type='ARMATURE_AUTO')
     for b in rig.data.bones: b.use_deform = saved[b.name]
 
+def fix_leg_weights(rig, ob):
+    # Bone heat left the trouser below the knee on the thigh (Nov 8 2026: the knee never showed). Below the upper thigh,
+    # each leg vertex belongs to its thigh or shin only, with a narrow blend band at the knee.
+    groups = {g.name: g for g in ob.vertex_groups}
+    for v in ob.data.vertices:
+        p = v.co; L = 'L' if p.x > 0 else 'R'
+        if p.z > HIP_Z - .12 or abs(p.x) < .06: continue
+        for g in ob.vertex_groups: g.remove([v.index])
+        ws = ss01(KNEE_Z + .06, KNEE_Z - .06, p.z); wh = ss01(HIP_Z - .3, HIP_Z - .12, p.z)
+        groups[f'shin.{L}'].add([v.index], ws, 'REPLACE'); groups[f'thigh.{L}'].add([v.index], (1 - ws) * (1 - wh), 'REPLACE')
+        if wh > 0: groups['hips'].add([v.index], (1 - ws) * wh, 'REPLACE')
+
 def bind_bone(rig, ob, bone):
     mw = ob.matrix_world.copy(); ob.parent = rig; ob.parent_type = 'BONE'; ob.parent_bone = bone
     bpy.context.view_layer.update(); ob.matrix_world = mw
@@ -172,15 +206,20 @@ def build_bunny(name, belt, gear, band=None):
     M = mats(name, belt, gear); band = band or gear
     BAND = _toon(f'{name}_band', band[0], band[1])
     rig = build_rig(name, coll)
-    body = build_body(name, coll, M); bind_auto(rig, body); hull(body)
+    body = build_body(name, coll, M); bind_auto(rig, body); fix_leg_weights(rig, body); hull(body)
     E, C = kbrig.ellipsoid, kbrig.capsule
     def part(nm, bm, mat, bone=None, groups=None, ink=True):
+        lift = not nm.startswith(('foot.', 'pad.'))
+        if lift:
+            for v in bm.verts: v.co.z += DZ
+        else:
+            for v in bm.verts: v.co.x *= HIP_X / .3
         ob = mesh_obj(f'{name}_{nm}', bm, mat, coll)
         if bone: bind_bone(rig, ob, bone)
-        if groups: bind_groups(rig, ob, groups)
+        if groups: bind_groups(rig, ob, (lambda p, g=groups: g(Vector(p) - Vector((0, 0, DZ)))) if lift else groups)
         if ink: hull(ob)
         return ob
-    part('head', E(HEAD_C, HEAD_R, segs=40), M['FUR'], 'head')
+    part('head', E(HEAD_C - Vector((0, 0, DZ)), HEAD_R, segs=40), M['FUR'], 'head')
     for s, L in ((1, 'L'), (-1, 'R')):
         a, t = Vector((s * .2, .06, 2.45)), Vector((s * .42, .08, 3.4)); d = t - a
         R = d.to_track_quat('Z', 'Y').to_matrix()
@@ -202,7 +241,7 @@ def build_bunny(name, belt, gear, band=None):
     mouth = [(x, face_y(x, z, .0), z) for x, z in ((-.09, 1.8), (-.04, 1.77), (0, 1.79), (.04, 1.77), (.09, 1.8))]
     part('mouth', kbrig.tube_curve(mouth, .012), M['INK'], 'head', ink=False)
     # headband (ring around the head at the measured height) and its ribbons
-    zb = 2.36; k = math.sqrt(max(0, 1 - ((zb - HEAD_C.z) / HEAD_R.z) ** 2))
+    zb = 2.36; k = math.sqrt(max(0, 1 - ((zb + DZ - HEAD_C.z) / HEAD_R.z) ** 2))
     part('headband', kbrig.ring((0, 0, zb), HEAD_R.x * k + .015, HEAD_R.y * k + .015, 1.3, .06), BAND, 'head')
     part('bandknot', E((-.46, .42, 2.36), (.09, .09, .1)), BAND, 'head')
     for t, pts, wd in (('tie1', [(-.46, .42, 2.36), (-.72, .66, 2.26), (-.92, .84, 2.0)], .1), ('tie2', [(-.46, .42, 2.36), (-.66, .72, 2.12), (-.78, .86, 1.82)], .09)):

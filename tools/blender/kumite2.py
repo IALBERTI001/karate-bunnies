@@ -83,7 +83,7 @@ def apply_pose(F, P):
     vl.update()
     root = Vector((0, -P['pos'], 0)); put('root', Matrix.Identity(3), root)
     # away: the trunk drops back from the opponent (world frame), e.g. the kick's seesaw
-    Rt = R(-P['away'], 0, 0) @ R(P['lean'], P['tilt'], P['turn']); tor = root + Vector((P['shift'][0], -P['shift'][1], .88 - P['sink']))
+    Rt = R(-P['away'], 0, 0) @ R(P['lean'], P['tilt'], P['turn']); tor = root + Vector((P['shift'][0], -P['shift'][1], kbbody.HIP_Z + .04 - P['sink']))  # v3 long legs: the pelvis pivot comes from the body
     put('torso', Rt, tor)
     Rh = Rt @ R(*P['hips']); put('hips', Rh, pb['hips'].head.copy())
     Rs = Rt @ R(*P['spine']); put('spine', Rs, pb['spine'].head.copy())
@@ -215,9 +215,9 @@ def animate(interp='CONSTANT'):
     cham['fL'] = (.17, .31 - .1, 35, 18)
     apply_pose(A, dict(cham, fR=((-.3, -.3, .5), (0, 0, 0))))
     hip_c = A['rig'].pose.bones['thigh.R'].head.copy(); root_c = Vector((0, -(pos_k - .45), 0))
-    knee_c = hip_c + Vector((0, -.25, .25))                                                     # thigh .35 long, aimed at Ao, 45 degrees up (knee at chest height, measured)
-    ankle_c = knee_c + Vector((0, .16, -.29))                                                   # shin hangs down and back: knee folded about 120 degrees
-    cham['fR'] = (tuple(ankle_c - root_c), R(55, 0, 0)); cham['poleR'] = tuple(knee_c - root_c + Vector((0, -1.0, .2)))
+    knee_c = hip_c + Vector((0, -.29, .2))   # the high-knee L: thigh level, pointing at Ao (a pendulum swing from the hip)                                                     # thigh .35 long, aimed at Ao, 45 degrees up (knee at chest height, measured)
+    ankle_c = knee_c + Vector((0, .02, -.34))  # shin hangs straight down below the belly, where nothing covers it                                                   # shin hangs down and back: knee folded about 120 degrees
+    cham['fR'] = (tuple(ankle_c - root_c), R(25, 0, 0)); cham['poleR'] = tuple(knee_c - root_c + Vector((0, -1.0, .2)))
     shift = stance('L', pos=(pos_k - .45 - .4) / 2, sink=.08, turn=10); shift['fL'] = (.17, .31 - .1, 20, 15)  # step in, weight onto the front foot, it starts to turn
     key(A, 33, shift); key(A, 37, cham)
     key(A, 41, imp); key(A, 44, imp)                                                            # snap out, held a beat (kime)
