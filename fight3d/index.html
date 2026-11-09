@@ -575,16 +575,19 @@ function toTitle() { mode = 'title'; ui.call.classList.remove('show'); P1.reset(
 const camPos = new THREE.Vector3(0, 2, 12), camLook = new THREE.Vector3(0, 1.1, 0);
 function updateCamera(dt, t) {
   const mid = (P1.group.position.x + P2.group.position.x) / 2, gap = Math.abs(P1.group.position.x - P2.group.position.x);
-  const aspect = camera.aspect, narrow = Math.max(0, 1.5 - aspect);   // portrait phones need the camera further back
-  let dist = 13 + gap * 1.25 + narrow * 11;
-  const want = new THREE.Vector3(), look = new THREE.Vector3(mid, 1.45 + narrow * .5, 0);
-  if (mode === 'title') { const a = t * .12; dist = 14 + narrow * 10; want.set(Math.sin(a) * dist * .45, 3.2, Math.cos(a) * .2 * dist + dist * .8); look.set(0, 1.3 + narrow * .4, 0); }
+  // fit both fighters plus some mat into the frame for this screen shape (portrait phones get a tighter margin)
+  const aspect = camera.aspect, narrow = aspect < 1 ? 1 : 0;
+  const vt = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), ht = vt * aspect;
+  let dist = Math.max((gap + (narrow ? 3.6 : 7)) / 2 / ht, (narrow ? 2.6 : 3.1) / vt);
+  const want = new THREE.Vector3(), look = new THREE.Vector3(mid, 1.4 - narrow * .2, 0);
+  if (mode === 'title') { const a = t * .12; dist = narrow ? dist * .95 : 14; want.set(Math.sin(a) * dist * .45, 3.2, Math.cos(a) * .2 * dist + dist * .8); look.set(0, 1.3 + narrow * .4, 0); }
   else if (camMode === 0) want.set(mid, 2.4, dist);
   else if (camMode === 1) want.set(mid - dist * .5, 3.4, dist * .86);
   else want.set(mid + dist * .2, .9, dist * .8);
   const k = 1 - Math.exp(-dt * 4);
   camPos.lerp(want, k); camLook.lerp(look, k);
   camera.position.copy(camPos);
+  scene.fog.near = dist + 3; scene.fog.far = dist + 22;   // fog stays behind the fighters at any camera distance
   if (shake > 0) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * 1.2); }
   camera.lookAt(camLook);
 }
