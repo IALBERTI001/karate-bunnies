@@ -121,7 +121,7 @@ def bone_table():
         T[f'shin.{L}'] = ((x, -.05, KNEE_Z), (x, 0, ANKLE_Z), f'thigh.{L}', True, True)
         T[f'foot.{L}'] = ((x, 0, ANKLE_Z), (x, -.34, .07), f'shin.{L}', True, True)
         T[f'toe.{L}'] = ((x, -.34, .07), (x, -.54, .07), f'foot.{L}', True, True)     # ball of the foot: toes bend while the heel lifts
-        T[f'foot_ik.{L}'] = ((x, 0, ANKLE_Z), (x, -.34, ANKLE_Z), 'root', False, False)
+        T[f'foot_ik.{L}'] = ((x, 0, ANKLE_Z), (x, -.34, .07), 'root', False, False)   # SAME rest direction as foot.{L}: the foot copies its rotation (a level control bone tipped every flat foot 15 deg: heel 5 cm under the floor, toes up; found by the walk, Nov 8)
         T[f'knee_pole.{L}'] = ((x, -1.3, KNEE_Z), (x, -1.45, KNEE_Z), f'foot_ik.{L}', False, False)
     T['torso'] = ((0, 0, HIP_Z + .04), (0, .5, HIP_Z + .04), 'root', False, False)  # centre of gravity: pivots at the pelvis
     return T
