@@ -96,6 +96,8 @@ def body_pose(F, G, S):
 
 # ---------------- the combinations ----------------
 def combo_mawashi():
+    # counterbalance (user, Nov 8): the trunk leans BACK away from the target as the leg drives out, or the kick has no force.
+    # tilt is negative here: with the hips turned ~90 deg, a positive tilt leaned the trunk INTO the kick.
     g = lambda **kw: B(leg='R', **kw)
     RG = dict(hL=GW_R['hL'], hR=GW_R['hR'])
     beats = [
@@ -111,22 +113,22 @@ def combo_mawashi():
         # the hips keep turning: the rear leg comes off the floor into the roundhouse
         (17, 'in', g(planted=0, th=45, fold=85, roll=35, sink=.22, wx=.12, lean=8, turn=40, pos=.46, yL=.42, yR=-.14, aL=70, hl=6, foot=20,
                      hL=(.2, -.35, .4), hR=(-.4, -.1, .1))),
-        (19, 'out', g(planted=0, th=95, fold=140, roll=80, sink=.28, wx=.12, tilt=14, away=4, turn=62, pos=.48, yL=.42, aL=110, hl=8, foot=60,
+        (19, 'out', g(planted=0, th=95, fold=140, roll=80, sink=.28, wx=.12, tilt=-16, away=4, turn=62, pos=.48, yL=.42, aL=110, hl=8, foot=60,
                       hL=(.15, -.35, .42), hR=(-.42, -.06, .02))),                                                      # knee turned over, heel tucked; rear fist guards the hip
-        (21, 'lin', g(planted=0, th=118, fold=150, roll=92, sink=.28, wx=.12, tilt=22, away=6, turn=74, pos=.5, yL=.42, aL=130, hl=9, foot=70,
+        (21, 'lin', g(planted=0, th=118, fold=150, roll=92, sink=.28, wx=.12, tilt=-25, away=6, turn=74, pos=.5, yL=.42, aL=130, hl=9, foot=70,
                       hL=(.14, -.32, .44), hR=(-.42, -.04, .02))),
-        (22, 'snap', g(planted=0, th=128, fold=16, roll=80, sink=.28, wx=.12, tilt=40, away=8, hipf=.1, turn=88, pos=.52, yL=.42, aL=160, hl=10, foot=80,
+        (22, 'snap', g(planted=0, th=128, fold=16, roll=80, sink=.28, wx=.12, tilt=-46, away=8, hipf=.1, turn=88, pos=.52, yL=.42, aL=160, hl=10, foot=80,
                        hL=(.12, -.3, .46), hR=(-.44, -.02, .04))),                                                      # MAWASHI GERI jodan (one drawing)
-        (23, 'out', g(planted=0, th=124, fold=30, roll=80, sink=.28, wx=.12, tilt=37, away=8, hipf=.09, turn=86, pos=.52, yL=.42, aL=160, hl=10, foot=80,
+        (23, 'out', g(planted=0, th=124, fold=30, roll=80, sink=.28, wx=.12, tilt=-42, away=8, hipf=.09, turn=86, pos=.52, yL=.42, aL=160, hl=10, foot=80,
                       hL=(.12, -.3, .46), hR=(-.44, -.02, .04))),
-        (24, 'lin', g(planted=0, th=126, fold=20, roll=82, sink=.28, wx=.12, tilt=36, away=8, hipf=.08, turn=86, pos=.52, yL=.42, aL=160, hl=10, foot=80,
+        (24, 'lin', g(planted=0, th=126, fold=20, roll=82, sink=.28, wx=.12, tilt=-41, away=8, hipf=.08, turn=86, pos=.52, yL=.42, aL=160, hl=10, foot=80,
                       hL=(.12, -.3, .46), hR=(-.44, -.02, .04))),
-        (25, 'out', g(planted=0, th=114, fold=138, roll=86, sink=.28, wx=.12, tilt=22, away=5, turn=76, pos=.52, yL=.42, aL=135, hl=8, foot=60,
+        (25, 'out', g(planted=0, th=114, fold=138, roll=86, sink=.28, wx=.12, tilt=-25, away=5, turn=76, pos=.52, yL=.42, aL=135, hl=8, foot=60,
                       hL=(.18, -.36, .4), hR=(-.4, 0, .05))),                                                           # slingshots back to the chamber
-        (26, 'out', g(planted=0, th=108, fold=148, roll=80, sink=.28, wx=.12, tilt=14, away=3, turn=60, pos=.54, yL=.42, aL=110, hl=7, foot=50,
+        (26, 'out', g(planted=0, th=108, fold=148, roll=80, sink=.28, wx=.12, tilt=-16, away=3, turn=60, pos=.54, yL=.42, aL=110, hl=7, foot=50,
                       hL=(.2, -.38, .36), hR=(-.36, -.1, .1))),
-        (27, 'out', g(planted=0, th=70, fold=120, roll=8, sink=.24, wx=.1, lean=6, tilt=6, turn=36, pos=.7, yL=.42, aL=70, hl=8, foot=30)),   # knee folds: the foot comes down under the hip
-        (28, 'io', g(planted=0, th=35, fold=55, roll=8, sink=.22, wx=.06, lean=8, tilt=3, turn=22, pos=.86, yL=.42, yR=1.2, aL=40, hl=10, **RG)),  # hips unwind, falls forward
+        (27, 'out', g(planted=0, th=70, fold=120, roll=8, sink=.24, wx=.1, lean=6, tilt=-6, turn=36, pos=.7, yL=.42, aL=70, hl=8, foot=30)),   # knee folds: the foot comes down under the hip
+        (28, 'io', g(planted=0, th=35, fold=55, roll=8, sink=.22, wx=.06, lean=8, tilt=-3, turn=22, pos=.86, yL=.42, yR=1.2, aL=40, hl=10, **RG)),  # hips unwind, falls forward
         (30, 'out', g(planted=1, th=0, fold=0, sink=.33, wx=-.04, lean=12, turn=10, pos=.98, yL=.42, yR=1.2, aL=-6, aR=-25, **RG)),                 # lands in the other lead
         (32, 'io', g(sink=.18, lean=5, turn=10, pos=.98, yL=.42, yR=1.2, aL=-6, aR=-25, **RG)),
         (34, 'io', g(sink=.14, lean=4, turn=10, pos=.97, yL=.42, yR=1.2, aL=-6, aR=-25, **RG)),
