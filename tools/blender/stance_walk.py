@@ -65,7 +65,7 @@ def pose(F, G, f):
     R = G['R']; B = body(f); root = Vector((0, -B['pos'], 0))
     # karate kamae, not a boxer's peekaboo (review): the lead fist a forearm forward at shoulder height, far enough to clear the big head in profile, the rear fist at the chin
     hL = Vector((.14, -.86, .1)) + Vector((0, -.04, .01)) * B['reach']    # the lead fist covers forward with the step
-    hR = Vector((-.12, -.34, .2)) + Vector((0, 0, .015)) * B['reach']
+    hR = Vector((-.16, -.46, .12)) + Vector((0, 0, .015)) * B['reach']
     P = dict(G['DEFAULT'], pos=B['pos'], sink=B['sink'], shift=(0, 0), away=0, lean=B['lean'], turn=B['turn'],
              head=(-B['lean'] * .75 + 7, 0, -B['turn'] * .95), hL=tuple(hL), hR=tuple(hR))
     for L in 'LR':

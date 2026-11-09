@@ -103,13 +103,13 @@ def combo_mawashi():
     beats = [
         (0, 'lin', g()), (1, 'lin', g()),
         (3, 'io', g(sink=.13, lean=7, turn=-14, pos=.02)),                                                           # load
-        (5, 'in', g(sink=.15, lean=12, turn=-20, pos=.12, yL=.26, hL=(.2, -.72, .34), hR=(-.24, -.3, .28))),            # front foot slides, lead hand leaves
-        (6, 'snap', g(sink=.19, lean=19, turn=-32, pos=.22, yL=.36, hL=(.05, -1.08, .52), hR=(-.22, -.28, .32))),           # JAB (one drawing)
-        (8, 'out', g(sink=.18, lean=17, turn=-29, pos=.22, yL=.36, hL=(.07, -1.02, .5), hR=(-.22, -.28, .32))),
+        (5, 'in', g(sink=.15, lean=12, turn=-20, pos=.12, yL=.26, hL=(.2, -.72, .34), hR=(-.22, -.48, .2))),            # front foot slides, lead hand leaves
+        (6, 'snap', g(sink=.19, lean=19, turn=-32, pos=.22, yL=.36, hL=(.05, -1.08, .52), hR=(-.2, -.5, .18))),           # JAB (one drawing)
+        (8, 'out', g(sink=.18, lean=17, turn=-29, pos=.22, yL=.36, hL=(.07, -1.02, .5), hR=(-.2, -.5, .18))),
         (10, 'in', g(sink=.22, lean=10, turn=-14, pos=.26, yL=.34, yR=-.14, hL=(.24, -.5, .26), hR=(-.42, -.12, .02))),  # jab home, rear foot follows, fist at the ribs
-        (12, 'in', g(sink=.3, lean=13, turn=6, hipf=.08, pos=.36, yL=.38, yR=-.14, foot=22, aR=-14, hL=(.24, -.42, .3), hR=(-.4, -.24, .06))),  # hips lead
-        (13, 'snap', g(sink=.32, lean=17, turn=26, hipf=.15, pos=.44, yL=.42, yR=-.14, foot=40, aR=-10, hL=(.22, -.2, .36), hR=(-.06, -.95, .5))),  # GYAKU-ZUKI
-        (15, 'out', g(sink=.31, lean=16, turn=25, hipf=.14, pos=.44, yL=.42, yR=-.14, foot=40, aR=-10, hL=(.22, -.2, .36), hR=(-.07, -.92, .48))),
+        (12, 'in', g(sink=.3, lean=13, turn=6, hipf=.08, pos=.36, yL=.38, yR=-.14, foot=22, aR=-14, hL=(.26, -.5, .24), hR=(-.4, -.24, .06))),  # hips lead
+        (13, 'snap', g(sink=.32, lean=17, turn=26, hipf=.15, pos=.44, yL=.42, yR=-.14, foot=40, aR=-10, hL=(.26, -.5, .2), hR=(-.06, -.95, .5))),  # GYAKU-ZUKI
+        (15, 'out', g(sink=.31, lean=16, turn=25, hipf=.14, pos=.44, yL=.42, yR=-.14, foot=40, aR=-10, hL=(.26, -.5, .2), hR=(-.07, -.92, .48))),
         # the hips keep turning: the rear leg comes off the floor into the roundhouse
         (17, 'in', g(planted=0, th=45, fold=85, roll=35, sink=.22, wx=.12, lean=8, turn=40, pos=.46, yL=.42, yR=-.14, aL=70, hl=6, foot=20,
                      hL=(.2, -.35, .4), hR=(-.4, -.1, .1))),
@@ -140,6 +140,9 @@ def combo_ushiro():
     gr = lambda **kw: B(leg='R', **kw)
     SL = dict(hspin=1, **HB_L)                                                       # guard that turns with the body
     SR = dict(hspin=1, **HB_R)
+    # during the back kick the trunk tips 40 deg and the head drops toward the guard: the fists drop and come forward
+    # with it, so the head never lands on them (raw audit Nov 9: the head was meeting the lead fist at the snap)
+    SLK = dict(SL, hL=(SL['hL'][0], SL['hL'][1] + .12, SL['hL'][2] - .34), hR=(SL['hR'][0], SL['hR'][1] + .12, SL['hR'][2] - .34))
     beats = [
         (0, 'lin', gl()), (1, 'lin', gl()),
         (3, 'io', gl(sink=.14, wx=-.14, lean=3, turn=-12, pos=0.1, yR=0.1, foot=25)),                               # skip: rear foot slides up, weight back
@@ -156,10 +159,10 @@ def combo_ushiro():
         # spinning back kick with the right leg; the left foot pivots on its ball the whole way round
         (18, 'io', gr(sink=.22, wx=.12, lean=6, turn=-30, pos=.72, yL=.9, yR=.14, aL=-20, hl=6, **SL)),             # the head turns first (spotting)
         (20, 'in', gr(planted=0, th=-50, fold=110, kb=1, sink=.28, wx=.12, lean=14, turn=-110, pos=0.92, yL=.9, yR=.06, aL=-95, hl=8, **SL)),
-        (22, 'out', gr(planted=0, th=-112, fold=150, kb=1, sink=.28, wx=.12, lean=24, turn=-170, pos=1.08, yL=.9, aL=-150, hl=9, **SL)),   # back to the target, knee to the chest
-        (23, 'lin', gr(planted=0, th=-116, fold=152, kb=1, sink=.28, wx=.12, lean=28, turn=-182, pos=1.1, yL=.9, aL=-160, hl=9, **SL)),
-        (24, 'snap', gr(planted=0, th=97, fold=-4, kb=1, sink=.28, wx=.12, lean=42, hipf=.12, turn=-192, pos=1.16, yL=.9, aL=-170, hl=10, **SL)),  # USHIRO GERI: heel straight back
-        (26, 'out', gr(planted=0, th=90, fold=22, kb=1, sink=.28, wx=.12, lean=40, hipf=.1, turn=-208, pos=1.16, yL=.9, aL=-185, hl=10, **SL)),
+        (22, 'out', gr(planted=0, th=-112, fold=150, kb=1, sink=.28, wx=.12, lean=24, turn=-170, pos=1.08, yL=.9, aL=-150, hl=9, **SLK)),   # back to the target, knee to the chest
+        (23, 'lin', gr(planted=0, th=-116, fold=152, kb=1, sink=.28, wx=.12, lean=28, turn=-182, pos=1.1, yL=.9, aL=-160, hl=9, **SLK)),
+        (24, 'snap', gr(planted=0, th=97, fold=-4, kb=1, sink=.28, wx=.12, lean=42, hipf=.12, turn=-192, pos=1.16, yL=.9, aL=-170, hl=10, **SLK)),  # USHIRO GERI: heel straight back
+        (26, 'out', gr(planted=0, th=90, fold=22, kb=1, sink=.28, wx=.12, lean=40, hipf=.1, turn=-208, pos=1.16, yL=.9, aL=-185, hl=10, **SLK)),
         (27, 'out', gr(planted=0, th=30, fold=145, kb=1, sink=.28, wx=.14, lean=20, turn=-235, pos=1.16, yL=.9, aL=-210, hl=8, **SL)),       # knee snaps back in, keeps turning
         (29, 'io', gr(planted=0, th=40, fold=50, kb=0, sink=.22, wx=.05, lean=8, turn=-300, pos=1.22, yL=.9, yR=1.5, aL=-285, hl=6, **SR)),
         (31, 'out', gr(planted=1, sink=.32, wx=-.04, lean=12, turn=-350, pos=1.15, yL=.9, yR=1.5, aL=-366, aR=-385, **SR)),                 # lands in front, the other lead

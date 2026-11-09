@@ -81,15 +81,15 @@ def build_beats():
     beats += [
         (t + 1, 'io', dict(L0, pos=1.36, sink=.36, lean=11, turn=-14, hR=(-.42, -.12, .02), hL=(.26, -.52, .24))),              # load in the landing: low, fist at the ribs
         (t + 3, 'in', dict(L0, pos=1.5, sink=.35, lean=14, turn=6, hipf=.08, yL=1.74, foot=25, aR=-16,
-                           hR=(-.4, -.24, .06), hL=(.24, -.4, .3))),                                                         # hips lead: front foot slides, hips turn, fist still home
+                           hR=(-.4, -.24, .06), hL=(.26, -.48, .24))),                                                         # hips lead: front foot slides, hips turn, fist still home
         (t + 4, 'snap', dict(L0, pos=1.6, sink=.34, lean=17, turn=26, hipf=.15, yL=1.8, foot=40, aR=-10,
-                             hR=(-.06, -.92, .5), hL=(.22, -.2, .36))),                                                      # PUNCH: the fist arrives last, one drawing
+                             hR=(-.06, -.92, .5), hL=(.26, -.5, .2))),                                                      # PUNCH: the fist arrives last, one drawing
         (t + 6, 'out', dict(L0, pos=1.62, sink=.33, lean=16, turn=24, hipf=.14, yL=1.8, foot=38, aR=-10,
-                            hR=(-.07, -.9, .48), hL=(.22, -.2, .36))),                                                       # hold (kiai)
+                            hR=(-.07, -.9, .48), hL=(.26, -.5, .2))),                                                       # hold (kiai)
         (t + 8, 'lin', dict(L0, pos=1.62, sink=.32, lean=15, turn=23, hipf=.12, yL=1.8, foot=36, aR=-10,
-                            hR=(-.08, -.88, .47), hL=(.22, -.2, .36))),
+                            hR=(-.08, -.88, .47), hL=(.26, -.5, .2))),
         (t + 10, 'io', dict(L0, pos=1.58, sink=.28, lean=9, turn=4, yL=1.8, yR=1.08, foot=10, aR=0,
-                            hR=(-.22, -.5, .24), hL=(.24, -.4, .26))),                                                       # recover: the rear foot steps up first
+                            hR=(-.22, -.5, .24), hL=(.26, -.48, .2))),                                                       # recover: the rear foot steps up first
         (t + 13, 'io', dict(L0, pos=1.52, sink=.14, lean=3, turn=-10, yL=1.8, yR=1.22, aR=6)),                               # then the hips rise (head lags via the springs)
         (t + 16, 'io', dict(L0, pos=1.5, sink=.18, lean=5, turn=-11, yL=1.8, yR=1.24)),                                      # settle with a small overshoot
         (t + 19, 'io', dict(L0, pos=1.5, sink=.15, lean=4, turn=-10, yL=1.8, yR=1.24)),

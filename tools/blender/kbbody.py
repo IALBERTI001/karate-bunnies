@@ -28,10 +28,18 @@ HIP_X = .21                    # hip joints under the body (v2 .29: legs hung of
 KNEE_Z = ANKLE_Z + LEG
 def up(v): return (v[0], v[1], v[2] + DZ)
 
-HEAD_C, HEAD_R = Vector((0, 0, 2.08 + DZ)), Vector((.66, .6, .53))
+HEAD_C0, HEAD_R0 = Vector((0, 0, 2.08 + DZ)), Vector((.66, .6, .53))   # the head as modelled (v2 sheet: 40% of the height)
+# Head size (user, Nov 9 2026: "make the head proportional"). The whole head (skull, face, ears, headband, ribbons) is
+# built at HEAD_C0/HEAD_R0 and then scaled by HEAD_K about the top of the neck, so the face keeps its layout.
+HEAD_K = .75
+HEAD_PIVOT = Vector((0, 0, 1.62 + DZ))                                   # top of the neck (the head bone's root)
+HEAD_C = HEAD_PIVOT + (HEAD_C0 - HEAD_PIVOT) * HEAD_K                    # the head as built: collisions read these
+HEAD_R = HEAD_R0 * HEAD_K
+def head_scale(p):   # a lifted point on the head -> its place on the scaled head
+    return HEAD_PIVOT + (Vector(p) - HEAD_PIVOT) * HEAD_K
 def face_y(x, z, out=0.0):
-    q = 1 - (x / HEAD_R.x) ** 2 - ((z + DZ - HEAD_C.z) / HEAD_R.z) ** 2  # z in v2 coordinates (the face is placed before the lift)
-    return -(HEAD_R.y + out) * math.sqrt(max(q, 0.0))
+    q = 1 - (x / HEAD_R0.x) ** 2 - ((z + DZ - HEAD_C0.z) / HEAD_R0.z) ** 2  # z in v2 coordinates (the face is placed before the lift)
+    return -(HEAD_R0.y + out) * math.sqrt(max(q, 0.0))
 
 BELT = False   # user, Nov 8 2026: "remove the belt" (ring, knot and hanging ends); the bend bones stay so old actions still load
 
@@ -115,6 +123,8 @@ def bone_table():
     LEGB = ('root', 'thigh.', 'shin.', 'foot.', 'foot_ik.', 'knee_pole.', 'toe.')
     for n, (h, t, p, c, d) in list(T.items()):
         if not n.startswith(LEGB): T[n] = (up(h), up(t), p, c, d)
+    for n, (h, t, p, c, d) in list(T.items()):   # ears and headband ribbons ride the scaled head
+        if n.startswith(('ear_', 'tie')): T[n] = (tuple(head_scale(h)), tuple(head_scale(t)), p, c, d)
     for s, L in ((1, 'L'), (-1, 'R')):
         x = s * HIP_X
         T[f'thigh.{L}'] = ((x, 0, HIP_Z), (x, -.05, KNEE_Z), 'hips', False, True)
@@ -430,12 +440,14 @@ def build_bunny(name, belt, gear, band=None):
             for v in bm.verts: v.co.z += DZ
         else:
             for v in bm.verts: v.co.x *= HIP_X / .3
+        if bone == 'head' or nm.startswith(('ear.', 'inner.', 'tie')):
+            for v in bm.verts: v.co = head_scale(v.co)                  # everything on the head scales with it
         ob = mesh_obj(f'{name}_{nm}', bm, mat, coll)
         if bone: bind_bone(rig, ob, bone)
         if groups: bind_groups(rig, ob, (lambda p, g=groups: g(Vector(p) - Vector((0, 0, DZ)))) if lift else groups)
         if ink: hull(ob)
         return ob
-    part('head', E(HEAD_C - Vector((0, 0, DZ)), HEAD_R, segs=40), M['FUR'], 'head')
+    part('head', E(HEAD_C0 - Vector((0, 0, DZ)), HEAD_R0, segs=40), M['FUR'], 'head')
     for s, L in ((1, 'L'), (-1, 'R')):
         a, t = Vector((s * .2, .06, 2.45)), Vector((s * .42, .08, 3.4)); d = t - a
         R = d.to_track_quat('Z', 'Y').to_matrix()
@@ -464,8 +476,8 @@ def build_bunny(name, belt, gear, band=None):
     mouth = [(x, face_y(x, z, .0), z) for x, z in ((-.09, 1.8), (-.04, 1.77), (0, 1.79), (.04, 1.77), (.09, 1.8))]
     part('mouth', kbrig.tube_curve(mouth, .012), M['INK'], 'head', ink=False)
     # headband (ring around the head at the measured height) and its ribbons
-    zb = 2.36; k = math.sqrt(max(0, 1 - ((zb + DZ - HEAD_C.z) / HEAD_R.z) ** 2))
-    part('headband', kbrig.ring((0, 0, zb), HEAD_R.x * k + .015, HEAD_R.y * k + .015, 1.3, .06), BAND, 'head')
+    zb = 2.36; k = math.sqrt(max(0, 1 - ((zb + DZ - HEAD_C0.z) / HEAD_R0.z) ** 2))
+    part('headband', kbrig.ring((0, 0, zb), HEAD_R0.x * k + .015, HEAD_R0.y * k + .015, 1.3, .06), BAND, 'head')
     part('bandknot', E((-.46, .42, 2.36), (.09, .09, .1)), BAND, 'head')
     for t, pts, wd in (('tie1', [(-.46, .42, 2.36), (-.72, .66, 2.26), (-.92, .84, 2.0)], .1), ('tie2', [(-.46, .42, 2.36), (-.66, .72, 2.12), (-.78, .86, 1.82)], .09)):
         a1 = Vector(pts[1])
