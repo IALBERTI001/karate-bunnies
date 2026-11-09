@@ -120,6 +120,25 @@ def bake(name, F, G):
         return _store(rig, name, dict(range=[0, 24], loop=[12, 24], lead_switch=False, hits=[], travel=None))
     raise KeyError(name)
 
+def bake_visual(rig, act):
+    """Replace an action with its evaluated pose (IK, limits and springs resolved) keyed on every bone and frame, so the
+    game plays exactly what Blender shows. The glTF exporter's own sampling dropped the IK leg solve (Nov 9: a roundhouse
+    foot at 0.2 m instead of 1.88 m)."""
+    sc = bpy.context.scene; ad = rig.animation_data; ad.action = act
+    f0, f1 = int(act.frame_range[0]), int(act.frame_range[1])
+    pbs = list(rig.pose.bones); rows = []
+    for f in range(f0, f1 + 1):
+        sc.frame_set(f)
+        rows.append([rig.convert_space(pose_bone=pb, matrix=pb.matrix, from_space='POSE', to_space='LOCAL') for pb in pbs])
+    baked = bpy.data.actions.new(act.name + '_baked'); ad.action = baked
+    for i, f in enumerate(range(f0, f1 + 1)):
+        for pb, m in zip(pbs, rows[i]):
+            loc, rot, scl = m.decompose()
+            pb.location = loc; pb.rotation_mode = 'QUATERNION'; pb.rotation_quaternion = rot; pb.scale = scl
+            for prop in ('location', 'rotation_quaternion', 'scale'): pb.keyframe_insert(prop, frame=f)
+    name = act.name; bpy.data.actions.remove(act); baked.name = name; baked.use_fake_user = True
+    return baked
+
 def export(F, folder):
     rig = F['rig']; os.makedirs(folder, exist_ok=True)
     for a in list(bpy.data.actions):
@@ -130,9 +149,11 @@ def export(F, folder):
     for n in ORDER:
         act = bpy.data.actions.get('KB_' + n)
         if not act: continue
-        tr = ad.nla_tracks.new(); tr.name = n; st = tr.strips.new(n, int(act.frame_range[0]), act); tr.mute = True
+        tr = ad.nla_tracks.new(); tr.name = n; st = tr.strips.new(n, int(act.frame_range[0]), act)
     parts = [o for o in bpy.data.objects if o.parent == rig or (o.type == 'MESH' and any(m.type == 'ARMATURE' and m.object == rig for m in o.modifiers))]
     loc, rot = rig.location.copy(), rig.rotation_euler.copy(); rig.location = (0, 0, 0); rig.rotation_euler = (0, 0, 0)
+    muted = [c for pb in rig.pose.bones for c in pb.constraints if not c.mute]
+    for c in muted: c.mute = True
     ink = []
     for o in parts:
         for m in o.modifiers:
@@ -147,6 +168,7 @@ def export(F, folder):
                                   export_morph=False, export_skins=True, export_materials='EXPORT', export_extras=True)
     finally:
         rig.location = loc; rig.rotation_euler = rot
+        for c in muted: c.mute = False
         for m in ink: m.show_viewport = True; m.show_render = True
         for t in list(ad.nla_tracks): ad.nla_tracks.remove(t)
     return os.path.getsize(os.path.join(folder, 'bunny.glb'))
