@@ -1,0 +1,633 @@
+<title>Karate Bunnies 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root{color-scheme:dark;--cream:#f8f1e4;--ink:#2a1a12;--green:#334f42;--green-d:#233c30;--pink:#d57b79;--aka:#d02f37;--ao:#2d63c8;--muted:#847b6f;--bg:#1b2233}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--cream);overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body{font:16px system-ui,-apple-system,"Segoe UI",sans-serif}
+#game{position:fixed;inset:0;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;border:0}
+button:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
+.layer{position:absolute;inset:0;pointer-events:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.layer[hidden]{display:none!important}
+.layer>*{pointer-events:auto}
+/* HUD */
+.hud{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:start;padding-top:12px}
+.side{display:flex;flex-direction:column;gap:6px;min-width:0}
+.side.right{align-items:flex-end}
+.nameplate{display:flex;align-items:center;gap:8px;font:700 16px Georgia,serif;letter-spacing:.02em;text-shadow:0 2px 0 #0007}
+.chip{width:14px;height:14px;border-radius:50%;border:2px solid var(--cream)}
+.chip.aka{background:var(--aka)}.chip.ao{background:var(--ao)}
+.bar{position:relative;width:100%;max-width:420px;height:18px;border-radius:10px;background:#0b0f19;border:2px solid var(--cream);overflow:hidden;box-shadow:0 3px 0 #0006}
+.bar i{position:absolute;inset:0;transform-origin:left;background:linear-gradient(#f3c66a,#e09a3c);transition:transform .12s}
+.bar b{position:absolute;inset:0;transform-origin:left;background:#fff5;transition:transform .6s .25s}
+.side.right .bar i,.side.right .bar b{transform-origin:right}
+.pips{display:flex;gap:6px}
+.pip{width:14px;height:14px;border-radius:50%;border:2px solid var(--cream);background:#0005}
+.pip.on{background:var(--pink)}
+.clock{font:700 34px Georgia,serif;min-width:64px;text-align:center;text-shadow:0 3px 0 #0008;line-height:1}
+.round-tag{font:700 14px system-ui;letter-spacing:.14em;text-transform:uppercase;text-align:center;opacity:.85}
+.iconbtn{width:44px;height:44px;border-radius:50%;background:#fff1;color:var(--cream);border:2px solid #fff5;font:700 16px system-ui;display:grid;place-items:center}
+.top-actions{position:absolute;top:calc(env(safe-area-inset-top,0px) + 74px);right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:8px}
+/* centre call */
+.call{position:absolute;left:0;right:0;top:34%;text-align:center;font:700 clamp(44px,9vw,92px)/1 Georgia,serif;color:var(--cream);letter-spacing:-.02em;text-shadow:0 5px 0 var(--ink),0 0 30px #000a;pointer-events:none;transform:scale(.8);opacity:0;transition:transform .25s cubic-bezier(.2,1.6,.4,1),opacity .2s}
+.call.show{transform:scale(1);opacity:1}
+.call small{display:block;font:700 18px system-ui;letter-spacing:.2em;text-transform:uppercase;margin-top:14px;text-shadow:0 2px 0 var(--ink)}
+/* title */
+.title{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:14px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 7vh);text-align:center}
+.logo{font:700 clamp(46px,9vw,104px)/.92 Georgia,serif;letter-spacing:-.04em;color:var(--cream);text-shadow:0 6px 0 var(--ink),0 0 40px #0009;margin:0}
+.logo em{font-style:normal;color:#f3a6a2}
+.tag3d{display:inline-block;font:800 16px system-ui;letter-spacing:.18em;background:var(--pink);color:var(--ink);border-radius:8px;padding:6px 12px;vertical-align:middle;margin-left:8px;transform:translateY(-.4em) rotate(-4deg);text-shadow:none}
+.sub{font:16px system-ui;color:#f8f1e4d9;max-width:34ch;line-height:1.5;margin:0;text-shadow:0 2px 6px #000c}
+.row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.primary{background:var(--green);color:#fff;border-radius:12px;padding:17px 34px;box-shadow:0 5px 0 var(--green-d);font:800 18px system-ui;letter-spacing:.04em}
+.primary:active{transform:translateY(3px);box-shadow:0 2px 0 var(--green-d)}
+.secondary{background:#fffaf2;color:#3e5145;border-radius:12px;padding:14px 22px;font:700 16px system-ui;box-shadow:0 4px 0 #b9ae97}
+.secondary:active{transform:translateY(2px);box-shadow:0 2px 0 #b9ae97}
+.keys{font:14px system-ui;color:#f8f1e4c7;text-shadow:0 2px 4px #000}
+.keys kbd{font:700 14px system-ui;background:#fff2;border:1px solid #fff5;border-radius:5px;padding:1px 7px;margin:0 1px}
+/* touch controls */
+.pad{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;gap:12px;align-items:flex-end}
+.pad.left{left:max(18px,env(safe-area-inset-left,0px))}
+.pad.right{right:max(18px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:repeat(2,auto);gap:12px}
+.dir{width:76px;height:76px;border-radius:50%;background:#fff9e6d6;color:var(--ink);font:800 26px system-ui;box-shadow:0 4px 0 #0005}
+.act{width:78px;height:78px;border-radius:50%;color:#fff;font:800 15px system-ui;letter-spacing:.02em;box-shadow:0 4px 0 #0006;border:3px solid #fff8;display:grid;place-items:center;line-height:1.05}
+.act span{display:block;font:700 14px system-ui;opacity:.85}
+.act.punch{background:#d0663b}.act.kick{background:#3c8a5b}.act.round{background:#8a4bb0}.act.spin{background:#2c6fb3}
+.dir.held,.act.held{transform:scale(.93);filter:brightness(1.15)}
+/* menu sheets (in-scene, no blur panels) */
+.menu{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;text-align:center;background:linear-gradient(#1b223300,#1b2233c0 40%,#1b2233c0 60%,#1b223300)}
+.menu h2{font:700 clamp(36px,7vw,64px)/1 Georgia,serif;margin:0;text-shadow:0 5px 0 var(--ink)}
+.menu p{margin:0;font:16px system-ui;color:#f8f1e4d9}
+.loading{display:grid;place-items:center;font:700 22px Georgia,serif;background:var(--bg)}
+.loading span{display:block;font:16px system-ui;color:#f8f1e4b3;margin-top:8px;text-align:center}
+.hint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);text-align:center;pointer-events:none}
+@media (pointer:coarse){.keys{display:none}}
+@media (pointer:fine){.pad{display:none}}
+@media (max-width:560px){.bar{height:14px}.clock{font-size:28px;min-width:48px}.nameplate{font-size:15px}.dir{width:66px;height:66px}.act{width:68px;height:68px;font-size:14px}.act span{display:none}}
+@media (orientation:landscape) and (max-height:500px){.hud{padding-top:6px}.top-actions{top:calc(env(safe-area-inset-top,0px) + 58px)}.dir{width:62px;height:62px}.act{width:62px;height:62px}.pad.right{gap:8px}.title{padding-bottom:16px;gap:10px}.logo{font-size:52px}}
+</style>
+
+<div id="game">
+  <canvas id="c" aria-label="Karate Bunnies 3D arena"></canvas>
+
+  <div class="layer hud-layer" id="hud" hidden>
+    <div class="hud">
+      <div class="side">
+        <div class="nameplate"><span class="chip aka"></span><span id="n1">You · Aka</span></div>
+        <div class="bar" id="bar1"><b></b><i></i></div>
+        <div class="pips" id="pips1"><span class="pip"></span><span class="pip"></span></div>
+      </div>
+      <div><div class="clock" id="clock">60</div><div class="round-tag" id="roundTag">Round 1</div></div>
+      <div class="side right">
+        <div class="nameplate"><span id="n2">Ao · CPU</span><span class="chip ao"></span></div>
+        <div class="bar" id="bar2"><b></b><i></i></div>
+        <div class="pips" id="pips2"><span class="pip"></span><span class="pip"></span></div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="iconbtn" id="camBtn" aria-label="Change camera" title="">📷</button>
+      <button class="iconbtn" id="pauseBtn" aria-label="Pause">II</button>
+    </div>
+    <div class="call" id="call"></div>
+    <div class="pad left" id="padL">
+      <button class="dir" data-dir="-1" aria-label="Move back">◀</button>
+      <button class="dir" data-dir="1" aria-label="Move forward">▶</button>
+    </div>
+    <div class="pad right" id="padR">
+      <button class="act punch" data-move="punch">Punch<span>J</span></button>
+      <button class="act kick" data-move="kick">Kick<span>K</span></button>
+      <button class="act round" data-move="round">Round<span>L</span></button>
+      <button class="act spin" data-move="spin">Spin<span>I</span></button>
+    </div>
+  </div>
+
+  <div class="layer title" id="title" hidden>
+    <h1 class="logo">Karate<br><em>Bunnies</em><span class="tag3d">3D</span></h1>
+    <p class="sub">Red belt against blue. Same bunnies, same moves, now in a real 3D dojo.</p>
+    <div class="row"><button class="primary" id="startBtn">Fight!</button><button class="secondary" id="titleCam">Camera: Side</button></div>
+    <div class="keys"><kbd>A</kbd><kbd>D</kbd> move · <kbd>J</kbd> punch (tap twice) · <kbd>K</kbd> kick · <kbd>L</kbd> roundhouse combo · <kbd>I</kbd> spinning back kick · hold back to block</div>
+  </div>
+
+  <div class="layer menu" id="pause" hidden>
+    <h2>Paused</h2>
+    <div class="row"><button class="primary" id="resumeBtn">Resume</button><button class="secondary" id="restartBtn">Restart</button><button class="secondary" id="quitBtn">Title</button></div>
+  </div>
+
+  <div class="layer menu" id="result" hidden style="background:none;justify-content:flex-end;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 9vh)">
+    <div class="row"><button class="primary" id="againBtn">Rematch</button><button class="secondary" id="toTitleBtn">Title</button></div>
+  </div>
+
+  <div class="layer loading" id="loading"><div>Warming up the dojo…<span id="loadMsg">loading bunnies</span></div></div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OutlineEffect } from 'three/addons/effects/OutlineEffect.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+
+// ---------------------------------------------------------------- data from the Blender bake (export3d.py / moves.json)
+const FPS = 30;
+const RAMPS = {   // toon ramps from the Blender materials (linear rgb): [shadow, lit, highlight]
+  gi:   [[.552,.578,.644],[.905,.896,.855],[1,1,1]],
+  fur:  [[.745,.527,.407],[.939,.799,.687],[1,.922,.855]],
+  pink: [[.784,.242,.198],[.93,.376,.305]],
+  nose: [[.694,.162,.159],[.871,.275,.275]],
+  eye:  [[.018,.006,.003],[.042,.012,.005]],
+  iris: [[.147,.036,.01],[.254,.068,.018]],
+};
+const FLAT = { blush:[.947,.552,.509], inkline:[.068,.032,.019], shine:[1,1,1] };
+const TEAM = {   // belt, headband and pads: the only parts that change colour
+  aka: [[.328,.014,.02],[.631,.028,.038]],
+  ao:  [[.014,.069,.305],[.026,.125,.578]],
+};
+const INK = [.102,.043,.022];
+const NO_OUTLINE = new Set(['eye','iris','shine','blush','inkline','nose','pink']);
+// moves: clip ranges in Blender frames, hit frames (absolute), the limb that strikes, damage, lead switch at the end
+const MOVES = {
+  punch: { clip:'mawashi', range:[0,16], cut:11, chainBy:10, hits:[{f:6,limb:'fingers_aL',dmg:5},{f:13,limb:'fingers_aR',dmg:7,chained:true}], lead:false },
+  kick:  { clip:'kick',    range:[0,25], hits:[{f:12,limb:'toeR',dmg:12}], lead:true },
+  round: { clip:'mawashi', range:[0,34], hits:[{f:6,limb:'fingers_aL',dmg:4},{f:13,limb:'fingers_aR',dmg:5},{f:22,limb:'toeR',dmg:13}], lead:true },
+  spin:  { clip:'ushiro',  range:[0,37], hits:[{f:10,limb:'toeL',dmg:6},{f:24,limb:'toeR',dmg:13}], lead:true },
+};
+const BASIC = { idle:['idle',48,96,true], advance:['advance',20,36,true], hit:['hit',0,15,false], ko:['ko',0,44,false], koLoop:['ko',20,36,true], win:['win',0,24,false], winLoop:['win',12,24,true] };
+
+// ---------------------------------------------------------------- renderer, scene, arena
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const effect = new OutlineEffect(renderer, { defaultThickness: 0.0042, defaultColor: INK, defaultAlpha: 1 });
+const scene = new THREE.Scene();
+scene.background = new THREE.Color().setRGB(.012, .018, .04);
+scene.fog = new THREE.Fog(scene.background, 16, 34);
+const camera = new THREE.PerspectiveCamera(30, 1, .1, 80);
+
+const sun = new THREE.DirectionalLight(0xffffff, Math.PI * .86);
+sun.position.set(-3.5, 9, 6.5); sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 6, bottom: -3, near: 1, far: 30 });
+sun.shadow.bias = -.0006; sun.shadow.normalBias = .02;
+scene.add(sun, sun.target);
+scene.add(new THREE.AmbientLight(0xffffff, Math.PI * .16));
+
+function lin(c) { return new THREE.Color().setRGB(c[0], c[1], c[2]); }
+function canvasTex(w, h, draw) { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; draw(cv.getContext('2d'), w, h); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; }
+
+function buildArena() {
+  const g = new THREE.Group();
+  // floor: dark surround, blue competition mat with a red safety border and the two start lines
+  const floorTex = canvasTex(2048, 1024, (x, w, h) => {
+    x.fillStyle = '#2a3348'; x.fillRect(0, 0, w, h);
+    const mx = w * .12, my = h * .18, mw = w * .76, mh = h * .64;
+    x.fillStyle = '#c8333b'; x.fillRect(mx - 26, my - 26, mw + 52, mh + 52);
+    x.fillStyle = '#2f6fd0'; x.fillRect(mx, my, mw, mh);
+    x.globalAlpha = .10; x.strokeStyle = '#0b1f45'; x.lineWidth = 3;   // tatami seams
+    for (let i = 1; i < 8; i++) { x.beginPath(); x.moveTo(mx + mw * i / 8, my); x.lineTo(mx + mw * i / 8, my + mh); x.stroke(); }
+    for (let i = 1; i < 4; i++) { x.beginPath(); x.moveTo(mx, my + mh * i / 4); x.lineTo(mx + mw, my + mh * i / 4); x.stroke(); }
+    x.globalAlpha = .85; x.fillStyle = '#f4f1e6';
+    x.fillRect(w / 2 - 150, h / 2 - 40, 10, 80); x.fillRect(w / 2 + 140, h / 2 - 40, 10, 80);
+    x.globalAlpha = 1;
+  });
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 12), new THREE.MeshLambertMaterial({ map: floorTex }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; g.add(floor);
+  // back wall with the dojo's red and blue bands and a banner
+  const wallTex = canvasTex(2048, 512, (x, w, h) => {
+    const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#141a2a'); gr.addColorStop(1, '#232c42');
+    x.fillStyle = gr; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#b7202f'; x.fillRect(0, h * .62, w, h * .07);
+    x.fillStyle = '#1f4fa0'; x.fillRect(0, h * .69, w, h * .04);
+    for (let i = 0; i < 9; i++) { x.fillStyle = i % 2 ? '#1a2235' : '#1d2639'; x.fillRect(i * w / 9, 0, 6, h * .62); }
+  });
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(40, 10), new THREE.MeshBasicMaterial({ map: wallTex }));
+  wall.position.set(0, 5, -6); g.add(wall);
+  const banTex = canvasTex(1024, 256, (x, w, h) => {
+    x.fillStyle = '#f8f1e4'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#c8333b'; x.fillRect(0, 0, w, 18); x.fillRect(0, h - 18, w, 18);
+    x.fillStyle = '#2a1a12'; x.font = '700 120px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText('KARATE BUNNIES', w / 2, h / 2 + 6);
+  });
+  const banner = new THREE.Mesh(new THREE.PlaneGeometry(7, 1.75), new THREE.MeshBasicMaterial({ map: banTex }));
+  banner.position.set(0, 4.6, -5.95); g.add(banner);
+  for (const sx of [-1, 1]) {   // red and blue corner flags
+    const f = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 2.4), new THREE.MeshBasicMaterial({ color: sx < 0 ? 0xc8333b : 0x2d63c8 }));
+    f.position.set(sx * 6.2, 4.3, -5.94); g.add(f);
+  }
+  scene.add(g);
+}
+buildArena();
+
+// drifting petals: the dojo is alive between rounds
+const petals = (() => {
+  const n = 46, geo = new THREE.BufferGeometry(), pos = new Float32Array(n * 3), seed = [];
+  for (let i = 0; i < n; i++) { pos.set([(Math.random() - .5) * 18, Math.random() * 7, -5 + Math.random() * 8], i * 3); seed.push(Math.random() * 10); }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const tex = canvasTex(64, 64, (x) => { x.fillStyle = '#f6b8bf'; x.beginPath(); x.ellipse(32, 32, 26, 15, .6, 0, 7); x.fill(); });
+  const p = new THREE.Points(geo, new THREE.PointsMaterial({ size: .16, map: tex, transparent: true, depthWrite: false, opacity: .8 }));
+  scene.add(p);
+  return { update(t, dt) { for (let i = 0; i < n; i++) { let y = pos[i * 3 + 1] - dt * (.35 + .1 * Math.sin(seed[i])); if (y < 0) y = 7; pos[i * 3 + 1] = y; pos[i * 3] += Math.sin(t * .7 + seed[i]) * dt * .25; } geo.attributes.position.needsUpdate = true; } };
+})();
+
+// ---------------------------------------------------------------- effects: impact stars, guard sparks, dust, shake
+const starTex = canvasTex(256, 256, (x, w) => {
+  x.translate(w / 2, w / 2); x.fillStyle = '#fff1d0'; x.strokeStyle = '#2a1a12'; x.lineWidth = 10; x.beginPath();
+  for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8, r = i % 2 ? 46 : 118; x.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+  x.closePath(); x.stroke(); x.fill();
+});
+const guardTex = canvasTex(256, 256, (x, w) => {
+  x.translate(w / 2, w / 2); x.strokeStyle = '#bfe3ff'; x.lineWidth = 16; x.beginPath(); x.arc(0, 0, 90, -1.2, 1.2); x.stroke();
+  x.lineWidth = 8; x.beginPath(); x.arc(0, 0, 112, -.8, .8); x.stroke();
+});
+const dustTex = canvasTex(128, 128, (x) => { const g = x.createRadialGradient(64, 64, 4, 64, 64, 60); g.addColorStop(0, '#e8eefcdd'); g.addColorStop(1, '#e8eefc00'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); });
+const fx = [];
+function spawn(tex, at, size, life, opts = {}) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
+  s.position.copy(at); s.scale.setScalar(size); s.renderOrder = 10; scene.add(s);
+  fx.push({ s, life, t: 0, size, grow: opts.grow ?? 1.3, vel: opts.vel || new THREE.Vector3(), spin: opts.spin ?? (Math.random() - .5) * 2 });
+}
+function updateFx(dt) {
+  for (let i = fx.length - 1; i >= 0; i--) {
+    const e = fx[i]; e.t += dt; const k = e.t / e.life;
+    if (k >= 1) { scene.remove(e.s); e.s.material.dispose(); fx.splice(i, 1); continue; }
+    e.s.scale.setScalar(e.size * (1 + (e.grow - 1) * k)); e.s.material.opacity = 1 - k * k; e.s.material.rotation += e.spin * dt;
+    e.s.position.addScaledVector(e.vel, dt);
+  }
+}
+let shake = 0;
+
+// ---------------------------------------------------------------- tiny synth for hits (starts after the first tap)
+let actx = null;
+function audio() { if (!actx) try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} return actx; }
+function sfx(kind) {
+  const a = audio(); if (!a || a.state !== 'running') { a?.resume?.(); if (!a) return; }
+  const t = a.currentTime, g = a.createGain(); g.connect(a.destination);
+  if (kind === 'whoosh') {
+    const b = a.createBuffer(1, a.sampleRate * .18, a.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / d.length);
+    const s = a.createBufferSource(), f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.setValueAtTime(700, t); f.frequency.linearRampToValueAtTime(1800, t + .18);
+    s.buffer = b; s.connect(f); f.connect(g); g.gain.value = .12; s.start(t); return;
+  }
+  const o = a.createOscillator(); o.type = kind === 'block' ? 'triangle' : 'sine';
+  o.frequency.setValueAtTime(kind === 'block' ? 520 : kind === 'ko' ? 160 : 210, t); o.frequency.exponentialRampToValueAtTime(kind === 'block' ? 300 : 60, t + .22);
+  g.gain.setValueAtTime(kind === 'ko' ? .5 : .35, t); g.gain.exponentialRampToValueAtTime(.001, t + .28); o.connect(g); o.start(t); o.stop(t + .3);
+  const b = a.createBuffer(1, a.sampleRate * .07, a.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const s = a.createBufferSource(), g2 = a.createGain(); g2.gain.value = kind === 'block' ? .12 : .25; s.buffer = b; s.connect(g2); g2.connect(a.destination); s.start(t);
+}
+
+// ---------------------------------------------------------------- materials
+function gradient(levels) {   // toon ramp as light levels; the shade level is tuned so ambient + direct lands on the Blender shadow colour
+  const n = 32, data = new Uint8Array(n * 4);
+  for (let i = 0; i < n; i++) { const u = i / (n - 1), v = u < .6 ? levels[0] : (u > .965 && levels[2] ? levels[2] : 1); data.set([v * 255, v * 255, v * 255, 255], i * 4); }
+  const t = new THREE.DataTexture(data, n, 1); t.minFilter = t.magFilter = THREE.NearestFilter; t.needsUpdate = true; return t;
+}
+const lum = c => .2126 * c[0] + .7152 * c[1] + .0722 * c[2];
+function toon(ramp) {
+  const lit = ramp[1], amb = .16, dir = .86;
+  const shade = Math.max(0, (lum(ramp[0]) / lum(lit) - amb) / dir), hi = ramp[2] ? Math.min(1.3, (lum(ramp[2]) / lum(lit) - amb) / dir) : 0;
+  return new THREE.MeshToonMaterial({ color: lin(lit), gradientMap: gradient([shade, 1, hi]) });
+}
+function materialsFor(team) {
+  const cache = {};
+  return (name) => {
+    const base = name.replace(/\.\d+$/, '').replace(/^(AKA|AO)_/, '');
+    if (cache[base]) return cache[base];
+    let m;
+    if (FLAT[base]) m = new THREE.MeshBasicMaterial({ color: lin(FLAT[base]) });
+    else if (['band', 'gear', 'belt'].includes(base)) m = toon(TEAM[team]);
+    else m = toon(RAMPS[base] || RAMPS.gi);
+    m.userData.outlineParameters = NO_OUTLINE.has(base) ? { visible: false } : { thickness: base === 'gi' || base === 'fur' ? .0045 : .0036, color: INK, alpha: 1, visible: true };
+    return (cache[base] = m);
+  };
+}
+
+// ---------------------------------------------------------------- clips: cut, strip root travel, mirror for the other lead
+function boneNames(root) { const s = new Set(); root.traverse(o => { if (o.isBone) s.add(o.name); }); return s; }
+function partner(name, names) {
+  const last = name.slice(-1);
+  if (last === 'L' && names.has(name.slice(0, -1) + 'R')) return name.slice(0, -1) + 'R';
+  if (last === 'R' && names.has(name.slice(0, -1) + 'L')) return name.slice(0, -1) + 'L';
+  return name;
+}
+function mirrorClip(clip, names) {   // reflect across the body's mid plane: swap .L/.R, local quaternion (x,-y,-z,w), position (-x,y,z)
+  const tracks = clip.tracks.map(tr => {
+    const dot = tr.name.lastIndexOf('.'), node = tr.name.slice(0, dot), prop = tr.name.slice(dot);
+    const v = tr.values.slice();
+    if (prop === '.quaternion') for (let i = 0; i < v.length; i += 4) { v[i + 1] = -v[i + 1]; v[i + 2] = -v[i + 2]; }
+    if (prop === '.position') for (let i = 0; i < v.length; i += 3) v[i] = -v[i];
+    return new tr.constructor(partner(node, names) + prop, tr.times.slice(), v);
+  });
+  return new THREE.AnimationClip(clip.name + '_m', clip.duration, tracks);
+}
+function cut(clip, name, f0, f1) {
+  const c = THREE.AnimationUtils.subclip(clip, name, f0, f1, FPS);
+  // root travel: keep the curve for root motion, pin the bone so the fighter object carries the travel instead
+  const ti = c.tracks.findIndex(t => t.name === 'root.position');
+  let travel = null;
+  if (ti >= 0) {
+    const tr = c.tracks[ti]; travel = { times: tr.times.slice(), values: tr.values.slice() };
+    const v = tr.values.slice(); for (let i = 0; i < v.length; i += 3) { v[i] = 0; v[i + 1] = 0; v[i + 2] = 0; }
+    c.tracks[ti] = new THREE.VectorKeyframeTrack(tr.name, tr.times.slice(), v);
+  }
+  c.userData = { travel };
+  return c;
+}
+function sampleTravel(tr, t) {   // root position at time t (linear), in the root's parent space
+  if (!tr) return [0, 0, 0];
+  const T = tr.times, V = tr.values; if (t <= T[0]) return [V[0], V[1], V[2]];
+  const n = T.length - 1; if (t >= T[n]) return [V[n * 3], V[n * 3 + 1], V[n * 3 + 2]];
+  let i = 0; while (T[i + 1] < t) i++;
+  const k = (t - T[i]) / (T[i + 1] - T[i]);
+  return [0, 1, 2].map(j => V[i * 3 + j] + (V[i * 3 + 3 + j] - V[i * 3 + j]) * k);
+}
+
+// ---------------------------------------------------------------- fighters
+let GLTF = null, CLIPS = {}, NAMES = null, ROOT_TO_MODEL = null;
+const tmpV = new THREE.Vector3(), tmpV2 = new THREE.Vector3();
+
+class Fighter {
+  constructor(team, x, facing, lead) {
+    this.team = team; this.facing = facing; this.lead = lead;   // lead 0: left foot forward, 1: right
+    this.group = new THREE.Group(); this.group.position.set(x, 0, 0); this.group.rotation.y = facing > 0 ? Math.PI / 2 : -Math.PI / 2;
+    this.model = SkeletonUtils.clone(GLTF.scene);
+    const mat = materialsFor(team);
+    this.model.traverse(o => { if (o.isMesh) { o.material = mat(o.material.name); o.castShadow = true; o.frustumCulled = false; } });
+    this.group.add(this.model); scene.add(this.group);
+    this.mixer = new THREE.AnimationMixer(this.model);
+    this.bones = {}; this.model.traverse(o => { if (o.isBone) this.bones[o.name] = o; });
+    this.reset(x);
+  }
+  reset(x) {
+    this.group.position.set(x, 0, 0); this.hp = 100; this.shownHp = 100; this.state = 'idle'; this.move = null; this.cur = null; this.motion = null;
+    this.lead = this.facing > 0 ? 0 : 1; this.stun = 0; this.blocking = false; this.input = { dir: 0 };
+    this.mixer.stopAllAction(); this.play('idle', 0);
+  }
+  clip(name) { return CLIPS[this.lead ? name + '_m' : name]; }
+  play(name, fade = .12, { loop = null, timeScale = 1, from = null } = {}) {
+    const clip = this.clip(name); const a = this.mixer.clipAction(clip);
+    const looping = loop ?? !!clip.userData.loop;
+    a.reset(); a.setLoop(looping ? THREE.LoopRepeat : THREE.LoopOnce, Infinity); a.clampWhenFinished = !looping; a.timeScale = timeScale;
+    if (from != null) a.time = from; else if (timeScale < 0) a.time = clip.duration;
+    a.enabled = true; a.setEffectiveWeight(1); a.play();
+    if (this.cur && this.cur !== a) { if (fade > 0) this.cur.crossFadeTo(a, fade, false); else this.cur.stop(); }
+    this.cur = a; this.curName = name;
+    this.motion = { a, tr: clip.userData.travel, last: a.time, span: clip.duration, loop: looping };
+    return a;
+  }
+  // root motion: the clip's root travel moves the whole fighter, so planted feet stay planted on the mat
+  applyMotion() {
+    const m = this.motion; if (!m || !m.tr) return;
+    const t = m.a.time; let p0 = sampleTravel(m.tr, m.last), p1 = sampleTravel(m.tr, t);
+    let d = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]];
+    if (m.loop) {
+      const full = sampleTravel(m.tr, m.span), start = sampleTravel(m.tr, 0), per = [full[0] - start[0], full[1] - start[1], full[2] - start[2]];
+      if (m.a.timeScale > 0 && t < m.last - 1e-4) d = d.map((v, i) => v + per[i]);
+      if (m.a.timeScale < 0 && t > m.last + 1e-4) d = d.map((v, i) => v - per[i]);
+    }
+    m.last = t;
+    tmpV.set(d[0], d[1], d[2]).applyMatrix3(ROOT_TO_MODEL);   // root-parent space -> model space (+Z = forward)
+    this.group.position.x += this.facing * tmpV.z;   // 2.5D: travel along the fight line only
+  }
+  bonePos(name, out) { const b = this.bones[partnerFor(this, name)]; return b ? b.getWorldPosition(out) : out.copy(this.group.position); }
+  hipsX() { return this.bones.hips ? this.bones.hips.getWorldPosition(tmpV2).x : this.group.position.x; }
+  get free() { return this.state === 'idle' || this.state === 'walk'; }
+  startMove(key) {
+    const M = MOVES[key]; if (!this.free) { if (key === 'punch' && this.move?.key === 'punch' && this.frame() <= M.chainBy) this.move.chained = true; return; }
+    this.state = 'attack'; this.move = { key, M, hit: new Set(), chained: false, whoosh: false };
+    this.play(key, .07);
+    sfx('whoosh');
+  }
+  frame() { return this.cur ? this.cur.time * FPS : 0; }
+  update(dt, foe) {
+    this.mixer.update(dt); this.applyMotion();
+    if (this.state === 'attack') {
+      const M = this.move.M, f = this.frame() + M.range[0];
+      for (const [i, h] of M.hits.entries()) {
+        if (this.move.hit.has(i) || f < h.f) continue;
+        this.move.hit.add(i);
+        if (h.chained && !this.move.chained) continue;
+        resolveHit(this, foe, h);
+      }
+      const end = M.cut && !this.move.chained ? M.cut : M.range[1];
+      if (f >= end - .01) this.finishMove(M.lead && end === M.range[1]);
+    } else if (this.state === 'hit') {
+      this.stun -= dt; if (this.stun <= 0) { this.state = 'idle'; this.play('idle', .18); }
+    } else if (this.state === 'ko' && this.cur && !this.cur.isRunning() && this.curName === 'ko') {
+      this.play('koLoop', .2);
+    } else if (this.state === 'win' && this.curName === 'win' && !this.cur.isRunning()) {
+      this.play('winLoop', .2);
+    } else if (this.free) {
+      const want = this.input.dir * this.facing;   // +1 toward the opponent
+      this.blocking = want < 0 || (this.input.block === true);
+      if (want !== 0) {
+        const rev = want < 0;
+        if (this.state !== 'walk' || this.walkRev !== rev) { this.state = 'walk'; this.walkRev = rev; this.play('advance', .14, { loop: true, timeScale: rev ? -.9 : 1.05 }); }
+      } else if (this.state === 'walk') { this.state = 'idle'; this.play('idle', .16); }
+    }
+    this.shownHp += (this.hp - this.shownHp) * Math.min(1, dt * 6);
+  }
+  finishMove(switchLead) {
+    // the move landed in the other lead: from now on this fighter uses the mirrored set (its guard is now right foot forward)
+    if (switchLead) this.lead ^= 1;
+    this.state = 'idle'; this.move = null; this.play('idle', .24);
+  }
+  takeHit(dmg, blocked) {
+    if (this.state === 'ko') return;
+    if (blocked) { this.hp = Math.max(1, this.hp - Math.ceil(dmg * .2)); this.group.position.x -= this.facing * .12; return; }
+    this.hp = Math.max(0, this.hp - dmg);
+    this.move = null;
+    if (this.hp <= 0) { this.state = 'ko'; this.play('ko', .05); return; }
+    this.state = 'hit'; this.stun = .42; this.play('hit', .04);
+  }
+}
+function partnerFor(f, name) { return f.lead ? partner(name, NAMES) : name; }
+
+// ---------------------------------------------------------------- combat
+let P1, P2, hitstop = 0;
+function resolveHit(att, def, h) {
+  const tip = att.bonePos(h.limb, new THREE.Vector3());
+  const dx = Math.abs(tip.x - def.hipsX());
+  if (dx > .62 || tip.y < .25 || tip.y > 2.9 || def.state === 'ko') { return; }
+  const blocked = def.free && def.blocking;
+  def.takeHit(h.dmg, blocked);
+  const at = tip.clone(); at.z += .25;
+  if (blocked) { spawn(guardTex, at, .9, .22, { grow: 1.2 }); sfx('block'); hitstop = .05; }
+  else {
+    spawn(starTex, at, .85, .2, { grow: 1.6 }); hitstop = h.dmg >= 12 ? .11 : .07; shake = h.dmg >= 12 ? .16 : .08; sfx(def.hp <= 0 ? 'ko' : 'hit');
+    for (let i = 0; i < 4; i++) spawn(dustTex, new THREE.Vector3(def.group.position.x, .1, .2), .6, .45, { grow: 2, vel: new THREE.Vector3(att.facing * (.5 + Math.random()), .3 + Math.random() * .3, (Math.random() - .5) * .6) });
+  }
+}
+function keepApart() {
+  const min = .78, d = P2.group.position.x - P1.group.position.x;
+  if (Math.abs(d) < min) { const push = (min - Math.abs(d)) / 2 * Math.sign(d || 1); P1.group.position.x -= push; P2.group.position.x += push; }
+  for (const f of [P1, P2]) f.group.position.x = THREE.MathUtils.clamp(f.group.position.x, -6.4, 6.4);
+}
+
+// ---------------------------------------------------------------- CPU
+const ai = { t: 0, dir: 0, hold: 0, react: 0 };
+function cpu(dt) {
+  const me = P2, foe = P1; ai.t -= dt; ai.hold -= dt;
+  const dist = Math.abs(me.group.position.x - foe.group.position.x);
+  if (ai.hold <= 0) me.input.dir = 0;
+  if (!me.free || ai.t > 0) return;
+  ai.t = .18 + Math.random() * .22;
+  const threatened = foe.state === 'attack' && dist < 2.1;
+  if (threatened && Math.random() < .33) { me.input.dir = -me.facing; ai.hold = .45; return; }   // block by holding back
+  if (dist > 1.75) { me.input.dir = me.facing; ai.hold = .25 + Math.random() * .3; return; }
+  if (dist < 1.05 && Math.random() < .35) { me.input.dir = -me.facing; ai.hold = .25; return; }
+  const r = Math.random();
+  if (r < .5) { const pick = dist < 1.35 ? (Math.random() < .55 ? 'punch' : 'round') : (Math.random() < .6 ? 'kick' : 'spin'); me.startMove(pick); if (pick === 'punch' && Math.random() < .6) setTimeout(() => me.startMove('punch'), 140); }
+  else if (r < .7) { me.input.dir = me.facing; ai.hold = .2; }
+}
+
+// ---------------------------------------------------------------- match flow
+const $ = id => document.getElementById(id);
+const ui = { hud: $('hud'), title: $('title'), pause: $('pause'), result: $('result'), call: $('call'), clock: $('clock'), roundTag: $('roundTag'), loading: $('loading') };
+let mode = 'title', round = 1, wins = [0, 0], clock = 60, roundState = 'intro', roundTimer = 0, camMode = 0;
+const CAMS = ['Side', 'Three-quarter', 'Low'];
+function say(text, sub = '', ms = 1100) { ui.call.innerHTML = text + (sub ? `<small>${sub}</small>` : ''); ui.call.classList.add('show'); clearTimeout(say.t); if (ms) say.t = setTimeout(() => ui.call.classList.remove('show'), ms); }
+function startMatch() { wins = [0, 0]; round = 1; startRound(); mode = 'fight'; show('hud'); }
+function startRound() {
+  P1.reset(-1.15); P2.reset(1.15); clock = 60; roundState = 'intro'; roundTimer = 1.6; ui.roundTag.textContent = `Round ${round}`;
+  say(`Round ${round}`, 'Ready', 900); setTimeout(() => { if (roundState === 'intro') say('Fight!', '', 700); }, 900);
+  updatePips();
+}
+function endRound(winner) {
+  if (roundState !== 'fight') return; roundState = 'over';
+  const loser = winner === P1 ? P2 : P1;
+  if (winner) { wins[winner === P1 ? 0 : 1]++; setTimeout(() => { if (winner.state !== 'ko') { winner.state = 'win'; winner.move = null; winner.play('win', .2); } }, 700); }
+  updatePips();
+  const ko = loser && loser.hp <= 0;
+  say(ko ? 'K.O.!' : 'Time!', winner ? (winner === P1 ? 'Aka takes the round' : 'Ao takes the round') : 'Draw', 1800);
+  const done = wins[0] >= 2 || wins[1] >= 2;
+  setTimeout(() => {
+    if (done) { mode = 'over'; say(wins[0] >= 2 ? 'You win!' : 'Ao wins!', wins[0] >= 2 ? 'Black belt energy' : 'Shake it off and go again', 0); show('hud', 'result'); }
+    else { round++; startRound(); }
+  }, 2600);
+}
+function updatePips() { for (const [i, id] of ['pips1', 'pips2'].entries()) [...$(id).children].forEach((p, k) => p.classList.toggle('on', wins[i] > k)); }
+function show(...ids) { for (const k of ['hud', 'title', 'pause', 'result']) ui[k].hidden = !ids.includes(k); }
+
+// ---------------------------------------------------------------- input: keyboard + touch
+const keys = new Set();
+const KEYMOVE = { KeyJ: 'punch', KeyK: 'kick', KeyL: 'round', KeyI: 'spin' };
+addEventListener('keydown', e => {
+  if (e.repeat) return; audio();
+  if (mode === 'title' && (e.code === 'Enter' || e.code === 'Space')) { startMatch(); return; }
+  if (e.code === 'KeyP') { togglePause(); return; }
+  keys.add(e.code);
+  if (mode === 'fight' && roundState === 'fight' && KEYMOVE[e.code]) P1.startMove(KEYMOVE[e.code]);
+  if (e.code === 'KeyC') cycleCam();
+});
+addEventListener('keyup', e => keys.delete(e.code));
+addEventListener('blur', () => { keys.clear(); touchDir.clear(); if (mode === 'fight') togglePause(true); });
+const touchDir = new Map();
+for (const b of document.querySelectorAll('.dir')) {
+  const dir = +b.dataset.dir;
+  const on = e => { e.preventDefault(); audio(); touchDir.set(b, dir); b.classList.add('held'); };
+  const off = e => { touchDir.delete(b); b.classList.remove('held'); };
+  b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('pointerleave', off);
+}
+for (const b of document.querySelectorAll('.act')) {
+  b.addEventListener('pointerdown', e => { e.preventDefault(); audio(); b.classList.add('held'); if (mode === 'fight' && roundState === 'fight') P1.startMove(b.dataset.move); });
+  const off = () => b.classList.remove('held'); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('pointerleave', off);
+}
+addEventListener('contextmenu', e => e.preventDefault());
+function playerDir() {
+  let d = 0; if (keys.has('KeyA') || keys.has('ArrowLeft')) d -= 1; if (keys.has('KeyD') || keys.has('ArrowRight')) d += 1;
+  for (const v of touchDir.values()) d += v;
+  return Math.sign(d);
+}
+function togglePause(force) {
+  if (mode === 'fight') { mode = 'paused'; show('hud', 'pause'); }
+  else if (mode === 'paused' && force !== true) { mode = 'fight'; show('hud'); }
+}
+function cycleCam() { camMode = (camMode + 1) % CAMS.length; $('titleCam').textContent = 'Camera: ' + CAMS[camMode]; $('camBtn').setAttribute('aria-label', 'Camera: ' + CAMS[camMode]); }
+$('startBtn').onclick = () => { audio(); startMatch(); };
+$('titleCam').onclick = cycleCam; $('camBtn').onclick = cycleCam;
+$('pauseBtn').onclick = () => togglePause();
+$('resumeBtn').onclick = () => togglePause();
+$('restartBtn').onclick = () => { startMatch(); };
+$('quitBtn').onclick = $('toTitleBtn').onclick = () => toTitle();
+$('againBtn').onclick = () => { ui.call.classList.remove('show'); startMatch(); };
+function toTitle() { mode = 'title'; ui.call.classList.remove('show'); P1.reset(-1.15); P2.reset(1.15); show('title'); }
+
+// ---------------------------------------------------------------- camera
+const camPos = new THREE.Vector3(0, 2, 12), camLook = new THREE.Vector3(0, 1.1, 0);
+function updateCamera(dt, t) {
+  const mid = (P1.group.position.x + P2.group.position.x) / 2, gap = Math.abs(P1.group.position.x - P2.group.position.x);
+  const aspect = camera.aspect, narrow = Math.max(0, 1.5 - aspect);   // portrait phones need the camera further back
+  let dist = 8.2 + gap * 1.15 + narrow * 6.5;
+  const want = new THREE.Vector3(), look = new THREE.Vector3(mid, 1.15 + narrow * .35, 0);
+  if (mode === 'title') { const a = t * .12; dist = 7.4 + narrow * 6; want.set(Math.sin(a) * dist * .6, 1.9, Math.cos(a) * .3 * dist + dist * .75); look.set(0, 1.2 + narrow * .3, 0); }
+  else if (camMode === 0) want.set(mid, 1.75, dist);
+  else if (camMode === 1) want.set(mid - dist * .52, 2.5, dist * .84);
+  else want.set(mid + dist * .18, .75, dist * .78);
+  const k = 1 - Math.exp(-dt * 4);
+  camPos.lerp(want, k); camLook.lerp(look, k);
+  camera.position.copy(camPos);
+  if (shake > 0) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * 1.2); }
+  camera.lookAt(camLook);
+}
+function resize() {
+  const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h;
+  camera.fov = w / h < 1 ? 42 : 30; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+
+// ---------------------------------------------------------------- loop
+let lastT = performance.now(), simT = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  let dt = Math.min(.05, (now - lastT) / 1000); lastT = now; simT += dt;
+  if (mode === 'paused') { effect.render(scene, camera); return; }
+  if (mode === 'fight' && roundState === 'intro') { roundTimer -= dt; if (roundTimer <= 0) roundState = 'fight'; }
+  if (mode === 'fight' && roundState === 'fight') {
+    P1.input.dir = playerDir();
+    cpu(dt);
+    clock -= dt; ui.clock.textContent = Math.max(0, Math.ceil(clock));
+    if (clock <= 0) endRound(P1.hp === P2.hp ? null : P1.hp > P2.hp ? P1 : P2);
+  } else if (P1) { P1.input.dir = 0; P2.input.dir = 0; }
+  let sdt = dt;
+  if (hitstop > 0) { hitstop -= dt; sdt = dt * .05; }
+  if (P1) {
+    P1.update(sdt, P2); P2.update(sdt, P1); keepApart();
+    if (roundState === 'fight' && (P1.hp <= 0 || P2.hp <= 0)) endRound(P1.hp <= 0 ? P2 : P1);
+    setBar('bar1', P1); setBar('bar2', P2);
+    updateCamera(dt, simT);
+  }
+  petals.update(simT, dt); updateFx(dt);
+  effect.render(scene, camera);
+}
+function setBar(id, f) { const el = $(id); el.children[1].style.transform = `scaleX(${f.hp / 100})`; el.children[0].style.transform = `scaleX(${f.shownHp / 100})`; }
+
+// ---------------------------------------------------------------- boot
+resize();
+// the model ships as base64 text (the host serves no .glb), decoded and parsed in memory
+// the repo ships bunny.glb; the published page ships the same bytes as base64 text (its host serves no .glb)
+fetch('bunny.glb').then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status))
+  .catch(() => fetch('bunny-glb.txt').then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then(txt => { $('loadMsg').textContent = 'unpacking bunnies'; return Uint8Array.from(atob(txt.trim()), c => c.charCodeAt(0)).buffer; }))
+  .then(bin => new GLTFLoader().parse(bin, '', onModel, onFail)).catch(onFail);
+function onFail(err) { $('loadMsg').textContent = 'Could not load the bunnies. Reload to try again.'; console.error(err); }
+function onModel(g) {
+  GLTF = g;
+  NAMES = boneNames(g.scene);
+  const src = Object.fromEntries(g.animations.map(a => [a.name, a]));
+  const add = (name, c, loop) => { c.userData.loop = loop; CLIPS[name] = c; const m = mirrorClip(c, NAMES); m.userData = c.userData; CLIPS[name + '_m'] = m; };
+  for (const [name, [clip, f0, f1, loop]] of Object.entries(BASIC)) add(name, cut(src[clip], name, f0, f1), loop);
+  for (const [key, M] of Object.entries(MOVES)) add(key, cut(src[M.clip], key, M.range[0], M.range[1]), false);
+  // root-parent space -> model space, for root motion
+  g.scene.updateMatrixWorld(true);
+  const rootBone = g.scene.getObjectByName('root');
+  const M4 = new THREE.Matrix4().copy(g.scene.matrixWorld).invert().multiply(rootBone.parent.matrixWorld);
+  ROOT_TO_MODEL = new THREE.Matrix3().setFromMatrix4(M4);
+  P1 = new Fighter('aka', -1.15, 1, 0); P2 = new Fighter('ao', 1.15, -1, 1);
+  ui.loading.hidden = true; show('title'); mode = 'title';
+  window.__kb = { P1, P2, CLIPS, startMatch, get mode() { return mode; }, get round() { return roundState; }, setCam: m => { camMode = m; } };
+  requestAnimationFrame(t => { lastT = t; frame(t); });
+}
+</script>
