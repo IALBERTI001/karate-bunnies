@@ -492,8 +492,8 @@ function resolveHit(att, def, h) {
   }
 }
 // body volumes along the fight line (user, Nov 9: "heads are blending together"): the big head (1.2 m deep, 1.3 m
-// wide), the chest and the hips each keep their own clearance, measured on the animated bones every frame
-const BODY = [['head', 1.34, 1.1], ['chest', .9, .8], ['hips', .95, .8]];   // part, min centre distance, vertical overlap that counts
+// wide; 1.5 leaves a visible gap so they never read as merged), the chest and the hips keep their own clearance
+const BODY = [['head', 1.5, 1.1], ['chest', .9, .8], ['hips', .95, .8]];   // part, min centre distance, vertical overlap that counts
 const pa = new THREE.Vector3(), pb2 = new THREE.Vector3();
 function keepApart() {
   const min = 1.05, d = P2.group.position.x - P1.group.position.x;
