@@ -16,7 +16,7 @@ CHAINS = [(('ear_a.L', 'ear_b.L'), 50, 3.5, 0, 45), (('ear_a.R', 'ear_b.R'), 50,
 from mathutils import Vector
 
 ADV = 16                 # frames per advance at 30 fps (~0.53 s)
-D = .44                  # distance per advance (chibi: 2-3x adult; at .34 the step read as a shuffle from the side)
+D = .52                  # distance per advance (chibi: 2-3x adult; .34 read as a shuffle, .44 as a cautious step)
 LEAD = 4                 # still guard frames before the first step
 N = 3                    # advances
 END = LEAD + ADV * N + 6
@@ -40,33 +40,34 @@ def foot(L, f):
     """('plant', Y_abs, heel) or ('free', Y_abs, lift, pitch). Y_abs: ankle forward distance at zero yaw (the ball is .3 ahead)."""
     k, t = phase(f); Y0 = FEET[L]['Y'] + D * k
     if L == 'L':                                                       # the FRONT foot moves first, t 2 -> 8
-        if t < 2: return ('plant', Y0, 6 * smooth(t / 2))              # unweights: the heel lifts a little
+        if t < 3: return ('plant', Y0, 8 * smooth(t / 3))              # unweights while the rear leg pushes: the heel lifts
         if t < 8:
-            u = (t - 2) / 6.
-            return ('free', Y0 + D * smooth(u), .075 * math.sin(math.pi * u), 6 * (1 - u) + 3 * u + 9 * math.sin(math.pi * u))
-        return ('plant', Y0 + D, 3 * (1 - smooth((t - 8) / 2)))         # lands on the ball, the heel settles
+            u = (t - 3) / 5.
+            return ('free', Y0 + D * smooth(u), .075 * math.sin(math.pi * u), 8 * (1 - u) + 6 * u + 9 * math.sin(math.pi * u))
+        return ('plant', Y0 + D, 6 * (1 - smooth((t - 8) / 2.5)))       # lands on the ball, the heel settles
     # the REAR foot drives, then glides up, t 8 -> 14
-    if t < 8: return ('plant', Y0, RH + 14 * smooth((t - 3) / 5))      # the push: the rear heel rises as the weight goes forward
+    if t < 8: return ('plant', Y0, RH + 16 * smooth(t / 3.5))         # the push FIRST (t 0-3): the rear heel drives up, the knee straightens
     if t < 14:
         u = (t - 8) / 6.
-        return ('free', Y0 + D * smooth(u), .045 * math.sin(math.pi * u), 28 - 6 * u)
+        return ('free', Y0 + D * smooth(u), .045 * math.sin(math.pi * u), 30 - 4 * u)            # glides on the ball, heel clearly up
     return ('plant', Y0 + D, 22 - (22 - RH) * smooth((t - 14) / 2))
 
 def body(f):
     k, t = phase(f)
-    p = .55 * smooth((t - 1) / 8) + .45 * smooth((t - 6) / 9)          # the pelvis travels with the front step, finishes with the rear
+    p = .25 * smooth(t / 4) + .45 * smooth((t - 3) / 6) + .3 * smooth((t - 8) / 7)   # the push moves the hips first, then the step, then the drag
     return dict(pos=D * (k + p),
-                sink=SINK + .065 * g(t, 9.5, 2.2) - .03 * g(t, 4, 1.8),   # rises on the push, drops onto the front knee
-                lean=GUARD['lean'] + 2 + 5 * g(t, 6, 2.5),
-                turn=GUARD['turn'] + 4 * g(t, 5, 2.5),                  # the hips open a touch with the push
+                sink=SINK + .095 * g(t, 9, 1.8) - .035 * g(t, 2.5, 1.6),   # rises on the push, settles hard onto the front knee   # rises on the push, drops onto the front knee
+                lean=GUARD['lean'] + 5 + 6 * g(t, 5, 2.5),       # committed: the trunk drives toward the target
+                turn=GUARD['turn'] - 6 + 4 * g(t, 5, 2.5),       # more side-on: the lead shoulder forward                  # the hips open a touch with the push
                 reach=g(t, 6, 2.5))
 
 def pose(F, G, f):
     R = G['R']; B = body(f); root = Vector((0, -B['pos'], 0))
-    hL = Vector(GUARD['hL']) + Vector((0, -.09, .015)) * B['reach']    # the lead fist covers forward with the step
-    hR = Vector(GUARD['hR']) + Vector((0, 0, .015)) * B['reach']      # the rear fist stays at the chin
+    # karate kamae, not a boxer's peekaboo (review): the lead fist a forearm forward at shoulder height, the rear fist at the chin
+    hL = Vector((.16, -.66, .14)) + Vector((0, -.08, .01)) * B['reach']    # the lead fist covers forward with the step
+    hR = Vector((-.12, -.34, .2)) + Vector((0, 0, .015)) * B['reach']
     P = dict(G['DEFAULT'], pos=B['pos'], sink=B['sink'], shift=(0, 0), away=0, lean=B['lean'], turn=B['turn'],
-             head=(-B['lean'] * .75, 0, -B['turn'] * .95), hL=tuple(hL), hR=tuple(hR))
+             head=(-B['lean'] * .75 + 7, 0, -B['turn'] * .95), hL=tuple(hL), hR=tuple(hR))
     for L in 'LR':
         fo = foot(L, f); x = FEET[L]['x']; yaw = FEET[L]['yaw']
         if fo[0] == 'plant':
