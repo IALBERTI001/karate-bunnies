@@ -413,6 +413,13 @@ class Fighter {
     this.group.position.x += this.facing * tmpV.z;   // 2.5D: travel along the fight line only
   }
   bonePos(name, out) { const b = this.bones[partnerFor(this, name)]; return b ? b.getWorldPosition(out) : out.copy(this.group.position); }
+  partPos(part, out) {   // centre of a body volume in world space
+    if (part !== 'head') return this.bones[part] ? this.bones[part].getWorldPosition(out) : out.copy(this.group.position);
+    const h = this.bones.head.getWorldPosition(out), eL = this.bones.ear_aL.getWorldPosition(tmpV2);
+    const ex = eL.x, ey = eL.y, ez = eL.z; this.bones.ear_aR.getWorldPosition(tmpV2);
+    // the head's centre sits halfway between the neck joint and the ear roots on top of the skull
+    return out.set((h.x + (ex + tmpV2.x) / 2) / 2, (h.y + (ey + tmpV2.y) / 2) / 2, (h.z + (ez + tmpV2.z) / 2) / 2);
+  }
   hipsX() { return this.bones.hips ? this.bones.hips.getWorldPosition(tmpV2).x : this.group.position.x; }
   get free() { return this.state === 'idle' || this.state === 'walk'; }
   startMove(key) {
@@ -484,11 +491,25 @@ function resolveHit(att, def, h) {
     for (let i = 0; i < 4; i++) spawn(dustTex, new THREE.Vector3(def.group.position.x, .1, .2), .6, .45, { grow: 2, vel: new THREE.Vector3(att.facing * (.5 + Math.random()), .3 + Math.random() * .3, (Math.random() - .5) * .6) });
   }
 }
+// body volumes along the fight line (user, Nov 9: "heads are blending together"): the big head (1.2 m deep, 1.3 m
+// wide), the chest and the hips each keep their own clearance, measured on the animated bones every frame
+const BODY = [['head', 1.34, 1.1], ['chest', .9, .8], ['hips', .95, .8]];   // part, min centre distance, vertical overlap that counts
+const pa = new THREE.Vector3(), pb2 = new THREE.Vector3();
 function keepApart() {
-  const min = 1.05, d = P2.group.position.x - P1.group.position.x;   // big heads: keep them from overlapping
+  const min = 1.05, d = P2.group.position.x - P1.group.position.x;
   if (Math.abs(d) < min) { const push = (min - Math.abs(d)) / 2 * Math.sign(d || 1); P1.group.position.x -= push; P2.group.position.x += push; }
-  const hd = P2.hipsX() - P1.hipsX();   // bodies, not just roots: leans and spins can carry the hips past the root
-  if (Math.abs(hd) < .95) { const push = (.95 - Math.abs(hd)) / 2 * Math.sign(hd || 1); P1.group.position.x -= push; P2.group.position.x += push; }
+  for (let pass = 0; pass < 2; pass++) {
+    let worst = 0, dir = Math.sign(P2.group.position.x - P1.group.position.x) || 1;
+    for (const [part, need, dyMax] of BODY) {
+      P1.partPos(part, pa); P2.partPos(part, pb2);
+      if (Math.abs(pa.y - pb2.y) > dyMax) continue;
+      const gap = (pb2.x - pa.x) * dir;
+      worst = Math.max(worst, need - gap);
+    }
+    if (worst <= 0) break;
+    P1.group.position.x -= dir * worst / 2; P2.group.position.x += dir * worst / 2;
+    P1.group.updateMatrixWorld(true); P2.group.updateMatrixWorld(true);
+  }
   for (const f of [P1, P2]) f.group.position.x = THREE.MathUtils.clamp(f.group.position.x, -6.4, 6.4);
 }
 

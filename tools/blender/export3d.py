@@ -107,15 +107,15 @@ def bake(name, F, G):
         _beats_clip(F, G, CB, beats, 44)
         return _store(rig, name, dict(range=[0, 44], loop=[20, 36], lead_switch=False, hits=[], travel=None))
     if name == 'win':
-        # victory: rises out of the guard, rear fist punches the sky, a little hop in place, settles proud
+        # victory: rises out of the guard, rear fist punches the sky BESIDE the head (user, Nov 9: the arm went through the head)
         CB = _ns('combo.py'); GU = CB['GUARD']
         b = lambda **kw: dict(GU, **kw)
         beats = [(0, 'lin', b()),
                  (4, 'io', b(sink=.16, lean=8, turn=-4, hR=(-.3, -.2, .02))),
-                 (8, 'out', b(sink=-.02, lean=-4, away=6, turn=0, hL=(.3, -.3, .1), hR=(-.2, -.12, .9))),
-                 (12, 'io', b(sink=.02, lean=-2, away=4, turn=0, hL=(.32, -.28, .08), hR=(-.2, -.1, .88))),
-                 (16, 'io', b(sink=.0, lean=-3, away=5, turn=0, hL=(.32, -.28, .1), hR=(-.2, -.12, .9))),
-                 (24, 'io', b(sink=.02, lean=-2, away=4, turn=0, hL=(.32, -.28, .08), hR=(-.2, -.1, .88)))]
+                 (8, 'out', b(sink=-.02, lean=-4, away=6, turn=0, hL=(.36, -.3, .06), hR=(-.7, -.1, .84))),
+                 (12, 'io', b(sink=.02, lean=-2, away=4, turn=0, hL=(.36, -.28, .04), hR=(-.68, -.08, .82))),
+                 (16, 'io', b(sink=.0, lean=-3, away=5, turn=0, hL=(.36, -.28, .06), hR=(-.7, -.1, .84))),
+                 (24, 'io', b(sink=.02, lean=-2, away=4, turn=0, hL=(.36, -.28, .04), hR=(-.68, -.08, .82)))]
         _beats_clip(F, G, CB, beats, 24)
         return _store(rig, name, dict(range=[0, 24], loop=[12, 24], lead_switch=False, hits=[], travel=None))
     raise KeyError(name)

@@ -73,6 +73,30 @@ def stance(lead='L', width=.34, length=.8, side=35, sink=.0, **kw):
     if lead == 'R': P['hR'], P['hL'] = (-GUARD_L[0],) + GUARD_L[1:], (-GUARD_R[0],) + GUARD_R[1:]
     P.update(kw); return P
 
+HEAD_PAD = .15   # glove radius + a little air: a fist never sinks into the big head
+def _head_check(pb, pt):
+    """where a pose-space point sits against the padded head ellipsoid: (k < 1 inside, rest->pose matrix, rest point, centre, radii, unit offset)"""
+    hb = pb['head']; Rm = hb.bone.matrix_local @ hb.matrix.inverted(); x = Rm @ pt
+    c = kbbody.HEAD_C; r = kbbody.HEAD_R + Vector((HEAD_PAD, HEAD_PAD, HEAD_PAD))
+    d = Vector(((x.x - c.x) / r.x, (x.y - c.y) / r.y, (x.z - c.z) / r.z))
+    return d.length, Rm, x, c, r, d
+
+def clear_head(F):
+    """Collision rule (user, Nov 9: "arms go through the head"): after every pose, any paw that would enter the head is
+    pushed out to the head's surface along the line from the head centre, and the arm re-solves to reach it."""
+    rig = F['rig']; pb = rig.pose.bones; vl = bpy.context.view_layer
+    for _ in range(3):
+        moved = False
+        for L in 'LR':
+            for pt in (pb[f'hand.{L}'].tail.copy(), pb[f'hand.{L}'].head.copy(), (pb[f'forearm.{L}'].head + pb[f'forearm.{L}'].tail) / 2):
+                k, Rm, x, c, r, d = _head_check(pb, pt)
+                if k >= 1 or k < 1e-6: continue
+                surf = Vector((c.x + d.x / k * r.x, c.y + d.y / k * r.y, c.z + d.z / k * r.z))
+                delta = (Rm.inverted() @ surf) - pt
+                m = pb[f'hand_ik.{L}'].matrix.copy(); m.translation += delta * 1.05; pb[f'hand_ik.{L}'].matrix = m
+                vl.update(); moved = True; break
+        if not moved: break
+
 def apply_pose(F, P):
     rig, rest = F['rig'], F['rest']; pb = rig.pose.bones; vl = bpy.context.view_layer
     def put(name, M3, loc):
@@ -119,6 +143,7 @@ def apply_pose(F, P):
         if f is not None and len(f) == 4 and f[3] and f'toe.{L}' in pb:
             pb[f'toe.{L}'].rotation_quaternion = Quaternion((1, 0, 0), math.radians(f[3]))   # +X lifts the toes: they stay on the floor
     vl.update()
+    clear_head(F)
 
 KEYED = ('root', 'torso', 'hips', 'spine', 'chest', 'neck', 'head', 'foot_ik.L', 'foot_ik.R', 'knee_pole.L', 'knee_pole.R', 'hand_ik.L', 'hand_ik.R',
          'shoulder.L', 'shoulder.R', 'toe.L', 'toe.R', 'fingers_a.L', 'fingers_b.L', 'thumb_a.L', 'thumb_b.L', 'fingers_a.R', 'fingers_b.R', 'thumb_a.R', 'thumb_b.R')
