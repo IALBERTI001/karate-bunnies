@@ -635,7 +635,8 @@ function onFail(err) { $('loadMsg').textContent = 'Could not load the bunnies. R
 function onModel(g) {
   GLTF = g;
   NAMES = boneNames(g.scene);
-  for (const a of g.animations) { for (const t of a.tracks) for (let i = 0; i < t.times.length; i++) t.times[i] *= SRC_FPS / FPS; a.duration *= SRC_FPS / FPS; }
+  const scaled = new Set();   // tracks share time arrays (one glTF accessor): scale each array once
+  for (const a of g.animations) { for (const t of a.tracks) { if (scaled.has(t.times)) continue; scaled.add(t.times); for (let i = 0; i < t.times.length; i++) t.times[i] *= SRC_FPS / FPS; } a.duration *= SRC_FPS / FPS; }
   const src = Object.fromEntries(g.animations.map(a => [a.name, a]));
   const add = (name, c, loop) => { c.userData.loop = loop; CLIPS[name] = c; const m = mirrorClip(c, NAMES); m.userData = c.userData; CLIPS[name + '_m'] = m; };
   for (const [name, [clip, f0, f1, loop]] of Object.entries(BASIC)) add(name, cut(src[clip], name, f0, f1), loop);
