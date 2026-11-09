@@ -56,15 +56,15 @@ def body(f):
     k, t = phase(f)
     p = .25 * smooth(t / 4) + .45 * smooth((t - 3) / 6) + .3 * smooth((t - 8) / 7)   # the push moves the hips first, then the step, then the drag
     return dict(pos=D * (k + p),
-                sink=SINK + .095 * g(t, 9, 1.8) - .035 * g(t, 2.5, 1.6),   # rises on the push, settles hard onto the front knee   # rises on the push, drops onto the front knee
+                sink=SINK + .12 * g(t, 9, 1.8) - .035 * g(t, 2.5, 1.6),   # rises on the push, settles hard onto the front knee   # rises on the push, drops onto the front knee
                 lean=GUARD['lean'] + 5 + 6 * g(t, 5, 2.5),       # committed: the trunk drives toward the target
                 turn=GUARD['turn'] - 6 + 4 * g(t, 5, 2.5),       # more side-on: the lead shoulder forward                  # the hips open a touch with the push
                 reach=g(t, 6, 2.5))
 
 def pose(F, G, f):
     R = G['R']; B = body(f); root = Vector((0, -B['pos'], 0))
-    # karate kamae, not a boxer's peekaboo (review): the lead fist a forearm forward at shoulder height, the rear fist at the chin
-    hL = Vector((.16, -.66, .14)) + Vector((0, -.08, .01)) * B['reach']    # the lead fist covers forward with the step
+    # karate kamae, not a boxer's peekaboo (review): the lead fist a forearm forward at shoulder height, far enough to clear the big head in profile, the rear fist at the chin
+    hL = Vector((.14, -.86, .1)) + Vector((0, -.04, .01)) * B['reach']    # the lead fist covers forward with the step
     hR = Vector((-.12, -.34, .2)) + Vector((0, 0, .015)) * B['reach']
     P = dict(G['DEFAULT'], pos=B['pos'], sink=B['sink'], shift=(0, 0), away=0, lean=B['lean'], turn=B['turn'],
              head=(-B['lean'] * .75 + 7, 0, -B['turn'] * .95), hL=tuple(hL), hR=tuple(hR))
