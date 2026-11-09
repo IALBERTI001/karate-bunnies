@@ -20,7 +20,8 @@ button:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
 .chip{width:14px;height:14px;border-radius:50%;border:2px solid var(--cream)}
 .chip.aka{background:var(--aka)}.chip.ao{background:var(--ao)}
 .bar{position:relative;width:100%;max-width:420px;height:18px;border-radius:10px;background:#0b0f19;border:2px solid var(--cream);overflow:hidden;box-shadow:0 3px 0 #0006}
-.bar i{position:absolute;inset:0;transform-origin:left;background:linear-gradient(#f3c66a,#e09a3c);transition:transform .12s}
+.bar i{position:absolute;inset:0;transform-origin:left;background:linear-gradient(#f0606a,#c8333b);transition:transform .12s}
+#bar2 i{background:linear-gradient(#5f93ec,#2d63c8)}
 .bar b{position:absolute;inset:0;transform-origin:left;background:#fff5;transition:transform .6s .25s}
 .side.right .bar i,.side.right .bar b{transform-origin:right}
 .pips{display:flex;gap:6px}
@@ -42,8 +43,8 @@ button:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
 .tag3d{display:inline-block;font:800 16px system-ui;letter-spacing:.18em;background:var(--pink);color:var(--ink);border-radius:8px;padding:6px 12px;vertical-align:middle;margin-left:8px;transform:translateY(-.4em) rotate(-4deg);text-shadow:none}
 .sub{font:16px system-ui;color:#f8f1e4d9;max-width:34ch;line-height:1.5;margin:0;text-shadow:0 2px 6px #000c}
 .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-.primary{background:var(--green);color:#fff;border-radius:12px;padding:17px 34px;box-shadow:0 5px 0 var(--green-d);font:800 18px system-ui;letter-spacing:.04em}
-.primary:active{transform:translateY(3px);box-shadow:0 2px 0 var(--green-d)}
+.primary{background:#f2a33a;color:var(--ink);border-radius:12px;padding:17px 38px;box-shadow:0 5px 0 #a8641c;font:800 20px system-ui;letter-spacing:.04em}
+.primary:active{transform:translateY(3px);box-shadow:0 2px 0 #a8641c}
 .secondary{background:#fffaf2;color:#3e5145;border-radius:12px;padding:14px 22px;font:700 16px system-ui;box-shadow:0 4px 0 #b9ae97}
 .secondary:active{transform:translateY(2px);box-shadow:0 2px 0 #b9ae97}
 .keys{font:14px system-ui;color:#f8f1e4c7;text-shadow:0 2px 4px #000}
@@ -184,11 +185,13 @@ scene.add(new THREE.AmbientLight(0xffffff, Math.PI * .16));
 function lin(c) { return new THREE.Color().setRGB(c[0], c[1], c[2]); }
 function canvasTex(w, h, draw) { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; draw(cv.getContext('2d'), w, h); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; }
 
+const arena = {};
 function buildArena() {
   const g = new THREE.Group();
   // floor: dark surround, blue competition mat with a red safety border and the two start lines
   const floorTex = canvasTex(2048, 1024, (x, w, h) => {
-    x.fillStyle = '#2a3348'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#7a5236'; x.fillRect(0, 0, w, h);   // wooden dojo floor around the mat
+    for (let i = 0; i < 40; i++) { x.fillStyle = i % 2 ? '#835a3c' : '#734d33'; x.fillRect(0, i * h / 40, w, h / 40 - 3); }
     const mx = w * .12, my = h * .18, mw = w * .76, mh = h * .64;
     x.fillStyle = '#c8333b'; x.fillRect(mx - 26, my - 26, mw + 52, mh + 52);
     x.fillStyle = '#2f6fd0'; x.fillRect(mx, my, mw, mh);
@@ -214,11 +217,12 @@ function buildArena() {
   const banTex = canvasTex(1024, 256, (x, w, h) => {
     x.fillStyle = '#f8f1e4'; x.fillRect(0, 0, w, h);
     x.fillStyle = '#c8333b'; x.fillRect(0, 0, w, 18); x.fillRect(0, h - 18, w, 18);
-    x.fillStyle = '#2a1a12'; x.font = '700 120px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillStyle = '#2a1a12'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    let size = 120; do { x.font = `700 ${size}px Georgia, serif`; size -= 4; } while (x.measureText('KARATE BUNNIES').width > w * .86);
     x.fillText('KARATE BUNNIES', w / 2, h / 2 + 6);
   });
   const banner = new THREE.Mesh(new THREE.PlaneGeometry(7, 1.75), new THREE.MeshBasicMaterial({ map: banTex }));
-  banner.position.set(0, 4.6, -5.95); g.add(banner);
+  banner.position.set(0, 4.6, -5.95); g.add(banner); arena.banner = banner;
   for (const sx of [-1, 1]) {   // red and blue corner flags
     const f = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 2.4), new THREE.MeshBasicMaterial({ color: sx < 0 ? 0xc8333b : 0x2d63c8 }));
     f.position.set(sx * 6.2, 4.3, -5.94); g.add(f);
@@ -294,12 +298,13 @@ function toon(ramp) {
   // the gradient only sorts each pixel into shadow / lit / highlight; the colours come straight from the Blender ramp,
   // so shadows stay warm and saturated (multiplying one colour made them grey)
   const m = new THREE.MeshToonMaterial({ color: lin(ramp[1]), gradientMap: gradient([.25, 1, ramp[2] ? 1.25 : 0]) });
-  const U = { uShade: { value: lin(ramp[0]) }, uLit: { value: lin(ramp[1]) }, uHi: { value: lin(ramp[2] || ramp[1]) } };
+  const U = { uShade: { value: lin(ramp[0]) }, uLit: { value: lin(ramp[1]) }, uHi: { value: lin(ramp[2] || ramp[1]) }, uFlash: { value: 0 } };
+  m.userData.flash = U.uFlash;
   m.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, U);
-    sh.fragmentShader = 'uniform vec3 uShade; uniform vec3 uLit; uniform vec3 uHi;\n' + sh.fragmentShader.replace('#include <opaque_fragment>', `
+    sh.fragmentShader = 'uniform vec3 uShade; uniform vec3 uLit; uniform vec3 uHi; uniform float uFlash;\n' + sh.fragmentShader.replace('#include <opaque_fragment>', `
       float kbL = dot(outgoingLight, vec3(.2126, .7152, .0722)) / max(dot(diffuseColor.rgb, vec3(.2126, .7152, .0722)), 1e-4);
-      outgoingLight = kbL < .62 ? uShade : (kbL > 1.12 ? uHi : uLit);
+      outgoingLight = mix(kbL < .62 ? uShade : (kbL > 1.12 ? uHi : uLit), vec3(1.0), uFlash);
       #include <opaque_fragment>`);
   };
   m.customProgramCacheKey = () => 'kbtoon';
@@ -307,7 +312,7 @@ function toon(ramp) {
 }
 function materialsFor(team) {
   const cache = {};
-  return (name) => {
+  const get = (name) => {
     const base = name.replace(/\.\d+$/, '').replace(/^(AKA|AO)_/, '');
     if (cache[base]) return cache[base];
     let m;
@@ -317,6 +322,7 @@ function materialsFor(team) {
     m.userData.outlineParameters = NO_OUTLINE.has(base) ? { visible: false } : { thickness: base === 'gi' || base === 'fur' ? .0045 : .0036, color: INK, alpha: 1, visible: true };
     return (cache[base] = m);
   };
+  get.all = cache; return get;
 }
 
 // ---------------------------------------------------------------- clips: cut, strip root travel, mirror for the other lead
@@ -368,7 +374,7 @@ class Fighter {
     this.team = team; this.facing = facing; this.lead = lead;   // lead 0: left foot forward, 1: right
     this.group = new THREE.Group(); this.group.position.set(x, 0, 0); this.group.rotation.y = facing > 0 ? Math.PI / 2 : -Math.PI / 2;
     this.model = SkeletonUtils.clone(GLTF.scene);
-    const mat = materialsFor(team);
+    const mat = materialsFor(team); this.mats = mat.all; this.flash = 0;
     this.model.traverse(o => { if (o.isMesh) { o.material = mat(o.material.name); o.castShadow = true; o.frustumCulled = false; } });
     this.group.add(this.model); scene.add(this.group);
     this.mixer = new THREE.AnimationMixer(this.model);
@@ -444,6 +450,8 @@ class Fighter {
       } else if (this.state === 'walk') { this.state = 'idle'; this.play('idle', .16); }
     }
     this.shownHp += (this.hp - this.shownHp) * Math.min(1, dt * 6);
+    this.flash = Math.max(0, this.flash - dt * 7);
+    for (const m of Object.values(this.mats)) if (m.userData.flash) m.userData.flash.value = this.flash * .75;
   }
   finishMove(switchLead) {
     // the move landed in the other lead: from now on this fighter uses the mirrored set (its guard is now right foot forward)
@@ -453,7 +461,7 @@ class Fighter {
   takeHit(dmg, blocked) {
     if (this.state === 'ko') return;
     if (blocked) { this.hp = Math.max(1, this.hp - Math.ceil(dmg * .2)); this.group.position.x -= this.facing * .12; return; }
-    this.hp = Math.max(0, this.hp - dmg);
+    this.hp = Math.max(0, this.hp - dmg); this.flash = 1;
     this.move = null;
     if (this.hp <= 0) { this.state = 'ko'; this.play('ko', .05); return; }
     this.state = 'hit'; this.stun = .42; this.play('hit', .04);
@@ -479,6 +487,8 @@ function resolveHit(att, def, h) {
 function keepApart() {
   const min = 1.05, d = P2.group.position.x - P1.group.position.x;   // big heads: keep them from overlapping
   if (Math.abs(d) < min) { const push = (min - Math.abs(d)) / 2 * Math.sign(d || 1); P1.group.position.x -= push; P2.group.position.x += push; }
+  const hd = P2.hipsX() - P1.hipsX();   // bodies, not just roots: leans and spins can carry the hips past the root
+  if (Math.abs(hd) < .95) { const push = (.95 - Math.abs(hd)) / 2 * Math.sign(hd || 1); P1.group.position.x -= push; P2.group.position.x += push; }
   for (const f of [P1, P2]) f.group.position.x = THREE.MathUtils.clamp(f.group.position.x, -6.4, 6.4);
 }
 
@@ -579,7 +589,7 @@ function updateCamera(dt, t) {
   // fit both fighters plus some mat into the frame for this screen shape (portrait phones get a tighter margin)
   const aspect = camera.aspect, narrow = aspect < 1 ? 1 : 0;
   const vt = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), ht = vt * aspect;
-  let dist = Math.max((gap + (narrow ? 3.6 : 7)) / 2 / ht, (narrow ? 2.6 : 3.1) / vt);
+  let dist = Math.max((gap + (narrow ? 2.7 : 7)) / 2 / ht, (narrow ? 2.6 : 3.1) / vt);
   const want = new THREE.Vector3(), look = new THREE.Vector3(mid, 1.4 - narrow * .2, 0);
   if (mode === 'title') { const a = t * .12; dist = narrow ? dist * .95 : 14; want.set(Math.sin(a) * dist * .45, 3.2, Math.cos(a) * .2 * dist + dist * .8); look.set(0, 1.3 + narrow * .4, 0); }
   else if (camMode === 0) want.set(mid, 2.4, dist);
@@ -624,6 +634,7 @@ function tick(dt) {
     setBar('bar1', P1); setBar('bar2', P2);
     updateCamera(dt, simT);
   }
+  if (arena.banner) arena.banner.visible = mode !== 'title';
   petals.update(simT, dt); updateFx(dt);
 }
 function setBar(id, f) { const el = $(id); el.children[1].style.transform = `scaleX(${f.hp / 100})`; el.children[0].style.transform = `scaleX(${f.shownHp / 100})`; }
