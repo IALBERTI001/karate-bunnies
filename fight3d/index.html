@@ -476,7 +476,7 @@ function resolveHit(att, def, h) {
   }
 }
 function keepApart() {
-  const min = .78, d = P2.group.position.x - P1.group.position.x;
+  const min = .8, d = P2.group.position.x - P1.group.position.x;
   if (Math.abs(d) < min) { const push = (min - Math.abs(d)) / 2 * Math.sign(d || 1); P1.group.position.x -= push; P2.group.position.x += push; }
   for (const f of [P1, P2]) f.group.position.x = THREE.MathUtils.clamp(f.group.position.x, -6.4, 6.4);
 }
@@ -492,10 +492,10 @@ function cpu(dt) {
   ai.t = .18 + Math.random() * .22;
   const threatened = foe.state === 'attack' && dist < 2.1;
   if (threatened && Math.random() < .33) { me.input.dir = -me.facing; ai.hold = .45; return; }   // block by holding back
-  if (dist > 1.75) { me.input.dir = me.facing; ai.hold = .25 + Math.random() * .3; return; }
+  if (dist > 1.8) { me.input.dir = me.facing; ai.hold = .25 + Math.random() * .3; return; }
   if (dist < 1.05 && Math.random() < .35) { me.input.dir = -me.facing; ai.hold = .25; return; }
   const r = Math.random();
-  if (r < .5) { const pick = dist < 1.35 ? (Math.random() < .55 ? 'punch' : 'round') : (Math.random() < .6 ? 'kick' : 'spin'); me.startMove(pick); if (pick === 'punch' && Math.random() < .6) setTimeout(() => me.startMove('punch'), 140); }
+  if (r < .5) { const pick = dist < 1.55 ? (Math.random() < .55 ? 'punch' : 'round') : (Math.random() < .6 ? 'kick' : 'spin'); me.startMove(pick); if (pick === 'punch' && Math.random() < .6) setTimeout(() => me.startMove('punch'), 140); }
   else if (r < .7) { me.input.dir = me.facing; ai.hold = .2; }
 }
 
@@ -507,7 +507,7 @@ const CAMS = ['Side', 'Three-quarter', 'Low'];
 function say(text, sub = '', ms = 1100) { ui.call.innerHTML = text + (sub ? `<small>${sub}</small>` : ''); ui.call.classList.add('show'); clearTimeout(say.t); if (ms) say.t = setTimeout(() => ui.call.classList.remove('show'), ms); }
 function startMatch() { wins = [0, 0]; round = 1; startRound(); mode = 'fight'; show('hud'); }
 function startRound() {
-  P1.reset(-1.15); P2.reset(1.15); clock = 60; roundState = 'intro'; roundTimer = 1.6; ui.roundTag.textContent = `Round ${round}`;
+  P1.reset(-1.05); P2.reset(1.05); clock = 60; roundState = 'intro'; roundTimer = 1.6; ui.roundTag.textContent = `Round ${round}`;
   say(`Round ${round}`, 'Ready', 900); setTimeout(() => { if (roundState === 'intro') say('Fight!', '', 700); }, 900);
   updatePips();
 }
@@ -599,7 +599,8 @@ let lastT = performance.now(), simT = 0;
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now;
-  tick(dt); effect.render(scene, camera);
+  if (!window.__kb?.freeze) tick(dt);
+  effect.render(scene, camera);
 }
 function tick(dt) {
   simT += dt;
