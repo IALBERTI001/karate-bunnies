@@ -135,7 +135,8 @@ import { OutlineEffect } from 'three/addons/effects/OutlineEffect.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
 // ---------------------------------------------------------------- data from the Blender bake (export3d.py / moves.json)
-const FPS = 30;
+const FPS = 30;          // the moves were timed at 30 fps
+const SRC_FPS = 24;      // the Blender scene exports clip times at 24 fps: rescaled on load
 const RAMPS = {   // toon ramps from the Blender materials (linear rgb): [shadow, lit, highlight]
   gi:   [[.552,.578,.644],[.905,.896,.855],[1,1,1]],
   fur:  [[.745,.527,.407],[.939,.799,.687],[1,.922,.855]],
@@ -424,8 +425,9 @@ class Fighter {
         if (h.chained && !this.move.chained) continue;
         resolveHit(this, foe, h);
       }
-      const end = M.cut && !this.move.chained ? M.cut : M.range[1];
-      if (f >= end - .01) this.finishMove(M.lead && end === M.range[1]);
+      const last = M.range[0] + this.cur.getClip().duration * FPS;   // subclip ranges are end-exclusive
+      const end = M.cut && !this.move.chained ? M.cut : last;
+      if (f >= end - .01 || !this.cur.isRunning()) this.finishMove(M.lead && end === last);
     } else if (this.state === 'hit') {
       this.stun -= dt; if (this.stun <= 0) { this.state = 'idle'; this.play('idle', .18); }
     } else if (this.state === 'ko' && this.cur && !this.cur.isRunning() && this.curName === 'ko') {
@@ -633,6 +635,7 @@ function onFail(err) { $('loadMsg').textContent = 'Could not load the bunnies. R
 function onModel(g) {
   GLTF = g;
   NAMES = boneNames(g.scene);
+  for (const a of g.animations) { for (const t of a.tracks) for (let i = 0; i < t.times.length; i++) t.times[i] *= SRC_FPS / FPS; a.duration *= SRC_FPS / FPS; }
   const src = Object.fromEntries(g.animations.map(a => [a.name, a]));
   const add = (name, c, loop) => { c.userData.loop = loop; CLIPS[name] = c; const m = mirrorClip(c, NAMES); m.userData = c.userData; CLIPS[name + '_m'] = m; };
   for (const [name, [clip, f0, f1, loop]] of Object.entries(BASIC)) add(name, cut(src[clip], name, f0, f1), loop);
