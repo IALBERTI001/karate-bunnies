@@ -10,12 +10,14 @@
 # Run: W = {'HERE': folder}; exec(open(folder + r'\walk.py').read(), W); W['walk'](F, G)
 import os, math
 exec(open(os.path.join(HERE, 'combo.py')).read(), globals())
+CHAINS = [(('ear_a.L', 'ear_b.L'), 45, 3.5, 0, 45), (('ear_a.R', 'ear_b.R'), 45, 3.5, 0, 45),     # loose ears: dip on the down, flick on the up
+          (('tie1_a', 'tie1_b'), 40, 4.5, 7, 110), (('tie2_a', 'tie2_b'), 34, 4, 7, 110)]
 from mathutils import Vector, Matrix
 
 FPS_STEP = 12            # frames per step
-S = .6                   # step length (heel to heel); .45 read as a crouched shuffle
+S = .68                  # step length (heel to heel): chibi walks need exaggeration (review: 2-3x the adult amplitudes)
 X = .13                  # half track width: the feet land near the centre line, never crossing
-LIFT = .13               # how high the swing foot travels at passing
+LIFT = .16               # how high the swing foot travels at passing
 TOE_UP = -15             # heel strike: toes up (degrees, + = toes down)
 PUSH = 38                # toe-off: the heel is up this far when the foot leaves the floor
 CYCLES = 3
@@ -51,10 +53,10 @@ def foot(L, f, G):
 def body(f):
     w = 2 * math.pi / (2 * FPS_STEP)
     pos = S * f / FPS_STEP - S / 2 + .012 * math.sin(2 * w * (f - 3))               # slight surge: slows on "down", speeds on "up"
-    sink = .065 + .035 * math.cos(2 * w * (f - 3))                                   # lowest 3 frames after contact, highest at "up"; legs near straight at contact
-    wx = .035 * math.cos(w * (f - 6))                                               # over the support foot (L at 6, R at 18)
-    yaw_h = -8 * math.cos(w * f)                                                    # the front leg's hip leads
-    roll_h = 3 * math.cos(w * (f - 6))                                              # the free-leg side of the pelvis dips at passing
+    sink = .088 + .062 * math.cos(2 * w * (f - 3))                                   # a visible bob: deep on "down", up on "up"
+    wx = .08 * math.cos(w * (f - 6))                                               # over the support foot (L at 6, R at 18)
+    yaw_h = -11 * math.cos(w * f)                                                    # the front leg's hip leads
+    roll_h = 5 * math.cos(w * (f - 6))                                              # the free-leg side of the pelvis dips at passing
     arm = math.cos(w * (f - 2))                                                     # arms opposite to the legs, two frames late
     return dict(pos=pos, sink=sink, wx=wx, yaw_h=yaw_h, roll_h=roll_h, arm=arm)
 
@@ -62,11 +64,11 @@ def pose(F, G, f):
     rig = F['rig']; pb = rig.pose.bones; R = G['R']; B = body(f)
     root = Vector((0, -B['pos'], 0))
     lean = 5 + 1.5 * math.cos(4 * math.pi * (f - 9) / (2 * FPS_STEP))               # leans in a touch more on the push
-    spine = (0, -B['roll_h'] * .8, -B['yaw_h'] * .3); chest = (0, 0, -B['yaw_h'] * .9)   # shoulders counter the hips
+    spine = (0, -B['roll_h'] * .8, -B['yaw_h'] * .5); chest = (0, 0, -B['yaw_h'] * .8)   # shoulders counter the hips (~14 deg)
     Rc = R(lean, 0, 0) @ R(*spine) @ R(*chest)
-    e = (Rc.inverted() @ R(0, 0, 0)).to_euler('XYZ')                                  # head level, eyes straight ahead
-    a = B['arm']; A = .21
-    hR = (-.43, -A * a + .02, -.52 + .05 * max(0, a)); hL = (.43, A * a + .02, -.52 + .05 * max(0, -a))   # elbows soft
+    e = (Rc.inverted() @ R(0, 4 * math.cos(2 * math.pi * (f - 7) / (2 * FPS_STEP)), 0)).to_euler('XYZ')   # eyes ahead, a small tilt toward the support foot
+    a = B['arm']; A = .42                                                          # ~35 deg swing: the forward paw reaches the belly line
+    hR = (-.52, -A * a + .04, -.6 + .14 * max(0, a) - .04 * max(0, -a)); hL = (.52, A * a + .04, -.6 + .14 * max(0, -a) - .04 * max(0, a))
     P = dict(G['DEFAULT'], pos=B['pos'], sink=B['sink'], shift=(B['wx'], 0), lean=lean,
              hips=(0, B['roll_h'], B['yaw_h']), spine=spine, chest=chest, head=(math.degrees(e.x), -math.degrees(e.y), math.degrees(e.z)),
              hL=hL, hR=hR, grip=.3, shL=(1.5 * max(0, -a), 6 * -a), shR=(1.5 * max(0, a), 6 * a))
