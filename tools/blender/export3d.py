@@ -107,17 +107,20 @@ def bake(name, F, G):
         _beats_clip(F, G, CB, beats, 44)
         return _store(rig, name, dict(range=[0, 44], loop=[20, 36], lead_switch=False, hits=[], travel=None))
     if name == 'win':
-        # victory: rises out of the guard, rear fist punches the sky BESIDE the head (user, Nov 9: the arm went through the head)
+        # victory: a karate bow (rei), then a proud stance with both fists at the hips. The chibi arm cannot reach above
+        # its big head, so a raised fist always crossed the face from some camera (user, Nov 9: "arms go through the head")
         CB = _ns('combo.py'); GU = CB['GUARD']
         b = lambda **kw: dict(GU, **kw)
+        SIDE = dict(hL=(.46, .04, -.44), hR=(-.46, .04, -.44)); HIPS = dict(hL=(.44, .1, -.28), hR=(-.44, .1, -.28))
         beats = [(0, 'lin', b()),
-                 (4, 'io', b(sink=.16, lean=8, turn=-4, hR=(-.3, -.2, .02))),
-                 (8, 'out', b(sink=-.02, lean=-4, away=6, turn=0, hL=(.36, -.3, .06), hR=(-.7, -.1, .84))),
-                 (12, 'io', b(sink=.02, lean=-2, away=4, turn=0, hL=(.36, -.28, .04), hR=(-.68, -.08, .82))),
-                 (16, 'io', b(sink=.0, lean=-3, away=5, turn=0, hL=(.36, -.28, .06), hR=(-.7, -.1, .84))),
-                 (24, 'io', b(sink=.02, lean=-2, away=4, turn=0, hL=(.36, -.28, .04), hR=(-.68, -.08, .82)))]
-        _beats_clip(F, G, CB, beats, 24)
-        return _store(rig, name, dict(range=[0, 24], loop=[12, 24], lead_switch=False, hits=[], travel=None))
+                 (5, 'io', b(sink=.02, lean=-1, turn=0, **SIDE)),                  # stands, hands to the sides
+                 (11, 'io', b(sink=.08, lean=48, turn=0, **SIDE)),                 # bows deep enough to read (eyes stay up, as in kumite)
+                 (17, 'io', b(sink=0, lean=-2, turn=0, **SIDE)),
+                 (21, 'out', b(sink=.07, lean=-5, away=4, turn=0, **HIPS)),         # fists to the hips: proud
+                 (29, 'io', b(sink=.04, lean=-3, away=3, turn=0, **HIPS)),
+                 (37, 'io', b(sink=.07, lean=-5, away=4, turn=0, **HIPS))]
+        _beats_clip(F, G, CB, beats, 37)
+        return _store(rig, name, dict(range=[0, 37], loop=[21, 37], lead_switch=False, hits=[], travel=None))
     raise KeyError(name)
 
 def bake_visual(rig, act):
