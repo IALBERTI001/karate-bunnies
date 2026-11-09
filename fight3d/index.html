@@ -35,8 +35,9 @@ button:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
 .call.show{transform:scale(1);opacity:1}
 .call small{display:block;font:700 18px system-ui;letter-spacing:.2em;text-transform:uppercase;margin-top:14px;text-shadow:0 2px 0 var(--ink)}
 /* title */
-.title{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:14px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 7vh);text-align:center}
+.title{display:flex;flex-direction:column;justify-content:space-between;padding-top:calc(env(safe-area-inset-top,0px) + 4vh);align-items:center;gap:14px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 7vh);text-align:center}
 .logo{font:700 clamp(46px,9vw,104px)/.92 Georgia,serif;letter-spacing:-.04em;color:var(--cream);text-shadow:0 6px 0 var(--ink),0 0 40px #0009;margin:0}
+.title-foot{display:flex;flex-direction:column;align-items:center;gap:14px}
 .logo em{font-style:normal;color:#f3a6a2}
 .tag3d{display:inline-block;font:800 16px system-ui;letter-spacing:.18em;background:var(--pink);color:var(--ink);border-radius:8px;padding:6px 12px;vertical-align:middle;margin-left:8px;transform:translateY(-.4em) rotate(-4deg);text-shadow:none}
 .sub{font:16px system-ui;color:#f8f1e4d9;max-width:34ch;line-height:1.5;margin:0;text-shadow:0 2px 6px #000c}
@@ -104,10 +105,12 @@ button:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
   </div>
 
   <div class="layer title" id="title" hidden>
-    <h1 class="logo">Karate<br><em>Bunnies</em><span class="tag3d">3D</span></h1>
+    <h1 class="logo">Karate <em>Bunnies</em><span class="tag3d">3D</span></h1>
+    <div class="title-foot">
     <p class="sub">Red belt against blue. Same bunnies, same moves, now in a real 3D dojo.</p>
     <div class="row"><button class="primary" id="startBtn">Fight!</button><button class="secondary" id="titleCam">Camera: Side</button></div>
     <div class="keys"><kbd>A</kbd><kbd>D</kbd> move · <kbd>J</kbd> punch (tap twice) · <kbd>K</kbd> kick · <kbd>L</kbd> roundhouse combo · <kbd>I</kbd> spinning back kick · hold back to block</div>
+    </div>
   </div>
 
   <div class="layer menu" id="pause" hidden>
@@ -479,6 +482,7 @@ function keepApart() {
 // ---------------------------------------------------------------- CPU
 const ai = { t: 0, dir: 0, hold: 0, react: 0 };
 function cpu(dt) {
+  if (window.__kb?.noAI) return;
   const me = P2, foe = P1; ai.t -= dt; ai.hold -= dt;
   const dist = Math.abs(me.group.position.x - foe.group.position.x);
   if (ai.hold <= 0) me.input.dir = 0;
@@ -570,9 +574,9 @@ const camPos = new THREE.Vector3(0, 2, 12), camLook = new THREE.Vector3(0, 1.1, 
 function updateCamera(dt, t) {
   const mid = (P1.group.position.x + P2.group.position.x) / 2, gap = Math.abs(P1.group.position.x - P2.group.position.x);
   const aspect = camera.aspect, narrow = Math.max(0, 1.5 - aspect);   // portrait phones need the camera further back
-  let dist = 15.5 + gap * 1.3 + narrow * 11;
+  let dist = 13 + gap * 1.25 + narrow * 11;
   const want = new THREE.Vector3(), look = new THREE.Vector3(mid, 1.45 + narrow * .5, 0);
-  if (mode === 'title') { const a = t * .12; dist = 14 + narrow * 10; want.set(Math.sin(a) * dist * .45, 3.2, Math.cos(a) * .2 * dist + dist * .8); look.set(0, .4 + narrow * .5, 0); }
+  if (mode === 'title') { const a = t * .12; dist = 14 + narrow * 10; want.set(Math.sin(a) * dist * .45, 3.2, Math.cos(a) * .2 * dist + dist * .8); look.set(0, 1.3 + narrow * .4, 0); }
   else if (camMode === 0) want.set(mid, 2.4, dist);
   else if (camMode === 1) want.set(mid - dist * .5, 3.4, dist * .86);
   else want.set(mid + dist * .2, .9, dist * .8);
@@ -592,8 +596,12 @@ addEventListener('resize', resize);
 let lastT = performance.now(), simT = 0;
 function frame(now) {
   requestAnimationFrame(frame);
-  let dt = Math.min(.05, (now - lastT) / 1000); lastT = now; simT += dt;
-  if (mode === 'paused') { effect.render(scene, camera); return; }
+  const dt = Math.min(.05, (now - lastT) / 1000); lastT = now;
+  tick(dt); effect.render(scene, camera);
+}
+function tick(dt) {
+  simT += dt;
+  if (mode === 'paused') return;
   if (mode === 'fight' && roundState === 'intro') { roundTimer -= dt; if (roundTimer <= 0) roundState = 'fight'; }
   if (mode === 'fight' && roundState === 'fight') {
     P1.input.dir = playerDir();
@@ -610,7 +618,6 @@ function frame(now) {
     updateCamera(dt, simT);
   }
   petals.update(simT, dt); updateFx(dt);
-  effect.render(scene, camera);
 }
 function setBar(id, f) { const el = $(id); el.children[1].style.transform = `scaleX(${f.hp / 100})`; el.children[0].style.transform = `scaleX(${f.shownHp / 100})`; }
 
@@ -637,7 +644,8 @@ function onModel(g) {
   ROOT_TO_MODEL = new THREE.Matrix3().setFromMatrix4(M4);
   P1 = new Fighter('aka', -1.15, 1, 0); P2 = new Fighter('ao', 1.15, -1, 1);
   ui.loading.hidden = true; show('title'); mode = 'title';
-  window.__kb = { P1, P2, CLIPS, startMatch, get mode() { return mode; }, get round() { return roundState; }, setCam: m => { camMode = m; } };
+  window.__kb = { P1, P2, CLIPS, startMatch, get mode() { return mode; }, get round() { return roundState; }, setCam: m => { camMode = m; }, noAI: false,
+    step(sec, fps = 60) { for (let i = 0; i < sec * fps; i++) tick(1 / fps); effect.render(scene, camera); } };
   requestAnimationFrame(t => { lastT = t; frame(t); });
 }
 </script>
