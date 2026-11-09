@@ -26,8 +26,8 @@ button:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
 .pips{display:flex;gap:6px}
 .pip{width:14px;height:14px;border-radius:50%;border:2px solid var(--cream);background:#0005}
 .pip.on{background:var(--pink)}
-.clock{font:700 34px Georgia,serif;min-width:64px;text-align:center;text-shadow:0 3px 0 #0008;line-height:1}
-.round-tag{font:700 14px system-ui;letter-spacing:.14em;text-transform:uppercase;text-align:center;opacity:.85}
+.clock{font:700 30px Georgia,serif;min-width:64px;text-align:center;line-height:1;background:#141a2ae6;border:2px solid var(--cream);border-radius:12px;padding:6px 10px 4px}
+.round-tag{font:700 14px system-ui;letter-spacing:.14em;text-transform:uppercase;text-align:center;margin-top:6px;text-shadow:0 2px 3px #000}
 .iconbtn{width:44px;height:44px;border-radius:50%;background:#fff1;color:var(--cream);border:2px solid #fff5;font:700 16px system-ui;display:grid;place-items:center}
 .top-actions{position:absolute;top:calc(env(safe-area-inset-top,0px) + 74px);right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:8px}
 /* centre call */
@@ -286,9 +286,19 @@ function gradient(levels) {   // toon ramp as light levels; the shade level is t
 }
 const lum = c => .2126 * c[0] + .7152 * c[1] + .0722 * c[2];
 function toon(ramp) {
-  const lit = ramp[1], amb = .16, dir = .86;
-  const shade = Math.max(0, (lum(ramp[0]) / lum(lit) - amb) / dir), hi = ramp[2] ? Math.min(1.3, (lum(ramp[2]) / lum(lit) - amb) / dir) : 0;
-  return new THREE.MeshToonMaterial({ color: lin(lit), gradientMap: gradient([shade, 1, hi]) });
+  // the gradient only sorts each pixel into shadow / lit / highlight; the colours come straight from the Blender ramp,
+  // so shadows stay warm and saturated (multiplying one colour made them grey)
+  const m = new THREE.MeshToonMaterial({ color: lin(ramp[1]), gradientMap: gradient([.25, 1, ramp[2] ? 1.25 : 0]) });
+  const U = { uShade: { value: lin(ramp[0]) }, uLit: { value: lin(ramp[1]) }, uHi: { value: lin(ramp[2] || ramp[1]) } };
+  m.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, U);
+    sh.fragmentShader = 'uniform vec3 uShade; uniform vec3 uLit; uniform vec3 uHi;\n' + sh.fragmentShader.replace('#include <opaque_fragment>', `
+      float kbL = dot(outgoingLight, vec3(.2126, .7152, .0722)) / max(dot(diffuseColor.rgb, vec3(.2126, .7152, .0722)), 1e-4);
+      outgoingLight = kbL < .62 ? uShade : (kbL > 1.12 ? uHi : uLit);
+      #include <opaque_fragment>`);
+  };
+  m.customProgramCacheKey = () => 'kbtoon';
+  return m;
 }
 function materialsFor(team) {
   const cache = {};
@@ -560,12 +570,12 @@ const camPos = new THREE.Vector3(0, 2, 12), camLook = new THREE.Vector3(0, 1.1, 
 function updateCamera(dt, t) {
   const mid = (P1.group.position.x + P2.group.position.x) / 2, gap = Math.abs(P1.group.position.x - P2.group.position.x);
   const aspect = camera.aspect, narrow = Math.max(0, 1.5 - aspect);   // portrait phones need the camera further back
-  let dist = 8.2 + gap * 1.15 + narrow * 6.5;
-  const want = new THREE.Vector3(), look = new THREE.Vector3(mid, 1.15 + narrow * .35, 0);
-  if (mode === 'title') { const a = t * .12; dist = 7.4 + narrow * 6; want.set(Math.sin(a) * dist * .6, 1.9, Math.cos(a) * .3 * dist + dist * .75); look.set(0, 1.2 + narrow * .3, 0); }
-  else if (camMode === 0) want.set(mid, 1.75, dist);
-  else if (camMode === 1) want.set(mid - dist * .52, 2.5, dist * .84);
-  else want.set(mid + dist * .18, .75, dist * .78);
+  let dist = 15.5 + gap * 1.3 + narrow * 11;
+  const want = new THREE.Vector3(), look = new THREE.Vector3(mid, 1.45 + narrow * .5, 0);
+  if (mode === 'title') { const a = t * .12; dist = 14 + narrow * 10; want.set(Math.sin(a) * dist * .45, 3.2, Math.cos(a) * .2 * dist + dist * .8); look.set(0, .4 + narrow * .5, 0); }
+  else if (camMode === 0) want.set(mid, 2.4, dist);
+  else if (camMode === 1) want.set(mid - dist * .5, 3.4, dist * .86);
+  else want.set(mid + dist * .2, .9, dist * .8);
   const k = 1 - Math.exp(-dt * 4);
   camPos.lerp(want, k); camLook.lerp(look, k);
   camera.position.copy(camPos);
