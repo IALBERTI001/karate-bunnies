@@ -65,7 +65,8 @@ button:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
 .loading span{display:block;font:16px system-ui;color:#f8f1e4b3;margin-top:8px;text-align:center}
 .hint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);text-align:center;pointer-events:none}
 @media (pointer:coarse){.keys{display:none}}
-@media (pointer:fine){.pad{display:none}}
+@media (pointer:fine){.pad,.pad.right{display:none}}
+@media (pointer:coarse){.act span{display:none}}
 @media (max-width:560px){.bar{height:14px}.clock{font-size:28px;min-width:48px}.nameplate{font-size:15px}.dir{width:66px;height:66px}.act{width:68px;height:68px;font-size:14px}.act span{display:none}}
 @media (orientation:landscape) and (max-height:500px){.hud{padding-top:6px}.top-actions{top:calc(env(safe-area-inset-top,0px) + 58px)}.dir{width:62px;height:62px}.act{width:62px;height:62px}.pad.right{gap:8px}.title{padding-bottom:16px;gap:10px}.logo{font-size:52px}}
 </style>
@@ -476,7 +477,7 @@ function resolveHit(att, def, h) {
   }
 }
 function keepApart() {
-  const min = .8, d = P2.group.position.x - P1.group.position.x;
+  const min = 1.05, d = P2.group.position.x - P1.group.position.x;   // big heads: keep them from overlapping
   if (Math.abs(d) < min) { const push = (min - Math.abs(d)) / 2 * Math.sign(d || 1); P1.group.position.x -= push; P2.group.position.x += push; }
   for (const f of [P1, P2]) f.group.position.x = THREE.MathUtils.clamp(f.group.position.x, -6.4, 6.4);
 }
